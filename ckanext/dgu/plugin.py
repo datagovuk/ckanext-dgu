@@ -185,6 +185,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/viz/upload', controller=data_controller, action='viz_upload')
         map.connect('/', controller=data_controller, action='home')
 
+
         map.connect('/data/contracts-finder-archive{relative_url:.*}', controller=data_controller, action='contracts_archive')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'

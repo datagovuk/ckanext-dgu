@@ -14,19 +14,23 @@
 {% block primary_content_inner %}
 
   <div class="home col-md-12">
-    <h3 class="search-heading">The best place to find and download government data</h3>
 
     {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
 
       {{ m.search_form(mini=false) }}
 
-    <p>Find out more <a href="/about">about data.gov.uk</a></p>
+    <p>Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
 
     <h3 class="themes-heading">Browse by theme</h3>
 
     <ul class="inline" style="text-align: center;">
-      {% for theme in themes %}
-        <li><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></li>
+
+
+      {% for theme, theme_description in themes %}
+        <li>
+          <h4><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></h4>
+          <p>{{ theme_description }}</p>
+        </li>
       {% endfor %}
     </ul>
 

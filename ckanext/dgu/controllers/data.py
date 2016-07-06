@@ -15,7 +15,8 @@ from ckan.lib.helpers import flash_success, flash_error
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h, redirect
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
-from ckanext.dgu.lib.home import get_latest_blog_posts
+from ckanext.dgu.lib.home import get_themes
+
 
 log = logging.getLogger(__name__)
 
@@ -38,39 +39,9 @@ class DataController(BaseController):
                 raise
 
     def home(self):
-        # Get the themes from ckanext-taxonomy
-        context = {'model': model}
-        try:
-            terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
-        except sqlalchemy.exc.OperationalError, e:
-            if 'no such table: taxonomy' in str(e):
-                model.Session.remove()  # clear the erroring transaction
-                raise ImportError('ckanext-taxonomy tables not setup')
-            raise
-        themes = [t['label'] for t in terms]
-
-        # Get the dataset count using search
-        from ckan.lib.search import SearchError, SearchQueryError
-        context = {'model': model, 'session': model.Session,
-                   'user': c.user or c.author, 'for_view': True,
-                   'auth_user_obj': c.userobj}
-        data_dict = {
-                'q': '*:*',
-                'fq': '+dataset_type:dataset',
-                #'facet.field': facets.keys(),
-                'rows': 0,
-            }
-        query = get_action('package_search')(context, data_dict)
-
-        # Get the latest blog posts
-        blogs = get_latest_blog_posts()
-
         extra_vars = dict(
-            themes=themes,
-            num_datasets=query['count'],
-            blogs=blogs
+            themes=get_themes()
             )
-
         return render('data/home.html', extra_vars=extra_vars)
 
     def linked_data_admin(self):
