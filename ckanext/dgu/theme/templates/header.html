@@ -1,11 +1,12 @@
-{% if c.userobj %}
-  <div id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
-    <div class="toolbar-menu clearfix">
-      <ul id="toolbar-home">
-        <li class="home first last">
-          <a href="/" title="Home"><span class="home-link">Home</span></a>
-        </li>
-      </ul>
+{# user bar needs to be separate, so that it is the same as in Drupal #}
+<div id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+  <div class="toolbar-menu clearfix">
+    <ul id="toolbar-home" style="display: none">
+      <li class="home first last">
+        <a href="/" title="Home"><span class="home-link">Home</span></a>
+      </li>
+    </ul>
+    {% if c.userobj %}
       <ul id="toolbar-user">
         <li class="account first">
           <a href="/user" title="User account">Hello <strong>{{c.userobj.display_name}}</strong></a>
@@ -22,11 +23,20 @@
           </a>
         </li>
       </ul>
-    </div>
-    <div class="toolbar-drawer clearfix">
-    </div>
+    {% else %}
+      <ul id="toolbar-user">
+        <li class="account first">
+          <a href="{{ h.user_page_url() }}" title="Log in">Log in</a>
+        </li>
+        <li class="logout last">
+          <a href="{{ h.user_page_url(register=True) }}">Register</a>
+        </li>
+      </ul>
+    {% endif %}
   </div>
-{% endif %}
+  <div class="toolbar-drawer clearfix">
+  </div>
+</div>
 
   <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
     <div class="container">
@@ -46,14 +56,6 @@
               <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
             </span>
           </form>
-        </div>
-
-        <div class="text-links-rhs">
-        {% if not c.userobj %}
-          <a class="nav-user" href="{{ h.user_page_url() }}">Log in</a>
-          <a class="nav-user" href="{{ h.user_page_url(register=True) }}">Register</a>
-        {% endif %}
-        {# else #}
         </div>
 
         {% if c.userobj and h.check_access('package_create') %}
