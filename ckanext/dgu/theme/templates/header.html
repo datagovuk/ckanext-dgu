@@ -48,7 +48,13 @@
           </form>
         </div>
 
-        <a class="nav-user btn btn-primary" href="{{ h.user_page_url() }}"><i class="icon-user"></i></a>
+        <div class="text-links-rhs">
+        {% if not c.userobj %}
+          <a class="nav-user" href="{{ h.user_page_url() }}">Log in</a>
+          <a class="nav-user" href="{{ h.user_page_url(register=True) }}">Register</a>
+        {% endif %}
+        {# else #}
+        </div>
 
         {% if c.userobj and h.check_access('package_create') %}
           {# Publisher dropdown #}
