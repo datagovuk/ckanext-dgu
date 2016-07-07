@@ -23,4 +23,9 @@ def get_themes():
             raise ImportError('ckanext-taxonomy tables not setup')
         raise
 
-    return [(t['label'], t['extras']['short_description']) for t in terms]
+    def gds_style(name):
+        # only first word can be capitalized
+        return name.replace('&', 'and').replace('Economy', 'economy').replace('Justice', 'justice').replace('Spending', 'spending').replace('Cities', 'cities')
+
+    return [(gds_style(t['label']), t['extras']['short_description'])
+            for t in terms]
