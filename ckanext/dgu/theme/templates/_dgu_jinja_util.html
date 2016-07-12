@@ -113,11 +113,11 @@
             <input class="form-control" type="text" name="q" value="{{c.q}}" results="0" placeholder="{{placeholder}}" />
             <span class="input-group-btn">
               <button type="submit" class="btn btn-default">
-                {{ if mini }}
+                {% if mini %}
                   <img src="/images/icon_search_333_28.png" class="icon-img" style="height: 14px;"/>
-                {{ else }}
+                {% else %}
                   <img src="/images/icon_search_333_50.png" class="icon-img" style="height: 25px;"/>
-                {{ endif }}
+                {% endif %}
                 }
               </button>
             </span>
