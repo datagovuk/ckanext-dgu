@@ -17,9 +17,23 @@
 
     {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
 
-      {{ m.search_form(mini=false, placeholder='Search for data') }}
+    <div class="prime">
 
-    <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
+      {# Search box with number of datasets
+        {{ m.search_form(mini=false, placeholder='Search for data') }}
+      #}
+
+      <form class="site-search" action="/search" method="get" role="search">
+        <div class="header-search-content">
+          <label for="search-main">Search for data</label>
+          <input type="search" name="q" id="search-main" title="Search">
+          <input class="submit btn-primary" type="submit" value="Search">
+        </div>
+      </form>
+
+      <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
+
+    </div>
 
     {% macro theme_items(themes) %}
       {% for theme, theme_description in themes[:] %}

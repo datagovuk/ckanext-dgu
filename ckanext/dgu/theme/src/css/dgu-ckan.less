@@ -960,6 +960,70 @@ body#home-page {
       margin-bottom: 30px;
     }
   }
+
+  /* Search box */
+  div.prime {
+    @media (min-width: 768px) {
+        width: calc(~"66.666% - 15px");
+      }
+  }
+  .header-search-content {
+    position: relative;
+    background: #fff;
+  }
+  label {
+    float: none;
+    position: absolute;
+    left: 0;
+    top: 1px;
+    z-index: 1;
+    width: 100%;
+    margin-right: 0;
+    height: 40px;
+    line-height: 40px;
+    text-indent: 15px;
+    overflow: hidden;
+    display: block;
+    color: #6f777b;
+    font-family: 'Open Sans',Helvetica Neue,Helvetica;
+    font-weight: normal;
+    font-size: 16pt;
+    font-smooth: always;
+    -webkit-font-smoothing: antialiased;
+
+  }
+  input#search-main {
+    width: calc(~"100% - 37px");
+    font-size: 19px;
+    line-height: 28px;
+    position: relative;
+    padding: 6px;
+    z-index: 3;
+    background: transparent;
+    border: 0;
+  }
+  input.submit {
+    background-size: 52.5px 35px;
+    background-position: 115% 50%;
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 40px;
+    border: 1px solid;
+    border-width: 0 0 0 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    overflow: hidden;
+    /* Hide the word 'Search' */
+    text-indent: -5000px;
+    cursor: pointer;
+    color: #fff;
+    background: #8bc658 url(https://assets.publishing.service.gov.uk/frontend/homepage/search-button-085aa82ff641b5cfb3eb090c888459f96be271efe9c1d98a73c8a181202d9063.png) no-repeat 2px 50%;
+  }
+
   p.about {
     font-size: 20px;
     line-height: 33px;
