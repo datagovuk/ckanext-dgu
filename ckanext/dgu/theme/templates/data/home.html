@@ -13,7 +13,7 @@
 
 {% block primary_content_inner %}
 
-  <div class="home col-md-12">
+  <div class="home">
 
     {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
 
@@ -29,15 +29,17 @@
         </li>
       {% endfor %}
     {% endmacro %}
-    <ul class="theme-list">
-        {{ theme_items(themes[:4]) }}
-    </ul>
-    <ul class="theme-list">
-        {{ theme_items(themes[4:8]) }}
-    </ul>
-    <ul class="theme-list">
-        {{ theme_items(themes[8:]) }}
-    </ul>
+    <div class="row"/>
+      <ul class="theme-list">
+          {{ theme_items(themes[:4]) }}
+      </ul>
+      <ul class="theme-list">
+          {{ theme_items(themes[4:8]) }}
+      </ul>
+      <ul class="theme-list">
+          {{ theme_items(themes[8:]) }}
+      </ul>
+    </div>
 
     {# ensures a margin before the footer #}
     <div class="clearfix"></div>
