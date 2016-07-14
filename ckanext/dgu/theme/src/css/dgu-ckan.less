@@ -979,12 +979,12 @@ body#home-page {
     z-index: 1;
     width: 100%;
     margin-right: 0;
-    height: 40px;
-    line-height: 40px;
+    height: 55px;
+    line-height: 55px;
     text-indent: 15px;
     overflow: hidden;
     display: block;
-    color: #6f777b;
+    color: #333;
     font-family: 'Open Sans',Helvetica Neue,Helvetica;
     font-weight: normal;
     font-size: 16pt;
@@ -994,6 +994,7 @@ body#home-page {
   }
   input#search-main {
     width: calc(~"100% - 37px");
+    height: 55px;
     font-size: 19px;
     line-height: 28px;
     position: relative;
@@ -1001,6 +1002,21 @@ body#home-page {
     z-index: 3;
     background: transparent;
     border: 0;
+    @media (max-width: 767px) {
+      border: 1px solid #a2a2a2;
+      border-right-width: 0;
+    }
+  }
+  input#search-main:focus {
+    outline: 3px solid #8bc658;
+    background: #fff;
+    /* make the outline solid on chrome */
+    box-shadow: 0px 0px 0px;
+  }
+  input#search-main.focus{
+    background: #fff;
+    /* make the outline solid on chrome */
+    box-shadow: 0px 0px 0px;
   }
   input.submit {
     background-size: 52.5px 35px;
@@ -1009,8 +1025,8 @@ body#home-page {
     z-index: 4;
     right: 0;
     top: 0;
-    width: 40px;
-    height: 40px;
+    width: 55px;
+    height: 55px;
     border: 1px solid;
     border-width: 0 0 0 0;
     -webkit-border-radius: 0;
@@ -1021,7 +1037,8 @@ body#home-page {
     text-indent: -5000px;
     cursor: pointer;
     color: #fff;
-    background: #8bc658 url(https://assets.publishing.service.gov.uk/frontend/homepage/search-button-085aa82ff641b5cfb3eb090c888459f96be271efe9c1d98a73c8a181202d9063.png) no-repeat 2px 50%;
+    background: #8bc658 url(/images/icons/search-fff-46.png) no-repeat 14px 50%;
+    background-size: 50%;
   }
 
   p.about {
@@ -1059,7 +1076,7 @@ body#home-page {
     }
     p {
       font-size: 16px;
-      line-height: 1.25;
+      line-height: 1.6;
     }
   }
 
