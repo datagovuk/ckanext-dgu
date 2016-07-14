@@ -1037,8 +1037,11 @@ body#home-page {
     text-indent: -5000px;
     cursor: pointer;
     color: #fff;
-    background: #8bc658 url(/images/icons/search-fff-46.png) no-repeat 14px 50%;
-    background-size: 50%;
+    background: #8bc658 url(/images/icons/search-fff-46-pair.png) no-repeat 0px 50%;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2), not all, not all, not all, only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+      background-size: 82.5px 55px;
+      background-position: 100% 50%;
+    }
   }
 
   p.about {
