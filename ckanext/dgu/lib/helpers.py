@@ -2033,7 +2033,7 @@ def user_page_url():
     from ckan.lib.base import h
     url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
                   else h.url_for(controller='user', action='me')
-    if not c.user:
+    if not c.user and request.path != '/':
         url += '?destination=%s' % request.path[1:]
     return url
 
