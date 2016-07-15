@@ -963,6 +963,10 @@ body#home-page {
 
   /* Search box */
   div.prime {
+    width: 66%;  /* fallback for browsers without support for @media or calc() */
+    @media (min-width: 0) {
+      width: auto;
+    }
     @media (min-width: 768px) {
         width: calc(~"66.666% - 15px");
       }
@@ -993,6 +997,7 @@ body#home-page {
 
   }
   input#search-main {
+    width: 86%;  /* fallback for browsers without support for calc() */
     width: calc(~"100% - 55px");
     height: 55px;
     font-size: 19px;
@@ -1058,6 +1063,12 @@ body#home-page {
   ul.theme-list {
     padding: 0 15px;
     list-style: none;
+    width: 33%;  /* fallback for browsers without support for @media */
+    float: left;    /* fallback for browsers without support for @media */
+    @media (min-width: 0px) {
+      width: auto;
+      float: none;
+    }
     @media (min-width: 768px) {
       width: 33.33333%;
       float: left;

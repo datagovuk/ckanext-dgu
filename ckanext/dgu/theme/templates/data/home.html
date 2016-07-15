@@ -36,9 +36,9 @@
     </div>
 
     {% macro theme_items(themes) %}
-      {% for theme, theme_description in themes[:] %}
+      {% for theme, theme_name, theme_description in themes[:] %}
         <li class="theme">
-          <h4><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></h4>
+          <h4><a href="/data/search?theme-primary={{ theme_name|urlencode }}">{{ theme }}</a></h4>
           <p>{{ theme_description }}</p>
         </li>
       {% endfor %}

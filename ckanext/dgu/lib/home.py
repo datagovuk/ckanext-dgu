@@ -27,5 +27,6 @@ def get_themes():
         # only first word can be capitalized
         return name.replace('&', 'and').replace('Economy', 'economy').replace('Justice', 'justice').replace('Spending', 'spending').replace('Cities', 'cities')
 
-    return [(gds_style(t['label']), t['extras']['short_description'])
+    return [(gds_style(t['label']), t['label'],
+             t['extras']['short_description'])
             for t in terms]
