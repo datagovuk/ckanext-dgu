@@ -15,25 +15,43 @@
 
   <div class="home">
 
-    {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
+    {# <h3>Search {{ "{:,}".format(num_datasets) }} Datasets</h3> #}
 
-    <div class="prime">
+    <div class="row"/>
+      <div class="prime-left">
 
-      {# Search box with number of datasets
-        {{ m.search_form(mini=false, placeholder='Search for data') }}
-      #}
+        {# Search box with number of datasets #}
+        {% if request.params.get('v') == '3' %}
+          {{ m.search_form(mini=false, placeholder='Search for data') }}
+        {% endif %}
 
-      <form class="site-search" action="/data/search" method="get" role="search">
-        <div class="header-search-content">
-          <label for="search-main">Search for data</label>
-          <input type="search" name="q" id="search-main" class="js-search-focus" title="Search">
-          <input class="submit btn-primary" type="submit" value="Search">
+        {% if request.params.get('v', '1') in ('1', '2') %}
+        <form class="site-search" action="/data/search" method="get" role="search">
+          <div class="header-search-content">
+            <label for="search-main">Search for data</label>
+            <input type="search" name="q" id="search-main" class="js-search-focus" title="Search">
+            <input class="submit btn-primary" type="submit" value="Search">
+          </div>
+        </form>
+        {% endif %}
+
+        <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
+
+      </div>
+
+      {% if request.params.get('v') == '2' %}
+      <div class="prime-right">
+        <div class="stats">
+          <a href="/data/search">
+            <span class="count">{{ "{:,}".format(num_datasets) }}</span>
+            <strong>datasets</strong>
+          </a>
         </div>
-      </form>
-
-      <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
-
+      </div>
+      {% endif %}
     </div>
+
+    <h1>Browse data by theme</h1>
 
     {% macro theme_items(themes) %}
       {% for theme, theme_name, theme_description in themes[:] %}

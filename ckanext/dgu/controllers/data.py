@@ -42,6 +42,8 @@ class DataController(BaseController):
         extra_vars = {}
 
         # Get the dataset count using search
+        # (shouldn't cache, as it makes it more likely to be out of sync with
+        # the data page)
         from ckan.lib.search import SearchError, SearchQueryError
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'for_view': True,

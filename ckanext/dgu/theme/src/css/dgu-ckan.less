@@ -961,16 +961,51 @@ body#home-page {
     }
   }
 
-  /* Search box */
-  div.prime {
-    width: 66%;  /* fallback for browsers without support for @media or calc() */
+  /* Layout including search box */
+  div.prime-left {
+    width: 66%;  /* fallback for browsers without support for @media */
     @media (min-width: 0) {
       width: auto;
     }
     @media (min-width: 768px) {
-        width: calc(~"66.666% - 15px");
+        width: 66.666%;
       }
+    float: left;
+    padding: 0 15px;
   }
+  div.prime-right {
+    width: 33%;  /* fallback for browsers without support for @media */
+    @media (min-width: 0) {
+      width: auto;
+    }
+    @media (min-width: 768px) {
+        width: 33.333%;
+      }
+    float: left;
+    padding: 0 15px 30px 15px;
+  }
+
+  /* Search box DGU-style */
+  .search-area .left {
+    width: 73%;
+  }
+  .search-area .right {
+    width: 27%;
+  }
+  ::-webkit-input-placeholder {
+    color: #333;
+  }
+  :-moz-placeholder { /* Firefox 18- */
+    color: #333;
+  }
+  ::-moz-placeholder {  /* Firefox 19+ */
+   color: #333;
+  }
+  :-ms-input-placeholder {
+   color: #333;
+  }
+
+  /* Search box GDS-style */
   .header-search-content {
     position: relative;
     background: #fff;
@@ -990,8 +1025,8 @@ body#home-page {
     display: block;
     color: #333;
     font-family: 'Open Sans',Helvetica Neue,Helvetica;
-    font-weight: normal;
-    font-size: 16pt;
+    font-weight: 500;
+    font-size: 20pt;
     font-smooth: always;
     -webkit-font-smoothing: antialiased;
 
@@ -1049,6 +1084,19 @@ body#home-page {
     }
   }
 
+  /* Stat */
+  div.stats {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  div.stats a {
+    text-decoration: none;
+  }
+  span.count {
+    font-size: 48px;
+    line-height: 1.04167;
+  }
+
   p.about {
     font-size: 20px;
     line-height: 33px;
@@ -1057,6 +1105,12 @@ body#home-page {
     @media (min-width: 641px) {
       margin-bottom: 50px;
     }
+  }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: 500;
+    font-family: 'Open Sans',Helvetica Neue,Helvetica;
   }
 
   /* Themes */

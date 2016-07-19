@@ -28,7 +28,7 @@
   </div>
 {% endif %}
 
-  {% set url=c.environ.get('CKAN_CURRENT_URL') %}
+  {% set url=request.path %}
   {% set is_home=url=='/' %}
   <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
     <div class="container">
