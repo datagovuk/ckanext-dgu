@@ -1,11 +1,6 @@
-{# user bar needs to be separate, so that it is the same as in Drupal #}
+{# user bar needs to be separate, so that for sysadmins Drupal can replace it with its fancy one #}
 <div id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
   <div class="toolbar-menu clearfix">
-    <ul id="toolbar-home" style="display: none">
-      <li class="home first last">
-        <a href="/" title="Home"><span class="home-link">Home</span></a>
-      </li>
-    </ul>
     {% if c.userobj %}
       <ul id="toolbar-user">
         <li class="account first">
@@ -73,7 +68,7 @@
                 <li><a href="{{ h.url_for('publisher_new') }}">Add a Publisher</a></li>
               {% endif %}
               <li><a href="{{ h.url_for('harvest') }}">Dataset Harvesting</a></li>
-              <li><a href="http://guidance.data.gov.uk/">Guidance</a></li>
+              <li><a href="http://guidance.data.gov.uk/" target="_blank">Guidance</a></li>
 
               <li role="presentation" class="dropdown-header">My publishers</li>
               {% for group in h.groups_for_current_user() %}
