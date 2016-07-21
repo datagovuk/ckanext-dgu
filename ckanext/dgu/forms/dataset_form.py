@@ -236,7 +236,6 @@ class DatasetForm(p.SingletonPlugin):
             'date_released': [ignore_missing, date_to_db, convert_to_extras],
             'date_updated': [ignore_missing, date_to_db, convert_to_extras],
             'date_update_future': [ignore_missing, date_to_db, convert_to_extras],
-            'last_major_modification': [ignore_missing, date_to_db, convert_to_extras],
             'update_frequency': [ignore_missing, use_other, unicode, convert_to_extras],
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
@@ -298,6 +297,7 @@ class DatasetForm(p.SingletonPlugin):
             # we do the work in __after.
             'resources': resources_schema(),
 
+            '__before': [fold_in_schema_codelist_if_a_sub_dict],
             '__extras': [ignore],
             '__junk': [empty],
             '__after': [validate_license, remove_blank_resources, validate_resources, merge_resources]
@@ -308,7 +308,6 @@ class DatasetForm(p.SingletonPlugin):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],
             'date_updated': [convert_from_extras, ignore_missing, date_to_form],
-            'last_major_modification': [convert_from_extras, ignore_missing, date_to_form],
             'date_update_future': [convert_from_extras, ignore_missing, date_to_form],
             'update_frequency': [convert_from_extras, ignore_missing, extract_other(update_frequency)],
             'precision': [convert_from_extras, ignore_missing],
@@ -545,13 +544,49 @@ def id_to_dict(key, data, errors, context):
             raise Invalid('%s id does not exist: %s' % (key, id_))
         data[key][i] = obj.as_dict()
 
+def fold_in_schema_codelist_if_a_sub_dict(key, data, errors, context):
+    '''If round-tripping a dataset via the API then the schema/codelist will be
+    a dict, rather than the expected single value. The form_to_db schema
+    doesn't expect this and has put them in __junk, so convert this to just
+    the id/title.
+
+    e.g.
+    data[('__junk',)] =
+      {('schema', 0, 'id'): u'859dc8de-fa73-4f84-92a8-b52ca19d957e',
+       ('schema', 0, 'url'): u'http://schema',
+       ('schema', 0, 'title'): u'organogram schema'}
+    ->
+    data[('schema',)] = [u'859dc8de-fa73-4f84-92a8-b52ca19d957e']
+    '''
+    junk = data.get(('__junk',))
+    if not junk:
+        return
+    for schema_codelist in ('schema', 'codelist'):
+        i = 0
+        while True:
+            # find the id or title
+            key = (schema_codelist, i, 'id')
+            if key not in junk:
+                key = (schema_codelist, i, 'title')
+                if key not in junk:
+                    break
+            # add it to the data in the expected place
+            if data.get((schema_codelist,)) == missing:
+                data[(schema_codelist,)] = []
+            data[(schema_codelist,)].append(junk[key])
+            # remove it from junk
+            for field in ('id', 'url', 'title'):
+                key = (schema_codelist, i, field)
+                if key in junk:
+                    del junk[key]
+
 def schema_codelist_validator(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
     for i, schema_ref in enumerate(data[key]):
         if not schema_ref:
             # drop-down has no selection - ignore
             continue
-        # form gives an ID. API might give a title.
+        # form gives an ID. API might give a title or a complete dict
         if key == ('schema',):
             obj = Schema.get(schema_ref) or Schema.by_title(schema_ref) or \
                     Schema.by_url(schema_ref)

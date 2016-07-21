@@ -10,8 +10,85 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.logic import get_action
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests import TestSearchIndexer
+from ckan.new_tests import factories
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
+import ckanext.dgu.tests.factories as dgu_factories
+from ckanext.dgu.tests.functional.base import DguFunctionalTestBase
 import ckan.lib.search as search
+
+
+class TestRoundTripWsgi(ControllerTestCase):
+    '''Test getting and saving a dataset, using WSGI'''
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def test_basic_dataset(self):
+        DguCreateTestData.create_dgu_test_data()
+        pkg_name = DguCreateTestData.form_package().name
+        extra_environ_editor = {
+            'Authorization': str(model.User.by_name('nhseditor').apikey)}
+
+        result = self.app.get('/api/action/package_show?id=%s' % pkg_name,
+                              status=200)
+        pkg = json.loads(result.body)['result']
+        postparams = '%s=1' % json.dumps(pkg)
+        result = self.app.post('/api/action/package_update',
+                               postparams, status=[200],
+                               extra_environ=extra_environ_editor)
+
+class TestRoundTrip(DguFunctionalTestBase):
+    '''Test getting and saving a dataset, using action calls'''
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def test_basic_dataset(self):
+        DguCreateTestData.create_dgu_test_data()
+        pkg_name = DguCreateTestData.form_package().name
+        context = {'model': model, 'session': model.Session,
+                   'user': 'nhseditor'}
+
+        pkg = get_action('package_show')(context, {'id': pkg_name})
+        get_action('package_update')(context, pkg)
+
+    def test_organogram_dataset(self):
+        user = factories.User()
+        user['capacity'] = 'editor'
+        org = factories.Organization(name='department-for-education',
+                                     category='ministerial-department',
+                                     users=[user])
+        schema = dgu_factories.SchemaObj(title='organogram schema')
+        pkg = {
+            "name":"organogram-department-of-education",
+            "title": "Organogram of Staff Roles & Salaries",
+            "owner_org": "department-for-education",
+            "license_id": "uk-ogl",
+            "notes": "Organogram (organisation chart) showing all staff roles",
+             "tags": [{"name": "organograms"}],
+             "schema": ["organogram schema"],
+             "extras": [
+                {"key": "geographic_coverage","value": "111100: United Kingdom"
+                 " (England, Scotland, Wales, Northern Ireland)"},
+                {"key": "mandate", "value": "https://www.gov.uk/government/"
+                 "news/letter-to-government-departments-on-opening-up-data"},
+                {"key": "update_frequency", "value": "biannually"},
+                {"key": "temporal_coverage-from", "value": "2010"},
+                {"key": "theme-primary", "value": "Government Spending"},
+                {"key": "import_source", "value": "organograms_v2"}
+             ]
+        }
+        factories.Dataset(**pkg)
+        context = {'model': model, 'session': model.Session,
+                   'user': user['name']}
+
+        pkg = get_action('package_show')(context, {'id': pkg['name']})
+        print 'UPDATE'
+        new_pkg = get_action('package_update')(context, pkg)
+
+        assert_equal(new_pkg['schema'], pkg['schema'])
+
 
 class TestRestApi(ControllerTestCase):
     @classmethod

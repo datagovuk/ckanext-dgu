@@ -70,12 +70,6 @@ def reqd_dataset_fields(org):
 
 class TestPackageForm(DguFunctionalTestBase):
 
-    @classmethod
-    def setup_class(self):
-        import ckanext.dgu.model.schema_codelist as s_model
-        s_model.init_tables(model.meta.engine)
-        super(DguFunctionalTestBase, self).setup_class()
-
     def test_form_renders(self):
         app = self._get_test_app()
         env, response = _get_package_new_page(app)
