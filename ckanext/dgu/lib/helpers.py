@@ -1458,6 +1458,10 @@ def init_resources_for_nav():
             c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
                 additional_resources() + gemini_resources()
 
+def is_dataset_organogram(pkg_extras):
+    extras = dict(pkg_extras)
+    return extras.get('import_source') == 'organograms_v2'
+
 def was_dataset_harvested(pkg_extras):
     extras = dict(pkg_extras)
     # NB hopefully all harvested resources will soon use import_source=harvest

@@ -6,11 +6,11 @@ from ckanext.dgu.lib import helpers as dgu_helpers
 def dgu_package_update(context, data_dict):
     model = context['model']
     user = context.get('user')
-    user_obj = model.User.get( user )
+    user_obj = model.User.get(user)
     package = get_package_object(context, data_dict)
 
     # Allow sysadmins to edit anything
-    # This includes UKLP harvested datasets.
+    # This includes UKLP harvested and organogram datasets.
     #   Note: the harvest user *is* a sysadmin
     #   Note: if changing this, check the code and comments in
     #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
@@ -21,7 +21,14 @@ def dgu_package_update(context, data_dict):
     # average admin/editor because changes will be overwritten on next harvest.
     if dgu_helpers.was_dataset_harvested(package.extras):
         return {'success': False,
-                'msg': _('User %s not authorized to edit harvested datasets') % str(user)}
+                'msg': _('User %s not authorized to edit harvested datasets')
+                % str(user)}
+
+    # Organogram datasets are managed by Drupal via the API
+    if dgu_helpers.is_dataset_organogram(package.extras):
+        return {'success': False,
+                'msg': _('User %s not authorized to edit organogram datasets')
+                % str(user)}
 
     # Leave the core CKAN auth to work out the hierarchy stuff
     return ckan.logic.auth.update.package_update(context, data_dict)
