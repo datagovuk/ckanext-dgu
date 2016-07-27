@@ -196,7 +196,7 @@
         {% set can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id}) %}
         {% set update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name) %}
         {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
-        {% set admin_mode = can_update or can_delete or can_harvest or is_organogram %}
+        {% set admin_mode = can_update or can_delete or can_harvest or can_manage_organogram %}
 
       <div class="{{m.if_(admin_mode,'col-md-8','col-md-12')}}">
         <!-- Description -->
