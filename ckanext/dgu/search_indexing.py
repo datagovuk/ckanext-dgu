@@ -99,18 +99,6 @@ class SearchIndexing(object):
             return format_string
 
     @classmethod
-    def add_field__group_titles(cls, pkg_dict):
-        '''Adds the group titles.'''
-        groups = [Group.get(g) for g in pkg_dict['groups']]
-
-        # Group titles
-        if not pkg_dict.has_key('organization_titles'):
-            pkg_dict['organization_titles'] = [g.title for g in groups]
-        else:
-            log.warning('Unable to add "organization_titles" to index, as the datadict '
-                        'already contains a key of that name')
-
-    @classmethod
     def add_field__group_abbreviation(cls, pkg_dict):
         '''Adds any group abbreviation '''
         abbr = None
