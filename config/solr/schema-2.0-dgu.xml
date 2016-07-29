@@ -93,15 +93,24 @@
     <field name="ratings_count" type="int" indexed="true" stored="false" />
     <field name="ratings_average" type="float" indexed="true" stored="false" />
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="organization" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="organization_titles" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="organization" type="string" indexed="true" stored="true" multiValued="false"/>
+
+    <!-- DGU-specific fields -->
+
     <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="false"/>
     <field name="api" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
-
     <field name="all_themes" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="popularity" type="int" indexed="true" stored="true" default="0"/>
+    <field name="publisher" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="parent_publishers" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="openness_score" type="int" indexed="true" stored="true"/>
+    <field name="broken_links" type="string" indexed="true" stored="true"/>
+    <field name="collections" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- end of DGU-specific fields-->
 
     <field name="capacity" type="string" indexed="true" stored="true" multiValued="false"/>
 
@@ -126,18 +135,11 @@
     <field name="views_recent" type="int" indexed="true" stored="false"/>
     <field name="resources_accessed_total" type="int" indexed="true" stored="false"/>
     <field name="resources_accessed_recent" type="int" indexed="true" stored="false"/>
-    <field name="popularity" type="int" indexed="true" stored="true" default="0"/>
 
     <field name="metadata_created" type="date" indexed="true" stored="true" multiValued="false"/>
     <field name="metadata_modified" type="date" indexed="true" stored="true" multiValued="false"/>
 
     <field name="indexed_ts" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
-
-    <field name="publisher" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="parent_publishers" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <field name="openness_score" type="int" indexed="true" stored="true"/>
-    <field name="broken_links" type="string" indexed="true" stored="true"/>
 
     <!-- Copy the title field into title_string, and treat as a string
          (rather than text type).  This allows us to sort on the title_string -->
@@ -153,6 +155,7 @@
     <dynamicField name="extras_*" type="text" indexed="true" stored="true" multiValued="false"/>
     <dynamicField name="vocab_*" type="string" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
+    <!-- DGU specific -->
     <dynamicField name="*_multi" type="string" indexed="true"  stored="true" multiValued="true"/>
 </fields>
 
@@ -174,9 +177,11 @@
 <copyField source="notes" dest="text"/>
 <copyField source="tags" dest="text"/>
 <copyField source="organization" dest="text"/>
+<!-- DGU specific -->
 <copyField source="organization_titles" dest="text"/>
-<copyField source="res_description" dest="text"/>
 <copyField source="res_format" dest="text"/>
+<!-- end of DGU specific -->
+<copyField source="res_description" dest="text"/>
 <copyField source="maintainer" dest="text"/>
 <copyField source="author" dest="text"/>
 
