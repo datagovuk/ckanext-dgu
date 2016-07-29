@@ -16,6 +16,8 @@ import ckan.plugins as p
 
 log = logging.getLogger(__name__)
 
+MAX_BYTES_READ_DURING_WMS_CHECK = 10000000  # 10 MB
+
 
 def hash_a_dict(dict_):
     return json.dumps(dict_, sort_keys=True)
@@ -150,7 +152,7 @@ def _try_wms_url(url, version='1.3'):
         log.debug('WMS check url: %s', capabilities_url)
         try:
             res = urllib2.urlopen(capabilities_url, None, 10)
-            xml = res.read()
+            xml = res.read(MAX_BYTES_READ_DURING_WMS_CHECK + 1)
         except urllib2.HTTPError, e:
             # e.g. http://aws2.caris.com/sfs/services/ows/download/feature/UKHO_TS_DS
             log.info('WMS check for %s failed due to HTTP error status "%s". Response body: %s', capabilities_url, e, e.read())
@@ -169,6 +171,9 @@ def _try_wms_url(url, version='1.3'):
             return False
         if not xml.strip():
             log.info('WMS check for %s failed due to empty response')
+            return False
+        if len(xml) > MAX_BYTES_READ_DURING_WMS_CHECK:
+            log.info('WMS check for %s failed due to the response being too large (>%s bytes)', capabilities_url, MAX_BYTES_READ_DURING_WMS_CHECK)
             return False
         # owslib only supports reading WMS 1.1.1 (as of 10/2014)
         if version == '1.1.1':
@@ -234,7 +239,7 @@ def _wms_base_urls(url):
         try:
             log.debug('WMS base url check: %s', capabilities_url)
             res = urllib2.urlopen(capabilities_url, None, 10)
-            xml_str = res.read()
+            xml_str = res.read(MAX_BYTES_READ_DURING_WMS_CHECK + 1)
         except urllib2.HTTPError, e:
             # e.g. http://aws2.caris.com/sfs/services/ows/download/feature/UKHO_TS_DS
             log.info('WMS check for %s failed due to HTTP error status "%s". Response body: %s', capabilities_url, e, e.read())
@@ -250,6 +255,9 @@ def _wms_base_urls(url):
             return False, set()
         except httplib.HTTPException, e:
             log.info('WMS check for %s failed due to HTTP error "%s".', capabilities_url, e)
+            return False
+        if len(xml_str) > MAX_BYTES_READ_DURING_WMS_CHECK:
+            log.info('WMS check for %s failed due to the response being too large (>%s bytes)', capabilities_url, MAX_BYTES_READ_DURING_WMS_CHECK)
             return False
         parser = etree.XMLParser(remove_blank_text=True)
         try:

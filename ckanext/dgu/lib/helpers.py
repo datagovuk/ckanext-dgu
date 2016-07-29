@@ -2029,10 +2029,14 @@ def parse_date(date_string):
             pass
         return FakeDate(year='')
 
-def user_page_url():
+def user_page_url(register=False):
     from ckan.lib.base import h
-    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
-                  else h.url_for(controller='user', action='me')
+    if 'dgu_drupal_auth' in config['ckan.plugins']:
+        url = '/user' if register is False else '/user/register'
+    else:
+        url = h.url_for(controller='user', action='me') \
+            if register is False else \
+            h.url_for(controller='user', action='register')
     if not c.user and request.path != '/':
         url += '?destination=%s' % request.path[1:]
     return url
