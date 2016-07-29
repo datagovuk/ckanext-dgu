@@ -522,6 +522,7 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_theme(pkg_dict)
         if is_plugin_enabled('dgu_schema'):
             SearchIndexing.add_schema(pkg_dict)
+        SearchIndexing.add_collections(pkg_dict)
 
         return pkg_dict
 
