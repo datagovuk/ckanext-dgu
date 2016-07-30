@@ -55,7 +55,7 @@ class SearchIndexing(object):
     def add_collections(cls, pkg_dict):
         pkg_dict['collections'] = []
 
-        if pkg_dict.get('core_dataset', False):
+        if asbool(pkg_dict.get('core-dataset', False)):
             pkg_dict['collections'].append('National Information Infrastructure')
         if dgu_helpers.is_dataset_organogram(pkg_dict):
             pkg_dict['collections'].append('Organograms')
