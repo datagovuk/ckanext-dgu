@@ -8,6 +8,7 @@ from paste.deploy.converters import asbool
 from ckan.model.group import Group
 from ckan import model
 from ckan.lib import helpers
+from ckanext.dgu.lib import helpers as dgu_helpers
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
@@ -50,6 +51,20 @@ class SearchIndexing(object):
         pkg_dict['publish_restricted'] = pkg_dict.get('publish-restricted', False)
         #log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
 
+    @classmethod
+    def add_collections(cls, pkg_dict):
+        pkg_dict['collections'] = []
+
+        if asbool(pkg_dict.get('core-dataset', False)):
+            pkg_dict['collections'].append('National Information Infrastructure')
+        #if dgu_helpers.is_dataset_organogram(pkg_dict):
+        #    pkg_dict['collections'].append('Organograms')
+
+        # maybe put this in a property?
+        #if 'API' in [p.upper() for p in pkg_dict['res_format']]:  # what about wfs?
+        #    pkg_dict['collections'].append('API access')
+
+        log.debug('Collections: %s', pkg_dict['collections'])
 
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):
@@ -220,7 +235,7 @@ class SearchIndexing(object):
             log.error('Could not parse secondary themes: %s %r',
                       pkg_dict['name'], pkg_dict.get('theme-secondary'))
         pkg_dict['all_themes'] = list(all_themes)
-        log.debug('Themes: %s', ' '.join(all_themes))
+        #log.debug('Themes: %s', ' '.join(all_themes))
 
     @classmethod
     def add_schema(cls, pkg_dict):
