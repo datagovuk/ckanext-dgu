@@ -53,18 +53,18 @@ class SearchIndexing(object):
 
     @classmethod
     def add_collections(cls, pkg_dict):
-        pkg_dict['collections'] = []
+        pkg_dict['collection'] = []
 
         if asbool(pkg_dict.get('core-dataset', False)):
-            pkg_dict['collections'].append('National Information Infrastructure')
+            pkg_dict['collection'].append('National Information Infrastructure')
         #if dgu_helpers.is_dataset_organogram(pkg_dict):
-        #    pkg_dict['collections'].append('Organograms')
+        #    pkg_dict['collection'].append('Organogram')
 
         # maybe put this in a property?
         #if 'API' in [p.upper() for p in pkg_dict['res_format']]:  # what about wfs?
-        #    pkg_dict['collections'].append('API access')
+        #    pkg_dict['collection'].append('API access')
 
-        log.debug('Collections: %s', pkg_dict['collections'])
+        log.debug('Collection: %s', pkg_dict['collection'])
 
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):
