@@ -36,7 +36,7 @@
   <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
     <div class="container">
       <a class="brand" href="/" rel="home">
-        <img src="/assets/img/dgu-header-white.png">
+        <img src="/assets/img/dgu-header-white.png" alt="data.gov.uk logo">
       </a>
       <div class="chevron {{ 'position1' if is_home else 'position2' }}"></div>
       <nav id="dgu-nav">
@@ -48,9 +48,10 @@
          </div>
         <div class="nav-search" style="width: 200px;">
           <form action="/data/search" class="input-group input-group-sm">
-            <input type="text" name="q" class="form-control" placeholder="Search for data..." />
+            <label for="search-nav" class="hidden-apart-from-screen-reader">Search for data</label>
+            <input id="search-nav" type="text" name="q" class="form-control" placeholder="Search for data..." />
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="submit" style="width: 30px;">
+              <button class="btn btn-primary" type="submit" style="width: 30px;" value="Search">
                 <img src="/images/icon_search_fff_28.png" class="icon-img" style="height: 14px;"/>
               </button>
             </span>
