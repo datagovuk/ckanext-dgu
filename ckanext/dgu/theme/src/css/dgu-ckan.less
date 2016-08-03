@@ -946,6 +946,8 @@ ul.ui-autocomplete {
 /* PAGE: Home */
 /* ---------- */
 body#home-page {
+  background-color: #fff;
+
   div.home {
     margin-left: auto;
     margin-right: auto;
@@ -1041,11 +1043,11 @@ body#home-page {
     padding: 6px;
     z-index: 3;
     background: transparent;
-    border: 0;
-    @media (max-width: 767px) {
-      border: 1px solid #a2a2a2;
-      border-right-width: 0;
-    }
+    border: 1px solid #a2a2a2;
+    border-right-width: 0;
+    border-radius: 0;  /* Avoid rounded corners on iOS */
+    -webkit-border-radius: 0;
+    -webkit-appearance: none;  /* Avoid internal shadow on iOS */
   }
   input#search-main:focus {
     outline: 3px solid #8bc658;
