@@ -154,6 +154,23 @@ $(function() {
     }
     return false;
   });
+
+  // Home page search box
+  // (from GDS static core.js)
+  var $searchFocus = $('.js-search-focus');
+  $searchFocus.each(function(i, el){
+    if($(el).val() !== ''){
+      $(el).addClass('focus');
+    }
+  });
+  $searchFocus.on('focus', function(e){
+    $(e.target).addClass('focus');
+  });
+  $searchFocus.on('blur', function(e){
+    if($(e.target).val() === ''){
+      $(e.target).removeClass('focus');
+    }
+  });
 });
 
 var CKAN = CKAN || {};

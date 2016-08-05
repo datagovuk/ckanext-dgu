@@ -70,7 +70,7 @@
         {% endblock %}
 
         {% if not c.query_error %}
-        <h1>{{c.page.item_count if c.page not in (None, '') else c.package_count or 0}} Results</h1>
+        <h1>{{ "{:,}".format(c.page.item_count) if c.page not in (None, '') else c.package_count or 0}} results</h1>
         {% else %}
         <h1>Search Error</h1>
         {% endif %}

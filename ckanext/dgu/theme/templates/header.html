@@ -31,12 +31,14 @@
   </div>
 </div>
 
+  {% set url=request.path %}
+  {% set is_home=url=='/' %}
   <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
     <div class="container">
       <a class="brand" href="/" rel="home">
-        <img src="/assets/img/dgu-header-white.png">
+        <img src="/assets/img/dgu-header-white.png" alt="data.gov.uk logo">
       </a>
-      <div class="chevron position2"></div>
+      <div class="chevron {{ 'position1' if is_home else 'position2' }}"></div>
       <nav id="dgu-nav">
         <div class="text-links">
            <a href="/" class="nav-home">Home</a>
@@ -46,9 +48,10 @@
          </div>
         <div class="nav-search" style="width: 200px;">
           <form action="/data/search" class="input-group input-group-sm">
-            <input type="text" name="q" class="form-control" placeholder="Search for data..." />
+            <label for="search-nav" class="hidden-apart-from-screen-reader">Search for data</label>
+            <input id="search-nav" type="text" name="q" class="form-control" placeholder="Search for data..." />
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="submit" style="width: 30px;">
+              <button class="btn btn-primary" type="submit" value="Search">
                 <img src="/images/icon_search_fff_28.png" class="icon-img" style="height: 14px;"/>
               </button>
             </span>
@@ -85,39 +88,38 @@
   </div>
   <div id="greenbar">
     <div class="container">
-      {% set url=c.environ.get('CKAN_CURRENT_URL') %}
-      <ul class="subnav subnav-data active">
-        <li><a class="{{ 'active' if url.startswith('/data/search') or url.startswith('/dataset/') }}" href="{{ h.url_for(controller='package', action='search') }}">Datasets</a></li>
-        <li><a class="{{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
-        <li><a class="" href="/data-request">Data Requests</a></li>
-        <li><a class="{{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
-        <li><a  href="https://data.gov.uk/data/api">Data API</a></li>
-        <li><a class="" href="/organogram/cabinet-office">Organograms</a></li>
+      <ul class="subnav subnav-data {{ 'active' if not is_home }}">
+        <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/search') or url.startswith('/dataset/') }}" href="{{ h.url_for(controller='package', action='search') }}">Datasets</a></li>
+        <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
+        <li><a class="subnav-item subnav-data-item" href="/data-request">Data Requests</a></li>
+        <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
+        <li><a class="subnav-item subnav-data-item" href="https://data.gov.uk/data/api">Data API</a></li>
+        <li><a class="subnav-item subnav-data-item" href="/organogram/cabinet-office">Organograms</a></li>
         {#
         {% if h.config_get('dgu.openspending_reports_enabled') %}
-          <li><a class="{{ 'active' if url.startswith('/data/openspending-report') }}" href="/data/openspending-report/index">Spend Reports</a></li>
+          <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/openspending-report') }}" href="/data/openspending-report/index">Spend Reports</a></li>
         {% endif %}
         #}
         {% if h.ga_report_installed() %}
-          <li><a class="{{ 'active' if url.startswith('/data/site-usage') }}" href="/data/site-usage">Site Analytics</a></li>
+          <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/site-usage') }}" href="/data/site-usage">Site Analytics</a></li>
         {% endif %}
-        <li><a class="{{ 'active' if url.startswith('/data/report') }}" href="/data/report">Reports</a></li>
-        <li><a class="{{ 'active' if url.startswith('/data/contracts-finder-archive') }}" href="/data/contracts-finder-archive">Contracts</a></li>
+        <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/report') }}" href="/data/report">Reports</a></li>
+        <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/contracts-finder-archive') }}" href="/data/contracts-finder-archive">Contracts</a></li>
         <br/>
 
         {% if c.userobj.sysadmin %}
           <span class="divider-section">&nbsp; Sys Admin:</span>
-          <li><a class="{{ 'active' if url.startswith('/data/system_dashboard') }}" href="{{ h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard') }}">System Dashboard</a></li>
-          <li><a class="{{ 'active' if url.startswith('/harvest') }}" href="{{ h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index') }}">Harvest Sources</a></li>
+          <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/system_dashboard') }}" href="{{ h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard') }}">System Dashboard</a></li>
+          <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/harvest') }}" href="{{ h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index') }}">Harvest Sources</a></li>
         {% endif %}
       </ul>
 
       <ul class="subnav subnav-interact">
-        <li><a href="/location">Location</a></li>
-        <li><a href="/blog">Blogs</a></li>
-        <li><a href="/forum">All Forums</a></li>
-        <li><a href="/library">Library</a></li>
-        <li><a href="/search/everything">Search content</a></li>
+        <li><a class="subnav-item subnav-interact-item" href="/location">Location</a></li>
+        <li><a class="subnav-item subnav-interact-item" href="/blog">Blogs</a></li>
+        <li><a class="subnav-item subnav-interact-item" href="/forum">All Forums</a></li>
+        <li><a class="subnav-item subnav-interact-item" href="/library">Library</a></li>
+        <li><a class="subnav-item subnav-interact-item" href="/search/everything">Search content</a></li>
       </ul>
     </div>
   </div>

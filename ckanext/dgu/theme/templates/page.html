@@ -1,6 +1,13 @@
 {% ckan_extends %}
 
 {%- block page -%}
+  {# Skip link (for accessibility) #}
+  <div id="skiplink-container">
+    <div>
+      <a href="#content" class="skiplink">Skip to main content</a>
+    </div>
+  </div>
+
   {% set breakout = break_out_page if break_out_page is defined else None %}
   {{ super() }}
 {% endblock %}
