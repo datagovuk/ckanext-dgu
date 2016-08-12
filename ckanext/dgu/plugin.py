@@ -464,7 +464,7 @@ class SearchPlugin(p.SingletonPlugin):
         # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
-        search_params['qf'] = 'title^4 name^3 notes^2 text group_titles^0.3 extras_harvest_document_content^0.2'
+        search_params['qf'] = 'title^4 name^3 notes^2 text organization_titles^0.3 extras_harvest_document_content^0.2'
         # boost NII datasets. used trial and error to get reasonable mix of useful NII ones
         # on and relevant non-NII ones for /data/search?q=road and /data/search?q=crime
         search_params['bf'] = 'core_dataset^20'
@@ -511,13 +511,12 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
-        SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
+        SearchIndexing.add_field__organization_title_and_abbreviation(pkg_dict)
         if is_plugin_enabled('harvest'):
             SearchIndexing.add_field__harvest_document(pkg_dict)
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
-        SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
         SearchIndexing.add_api_flag(pkg_dict)
         SearchIndexing.add_theme(pkg_dict)
