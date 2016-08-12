@@ -109,6 +109,7 @@
     <field name="openness_score" type="int" indexed="true" stored="true"/>
     <field name="broken_links" type="string" indexed="true" stored="true"/>
     <field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="organization_titles" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- end of DGU-specific fields-->
 
