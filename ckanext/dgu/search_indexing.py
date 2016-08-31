@@ -114,7 +114,7 @@ class SearchIndexing(object):
             return format_string
 
     @classmethod
-    def add_field__group_abbreviation(cls, pkg_dict):
+    def add_field__organization_title_and_abbreviation(cls, pkg_dict):
         '''Adds any group abbreviation '''
         abbr = None
 
@@ -123,14 +123,17 @@ class SearchIndexing(object):
             log.error("Package %s does not belong to an organization" % pkg_dict['name'])
             return
 
+        pkg_dict['organization_titles'] = [g.title]
+
         try:
             abbr = g.extras.get('abbreviation')
         except:
             raise
 
         if abbr:
-            pkg_dict['group_abbreviation'] = abbr
-            #log.debug('Abbreviations: %s', abbr)
+            pkg_dict['organization_titles'].append(abbr)
+
+        log.debug('Organization title: %r', pkg_dict['organization_titles'])
 
     @classmethod
     def add_field__publisher(cls, pkg_dict):

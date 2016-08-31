@@ -1,3 +1,5 @@
+import random
+
 from nose.tools import assert_equal, assert_raises
 import mock
 
@@ -10,6 +12,12 @@ from ckan.tests.html_check import HtmlCheckMethods
 from ckan.tests.mock_mail_server import SmtpServerHarness
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
+try:
+    from ckan.tests import factories
+    from ckan.tests import helpers
+except ImportError:
+    from ckan.new_tests import factories
+    from ckan.new_tests import helpers
 
 
 class TestEdit(WsgiAppCase):
@@ -329,6 +337,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
 
     @classmethod
     def setup_class(cls):
+        model.repo.rebuild_db()
         DguCreateTestData.create_dgu_test_data()
         cls.publisher_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
         import ckanext.dgu.model.publisher_request as pr_model
@@ -344,11 +353,19 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         SmtpServerHarness.smtp_thread.clear_smtp_messages()
 
     def test_0_basic_application(self):
+        # need to randomize the user name because otherwise repeated runs cause
+        # a flash message "A request for this publisher is already in the
+        # system." and I can't see how to clear flash messages for the thread
+        # inside the self.app:
+        # helpers.flash.pop_messages()
+        # *** TypeError: No object (name: session) has been registered for this
+        #                thread
+        user_name = 'user%s' % int(random.random() * 10000)
+        factories.User(name=user_name)
         # Load form
         publisher_name = 'dept-health'
-        group = model.Group.by_name(unicode(publisher_name))
         offset = url_for('/publisher/apply/%s' % publisher_name)
-        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
+        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': user_name})
         assert 'Apply for membership' in res, res
         form = res.forms[1]
         print form
@@ -359,7 +376,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
 
         # Fill in form
         form['reason'] = 'I am the director'
-        res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
+        res = form.submit('save', status=302, extra_environ={'REMOTE_USER': user_name})
         assert_equal(res.header_dict['Location'], 'http://localhost/publisher/%s?__no_cache__=True' % publisher_name)
 
         # Check email sent
@@ -370,12 +387,14 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         assert_equal(msg[2], ["dohemail@localhost.local"]) # to (dgu.admin.name/email in dgu/test-core.ini)
 
     def assert_application_sent_to_right_person(self, publisher_name, to_email_addresses):
+        user_name = 'user%s' % int(random.random() * 10000)
+        factories.User(name=user_name)
         offset = url_for('/publisher/apply/%s' % publisher_name)
-        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
+        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': user_name})
         assert 'Apply for membership' in res, res
         form = res.forms[1]
         form['reason'] = 'I am the director'
-        res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
+        res = form.submit('save', status=302, extra_environ={'REMOTE_USER': user_name})
         msgs = SmtpServerHarness.smtp_thread.get_smtp_messages()
         assert_equal(len(msgs), 1)
         msg = msgs[0]

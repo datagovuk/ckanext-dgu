@@ -96,9 +96,6 @@ $(function() {
   searchBox.change(onChange);
   updateSearch(searchBox.val());
 
-  // -- Init base form
-  $('input[name="q"]').focus();
-  
   // -- Handle expand/collapse
   $('.js-expand,.js-collapse').click(function(e) {
     e.preventDefault();

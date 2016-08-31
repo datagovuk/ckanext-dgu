@@ -2043,7 +2043,7 @@ def user_page_url(register=False):
         url = h.url_for(controller='user', action='me') \
             if register is False else \
             h.url_for(controller='user', action='register')
-    if not c.user:
+    if not c.user and request.path != '/':
         url += '?destination=%s' % request.path[1:]
     return url
 

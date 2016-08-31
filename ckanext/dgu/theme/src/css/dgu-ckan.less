@@ -943,122 +943,200 @@ ul.ui-autocomplete {
 }
 
 
+/* PAGE: Home */
+/* ---------- */
+body#home-page {
+  background-color: #fff;
 
-/* PAGE: Front Page */
-/* ---------------- */
-body#front-page {
-  #breadcrumbs {
-    display: none;
+  div.home {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 0px;
+    @media(min-width: 400px) {
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+    @media(min-width: 768px) {
+      margin-top: 60px;
+      margin-bottom: 30px;
+    }
   }
-  .front-page-container {
-    margin: 20px 0;
+
+  /* Layout including search box */
+  div.prime-left {
+    width: 66%;  /* fallback for browsers without support for @media */
+    @media (min-width: 0) {
+      width: auto;
+    }
+    @media (min-width: 768px) {
+        width: 66.666%;
+      }
+    float: left;
+    padding: 0 15px;
   }
-  .front-page-box {
-    display: block;
-    margin-bottom: 16px;
+  div.prime-right {
+    width: 33%;  /* fallback for browsers without support for @media */
+    @media (min-width: 0) {
+      width: auto;
+    }
+    @media (min-width: 768px) {
+        width: 33.333%;
+      }
+    float: left;
+    padding: 0 15px 30px 15px;
+  }
+
+  /* Search box DGU-style */
+  .search-area .left {
+    width: 73%;
+  }
+  .search-area .right {
+    width: 27%;
+  }
+
+  /* Search box GDS-style */
+  .header-search-content {
     position: relative;
-    height: 100px;
-    .img {
-      position: absolute;
-      top: 0;
-      left: 0;
-      overflow: hidden;
-      z-index: -1;
-      width: 100%;
-      height: 100%;
-      img {
-        width: 100%;
-      }
-    }
-    .text {
-      display: block;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      padding: 10px;
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      small {
-        display: block;
-        font-size: 80%;
-        color: #fff;
-      }
-      .posttext { opacity: 0; }
-    }
-    &:hover {
-      text-decoration: none;
-      .text {
-        background: rgba(0,0,0,0.9);
-        small { color: #ccc; }
-        .posttext { opacity: 1; }
-      }
-    }
+    background: #fff;
   }
-  .counts {
-    padding: 20px;
-  }
-  .graph {
+  label {
+    float: none;
+    position: absolute;
+    left: 0;
+    top: 1px;
+    z-index: 1;
+    width: 100%;
+    margin-right: 0;
+    height: 55px;
+    line-height: 55px;
+    text-indent: 15px;
     overflow: hidden;
-  }
-  .counts1 {
-    height: 300px;
-    text-align: right;
-  }
-  .counts2 {
-    height: 180px;
-  }
-  .graph1  {
-    height: 300px;
-  }
-  .graph2  {
-    height: 180px;
-    text-align: right;
-  }
-  .count {
     display: block;
-    &:hover { text-decoration: none; }
-    margin-bottom: 10px;
-    .big {
-      font-size: 60px;
-      line-height: 60px;
-      color: #000;
-    }
-    .small {
-      font-size: 17px;
-      color: #464;
+    color: #333;
+    font-family: 'Open Sans',Helvetica Neue,Helvetica;
+    font-weight: 500;
+    font-size: 20pt;
+    font-smooth: always;
+    -webkit-font-smoothing: antialiased;
+
+  }
+  input#search-main {
+    width: 86%;  /* fallback for browsers without support for calc() */
+    width: calc(~"100% - 55px");
+    height: 55px;
+    font-size: 19px;
+    line-height: 28px;
+    position: relative;
+    padding: 6px;
+    z-index: 3;
+    background: transparent;
+    border: 1px solid #a2a2a2;
+    border-right-width: 0;
+    border-radius: 0;  /* Avoid rounded corners on iOS */
+    -webkit-border-radius: 0;
+    -webkit-appearance: none;  /* Avoid internal shadow on iOS */
+  }
+  input#search-main:focus {
+    outline: 3px solid #8bc658;
+    background: #fff;
+    /* make the outline solid on chrome */
+    box-shadow: 0 0 0 0 #8bc658;
+  }
+  input#search-main.focus{
+    background: #fff;
+    /* make the outline solid on chrome */
+    box-shadow: 0 0 0 0 #8bc658;
+  }
+  input.submit {
+    background-size: 52.5px 35px;
+    background-position: 115% 50%;
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    top: 0;
+    width: 55px;
+    height: 55px;
+    border: 1px solid;
+    border-width: 0 0 0 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    overflow: hidden;
+    /* Hide the word 'Search' */
+    text-indent: -5000px;
+    cursor: pointer;
+    color: #fff;
+    background: #8bc658 url(/images/icons/search-fff-46-pair.png) no-repeat 0px 50%;
+    @media only screen and (-webkit-min-device-pixel-ratio: 2), not all, not all, not all, only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+      background-size: 82.5px 55px;
+      background-position: 100% 50%;
     }
   }
 
-}
-// @media(max-width: 767px) { min-width: 25px; }
-// @media(max-width: 991px) { min-width: 19px; }
-@media (min-width: 450px) and (max-width:767px) {
-  body#front-page {
-    .col-md-4 .front-page-box{
-      height: 150px;
+  /* Stat */
+  div.stats {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  div.stats a {
+    text-decoration: none;
+  }
+  span.count {
+    font-size: 48px;
+    line-height: 1.04167;
+  }
+
+  p.about {
+    font-size: 20px;
+    line-height: 33px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    @media (min-width: 641px) {
+      margin-bottom: 50px;
     }
   }
-}
-@media(min-width: 768px) {
-  body#front-page {
-    .col-md-4:nth-child(1) .front-page-box,
-    .col-md-4:nth-child(2) .front-page-box {
-      height: 200px;
-    }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: 500;
+    font-family: 'Open Sans',Helvetica Neue,Helvetica;
   }
-}
-@media(min-width: 992px) {
-  body#front-page {
-    .col-md-4:nth-child(1) .front-page-box,
-    .col-md-4:nth-child(2) .front-page-box,
-    .col-md-4:nth-child(3) .front-page-box {
-      height: 200px;
-      .img img {
-        min-height: 200px;
+
+  /* Themes */
+  ul.theme-list {
+    padding: 0 15px;
+    list-style: none;
+    width: 33%;  /* fallback for browsers without support for @media */
+    float: left;    /* fallback for browsers without support for @media */
+    @media (min-width: 0px) {
+      width: auto;
+      float: none;
+    }
+    @media (min-width: 768px) {
+      width: 33.33333%;
+      float: left;
       }
+  }
+  li.theme {
+    min-height: 40px;
+    margin: 0 0 0;
+    @media(min-width: 768px) {
+      min-height: 80px;
+      margin: 0 0 15px;
+    }
+    h4 {
+      font-weight: bold;
+      font-size: 19px;
+      line-height: 25px;
+      margin-bottom: 0;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
     }
   }
+
 }
 
 

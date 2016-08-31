@@ -77,6 +77,10 @@ ckan.favicon = /assets/img/favicon.ico
   <![endif]-->
 
   <!--[if lt IE 9]>
+      <link href="/assets/css/dgu-ie8.css" rel="stylesheet" />
+  <![endif]-->
+
+  <!--[if lt IE 8]>
       <link href="/assets/css/dgu-ie7.css" rel="stylesheet" />
   <![endif]-->
 
@@ -90,5 +94,5 @@ ckan.favicon = /assets/img/favicon.ico
         controller-{{c.controller.split(':')[0].split('.')[-1]}} {{c.controller.split(':')[-1]}}
         {{ 'with-sidebar' if self.secondary_content() else 'no-sidebar' }}
         "
-      id="{{ body_id() if body_id is defined }}"
+      id="{{ body_id if body_id is defined }}"
 {% endblock %}
