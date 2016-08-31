@@ -20,4 +20,5 @@ class TestHome(object):
 
         assert_equal(len(themes), 12)
         assert_equal(themes[0][0], 'Business and economy')
-        assert_equal(themes[0][1], 'Small businesses, industry, imports, exports and trade')
+        assert_equal(themes[0][1], 'Business & Economy')
+        assert_equal(themes[0][2], 'Small businesses, industry, imports, exports and trade')
