@@ -15,6 +15,75 @@ from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 import ckanext.dgu.tests.factories as dgu_factories
 from ckanext.dgu.tests.functional.base import DguFunctionalTestBase
 import ckan.lib.search as search
+try:
+    from ckan.tests import factories
+    from ckan.tests import helpers
+except ImportError:
+    from ckan.new_tests import factories
+    from ckan.new_tests import helpers
+
+
+class TestActionApi():
+    def setup(self):
+        model.repo.rebuild_db()
+
+    def test_add_first_resource(self):
+        owner = factories.User()
+        org = factories.Organization(category='local-council', user=owner)
+        dataset = factories.Dataset(user=owner,
+                                    owner_org=org['id'],
+                                    name='test-dataset',
+                                    license_id='uk-ogl', notes='desc')
+        context = {'user': owner['id']}
+
+        helpers.call_action('resource_create', context=context,
+                            package_id=dataset['id'],
+                            url='http://example.com/file.csv',
+                            description='desc',
+                            format='csv',
+                            resource_type='file',
+                            date='31/3/2012')
+
+        updated_dataset = helpers.call_action('dataset_show', id=dataset['id'])
+        assert_equal(len(updated_dataset['resources']), 1)
+        assert_equal(updated_dataset['resources'][0]['url'],
+                     'http://example.com/file.csv')
+        assert_equal(updated_dataset['resources'][0]['description'], 'desc')
+        assert_equal(updated_dataset['resources'][0]['format'], 'csv')
+        assert_equal(updated_dataset['resources'][0]['resource_type'], 'file')
+        assert_equal(updated_dataset['resources'][0]['date'], '31/3/2012')
+
+    def test_add_multiple_resources(self):
+        owner = factories.User()
+        org = factories.Organization(category='local-council', user=owner)
+        dataset = factories.Dataset(user=owner,
+                                    owner_org=org['id'],
+                                    name='test-dataset',
+                                    license_id='uk-ogl', notes='desc')
+        context = {'user': owner['id']}
+
+        for i in range(10):
+            helpers.call_action('resource_create', context=context,
+                                package_id=dataset['id'],
+                                url='http://example.com/%s.csv' % i,
+                                description='desc %s' % i,
+                                date='31/%s/2012' % (i + 1),
+                                format='csv',
+                                resource_type='file')
+
+        updated_dataset = helpers.call_action('dataset_show', id=dataset['id'])
+        assert_equal(len(updated_dataset['resources']), 10)
+        assert_equal(updated_dataset['resources'][0]['url'],
+                     'http://example.com/0.csv')
+        assert_equal(updated_dataset['resources'][0]['description'], 'desc 0')
+        assert_equal(updated_dataset['resources'][0]['position'], 0)
+        assert_equal(updated_dataset['resources'][0]['date'], '31/1/2012')
+        assert_equal(updated_dataset['resources'][1]['url'],
+                     'http://example.com/1.csv')
+        assert_equal(updated_dataset['resources'][1]['description'], 'desc 1')
+        assert_equal(updated_dataset['resources'][1]['position'], 1)
+        assert_equal(updated_dataset['resources'][1]['date'], '31/2/2012')
+
 
 
 class TestRoundTripWsgi(ControllerTestCase):
