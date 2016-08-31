@@ -123,8 +123,8 @@ class TestRoundTrip(DguFunctionalTestBase):
         get_action('package_update')(context, pkg)
 
     def test_organogram_dataset(self):
-        user = factories.User()
-        user['capacity'] = 'editor'
+        user = factories.User(sysadmin=True)
+        #user['capacity'] = 'editor'
         org = factories.Organization(name='department-for-education',
                                      category='ministerial-department',
                                      users=[user])
