@@ -10,7 +10,6 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.logic import get_action
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests import TestSearchIndexer
-from ckan.new_tests import factories
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 import ckanext.dgu.tests.factories as dgu_factories
 from ckanext.dgu.tests.functional.base import DguFunctionalTestBase
