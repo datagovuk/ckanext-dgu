@@ -300,7 +300,7 @@ class DatasetForm(p.SingletonPlugin):
             '__before': [fold_in_schema_codelist_if_a_sub_dict],
             '__extras': [ignore],
             '__junk': [empty],
-            '__after': [validate_license, remove_blank_resources, validate_resources, merge_resources]
+            '__after': [validate_license, remove_blank_resources, validate_resources, merge_resources, dont_save_archiver_or_qa]
         }
         return schema
 
@@ -621,3 +621,19 @@ def new_resource_if_url_and_description_change(key, data, errors, context):
                     key_[1] == key[1] and \
                     key_[2] not in resource_columns:
                 del data[key_]
+
+def dont_save_archiver_or_qa(key, data, errors, context):
+    '''Delete "archiver" and "qa" keys on dataset and resource. This is because
+    this info is stored in the archiver/qa tables, and shouldn't be saved into
+    the dataset too. They are added to the dataset dict using after_show so
+    that's why you might end up supplying them to package_update.'''
+    for property_ in ('archiver', 'qa'):
+        i = 0
+        while True:
+            # find the id or title
+            key = ('resources', i, property_)
+            if key not in data:
+                break
+            # remove it
+            del data[key]
+            i += 1
