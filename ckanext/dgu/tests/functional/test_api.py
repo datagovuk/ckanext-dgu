@@ -10,8 +10,154 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.logic import get_action
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests import TestSearchIndexer
+from ckan.new_tests import factories
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
+import ckanext.dgu.tests.factories as dgu_factories
+from ckanext.dgu.tests.functional.base import DguFunctionalTestBase
 import ckan.lib.search as search
+try:
+    from ckan.tests import factories
+    from ckan.tests import helpers
+except ImportError:
+    from ckan.new_tests import factories
+    from ckan.new_tests import helpers
+
+
+class TestActionApi():
+    def setup(self):
+        model.repo.rebuild_db()
+
+    def test_add_first_resource(self):
+        owner = factories.User()
+        org = factories.Organization(category='local-council', user=owner)
+        dataset = factories.Dataset(user=owner,
+                                    owner_org=org['id'],
+                                    name='test-dataset',
+                                    license_id='uk-ogl', notes='desc')
+        context = {'user': owner['id']}
+
+        helpers.call_action('resource_create', context=context,
+                            package_id=dataset['id'],
+                            url='http://example.com/file.csv',
+                            description='desc',
+                            format='csv',
+                            resource_type='file',
+                            date='31/3/2012')
+
+        updated_dataset = helpers.call_action('dataset_show', id=dataset['id'])
+        assert_equal(len(updated_dataset['resources']), 1)
+        assert_equal(updated_dataset['resources'][0]['url'],
+                     'http://example.com/file.csv')
+        assert_equal(updated_dataset['resources'][0]['description'], 'desc')
+        assert_equal(updated_dataset['resources'][0]['format'], 'csv')
+        assert_equal(updated_dataset['resources'][0]['resource_type'], 'file')
+        assert_equal(updated_dataset['resources'][0]['date'], '31/3/2012')
+
+    def test_add_multiple_resources(self):
+        owner = factories.User()
+        org = factories.Organization(category='local-council', user=owner)
+        dataset = factories.Dataset(user=owner,
+                                    owner_org=org['id'],
+                                    name='test-dataset',
+                                    license_id='uk-ogl', notes='desc')
+        context = {'user': owner['id']}
+
+        for i in range(10):
+            helpers.call_action('resource_create', context=context,
+                                package_id=dataset['id'],
+                                url='http://example.com/%s.csv' % i,
+                                description='desc %s' % i,
+                                date='31/%s/2012' % (i + 1),
+                                format='csv',
+                                resource_type='file')
+
+        updated_dataset = helpers.call_action('dataset_show', id=dataset['id'])
+        assert_equal(len(updated_dataset['resources']), 10)
+        assert_equal(updated_dataset['resources'][0]['url'],
+                     'http://example.com/0.csv')
+        assert_equal(updated_dataset['resources'][0]['description'], 'desc 0')
+        assert_equal(updated_dataset['resources'][0]['position'], 0)
+        assert_equal(updated_dataset['resources'][0]['date'], '31/1/2012')
+        assert_equal(updated_dataset['resources'][1]['url'],
+                     'http://example.com/1.csv')
+        assert_equal(updated_dataset['resources'][1]['description'], 'desc 1')
+        assert_equal(updated_dataset['resources'][1]['position'], 1)
+        assert_equal(updated_dataset['resources'][1]['date'], '31/2/2012')
+
+
+
+class TestRoundTripWsgi(ControllerTestCase):
+    '''Test getting and saving a dataset, using WSGI'''
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def test_basic_dataset(self):
+        DguCreateTestData.create_dgu_test_data()
+        pkg_name = DguCreateTestData.form_package().name
+        extra_environ_editor = {
+            'Authorization': str(model.User.by_name('nhseditor').apikey)}
+
+        result = self.app.get('/api/action/package_show?id=%s' % pkg_name,
+                              status=200)
+        pkg = json.loads(result.body)['result']
+        postparams = '%s=1' % json.dumps(pkg)
+        result = self.app.post('/api/action/package_update',
+                               postparams, status=[200],
+                               extra_environ=extra_environ_editor)
+
+class TestRoundTrip(DguFunctionalTestBase):
+    '''Test getting and saving a dataset, using action calls'''
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def test_basic_dataset(self):
+        DguCreateTestData.create_dgu_test_data()
+        pkg_name = DguCreateTestData.form_package().name
+        context = {'model': model, 'session': model.Session,
+                   'user': 'nhseditor'}
+
+        pkg = get_action('package_show')(context, {'id': pkg_name})
+        get_action('package_update')(context, pkg)
+
+    def test_organogram_dataset(self):
+        user = factories.User()
+        user['capacity'] = 'editor'
+        org = factories.Organization(name='department-for-education',
+                                     category='ministerial-department',
+                                     users=[user])
+        schema = dgu_factories.SchemaObj(title='organogram schema')
+        pkg = {
+            "name":"organogram-department-of-education",
+            "title": "Organogram of Staff Roles & Salaries",
+            "owner_org": "department-for-education",
+            "license_id": "uk-ogl",
+            "notes": "Organogram (organisation chart) showing all staff roles",
+             "tags": [{"name": "organograms"}],
+             "schema": ["organogram schema"],
+             "extras": [
+                {"key": "geographic_coverage","value": "111100: United Kingdom"
+                 " (England, Scotland, Wales, Northern Ireland)"},
+                {"key": "mandate", "value": "https://www.gov.uk/government/"
+                 "news/letter-to-government-departments-on-opening-up-data"},
+                {"key": "update_frequency", "value": "biannually"},
+                {"key": "temporal_coverage-from", "value": "2010"},
+                {"key": "theme-primary", "value": "Government Spending"},
+                {"key": "import_source", "value": "organograms_v2"}
+             ]
+        }
+        factories.Dataset(**pkg)
+        context = {'model': model, 'session': model.Session,
+                   'user': user['name']}
+
+        pkg = get_action('package_show')(context, {'id': pkg['name']})
+        print 'UPDATE'
+        new_pkg = get_action('package_update')(context, pkg)
+
+        assert_equal(new_pkg['schema'], pkg['schema'])
+
 
 class TestRestApi(ControllerTestCase):
     @classmethod

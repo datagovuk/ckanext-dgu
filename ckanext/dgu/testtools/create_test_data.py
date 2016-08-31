@@ -131,7 +131,6 @@ class DguCreateTestData(CreateTestData):
              'temporal_granularity': "",
              'theme-primary': "Society",
              'theme-secondary': "",
-             'last_major_modification': "2000-01-01T00:00:00.000000",
              },
          'resources': [
              {'url': "http://innovate-apps.direct.gov.uk/cota/",
@@ -170,7 +169,6 @@ class DguCreateTestData(CreateTestData):
              'taxonomy_url': "http://www.metoffice.gov.uk/weather/uk/guide/key.html",
              'theme-primary': "Society",
              'update_frequency': "Real-time",
-              'last_major_modification': "2000-01-01T00:00:00.000000",
              },
          'resources': [
              {"hash": "",
@@ -213,7 +211,6 @@ class DguCreateTestData(CreateTestData):
                 "mandate": "",
                 "theme-primary": "Society",
                 "date_update_future": "2012-01-24",
-                'last_major_modification': "2000-01-01T00:00:00.000000",
              },
          "resources": [
                 {"description": "April to September 2010",
@@ -326,7 +323,6 @@ Alternative title: GDP and Labour Market coherence""",
              'temporal_granularity': "",
              'theme-primary': "Society",
              'update_frequency': "quarterly",
-             'last_major_modification': "2000-01-01T00:00:00.000000",
              },
          'resources': [
              {"hash": "",
@@ -400,8 +396,6 @@ Alternative title: GDP and Labour Market coherence""",
              'INSPIRE': "True",
              'spatial-data-service-type': "view",
              'metadata-language': "eng",
-             # Deliberately missing for test
-             #'last_major_modification': "2000-01-01",
             },
          'resources': [
              {'hash': "",
