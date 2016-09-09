@@ -29,7 +29,8 @@ class ThemeController(BaseController):
         to *just* that theme, popular and new datasets as well as recent apps+ideas from 
         the front end.
         """
-        raise NotImplementedError('Cannot view theme pages yet.')
+        log.warning('Cannot view theme pages yet.')
+        abort(404)
         c.theme = c.theme_name = name
         if not c.theme_name:
             abort(404)
@@ -50,7 +51,8 @@ class ThemeController(BaseController):
         Helper for retrieving just a handful of popular/recent datasets for the 
         current theme. 
         """
-        raise NotImplementedError('Cannot view theme pages yet.')
+        log.warning('Cannot view theme pages yet.')
+        abort(404)
         from ckan.lib.search import SearchError
         packages = []
         try:

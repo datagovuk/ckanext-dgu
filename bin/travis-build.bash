@@ -16,6 +16,7 @@ export ckan_branch=release-v2.2-dgu
 echo "CKAN branch: $ckan_branch"
 git checkout $ckan_branch
 python setup.py develop
+pip install --upgrade setuptools
 pip install -r requirements.txt --allow-all-external
 pip install -r dev-requirements.txt --allow-all-external
 cd -
