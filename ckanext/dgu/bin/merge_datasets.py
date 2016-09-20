@@ -88,6 +88,8 @@ class MergeDatasets(object):
         resources = combined_resources.values()
 
         # find dates for resources
+        # NB This has been pulled out into timeseries_convert.py -
+        # TODO call that instead of having the code here too.
         if options.frequency:
             url_munge_re = re.compile('(%20|-|_|\.)')
 
