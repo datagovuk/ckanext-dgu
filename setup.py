@@ -46,6 +46,7 @@ setup(
         dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
         dgu_schema = ckanext.dgu.plugin:SchemaPlugin
         dgu_spatial = ckanext.dgu.plugin:DguSpatialPlugin
+        dgu_organogram = ckanext.dgu.plugin:DguOrganogramPlugin
 
         [console_scripts]
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
@@ -90,6 +91,7 @@ setup(
         publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
         schema = ckanext.dgu.commands.schema:Schema
         user_sync = ckanext.dgu.commands.user_sync:UserSync
+        organogram = ckanext.dgu.commands.organogram:OrganogramCmd
     """,
     test_suite = 'nose.collector',
 )
