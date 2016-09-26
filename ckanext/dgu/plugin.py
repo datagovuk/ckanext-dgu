@@ -682,3 +682,20 @@ class DguSpatialPlugin(p.SingletonPlugin):
 
         log.debug('No new or changed resources - won\'t process')
         return False
+
+
+class DguOrganogramPlugin(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
+
+    def before_map(self, map):
+        controller = 'ckanext.dgu.controllers.organogram:DguOrganogramController'
+        map.connect('organogram_home', '/organogram',
+                    controller=controller, action='home')
+        map.connect('organogram_publication_index', '/organogram/publication',
+                    controller=controller, action='publication_index')
+        map.connect('organogram_publication', '/organogram/publication/:org_name',
+                    controller=controller, action='publication')
+        map.connect('organogram_upload', '/organogram/publication/upload/:org_name/:date',
+                    controller=controller, action='upload')
+        return map
+

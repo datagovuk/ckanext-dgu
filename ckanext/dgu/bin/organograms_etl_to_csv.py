@@ -22,6 +22,7 @@ import re
 import argparse
 import string
 import logging
+import itertools
 
 log = __import__('logging').getLogger(__name__)
 
@@ -31,7 +32,7 @@ class ValidationFatalError(Exception):
     pass
 
 
-def load_excel_store_errors(filename, sheet_name, errors, validation_errors, input_columns, rename_columns, blank_columns, integer_columns, string_columns, n_a_for_blanks_columns):
+def load_excel_store_errors(filename, sheet_name, errors, validation_errors, input_columns, rename_columns, blank_columns, integer_columns, string_columns):
     """Carefully load an Excel file, taking care to log errors and produce clean output.
     You'll always receive a dataframe with the expected columns, though it might contain 0 rows if
     there are errors. Strings will be stored in the 'errors' array.
@@ -46,7 +47,9 @@ def load_excel_store_errors(filename, sheet_name, errors, validation_errors, inp
                                sheet_name,
                                convert_float=True,
                                parse_cols=len(input_columns)-1,
-                               converters=string_converters)
+                               converters=string_converters,
+                               keep_default_na=False,
+                               na_values=[''])
     except XLRDError, e:
         errors.append(str(e))
         return pandas.DataFrame(columns=output_columns)
@@ -97,7 +100,7 @@ def load_excel_store_errors(filename, sheet_name, errors, validation_errors, inp
                         return 'N/A'
                     if text == 'ND':
                         return 'N/D'
-                    validation_errors.append('Expected numeric values in column "%s" (or N/A or N/D), but got text="%s".' % (column_name, x))
+                    validation_errors.append('Sheet "%s": Expected numeric values in column "%s" (or N/A or N/D), but got text="%s".' % (sheet_name, column_name, x))
                     return 0
         return _inner
     # int type cannot store NaN, so use object type
@@ -116,9 +119,6 @@ def load_excel_store_errors(filename, sheet_name, errors, validation_errors, inp
         # columns with strings have detected 'object' type
         if df[column_name].dtype == 'O':
             df[column_name] = df[column_name].str.strip()
-    # Blank cells might need to be changed to 'N/A'
-    for column_name in n_a_for_blanks_columns:
-        df[column_name] = df[column_name].fillna('N/A')
     return df
 
 
@@ -159,11 +159,8 @@ def load_senior(excel_filename, errors, validation_errors, references):
       u'Post Unique Reference',
       u'Reports to Senior Post',
     ]
-    n_a_for_blanks_columns = [
-      u'Contact Phone',
-    ]
-    sheet_name = '(final data) senior-staff'
-    df = load_excel_store_errors(excel_filename, sheet_name, errors, validation_errors, input_columns, rename_columns, blank_columns, integer_columns, string_columns, n_a_for_blanks_columns)
+    sheet_name = SENIOR_SHEET_NAME
+    df = load_excel_store_errors(excel_filename, sheet_name, errors, validation_errors, input_columns, rename_columns, blank_columns, integer_columns, string_columns)
     if df.dtypes['Post Unique Reference']==numpy.float64:
         df['Post Unique Reference'] = df['Post Unique Reference'].astype('int')
     in_sheet_validation(df, validation_errors, sheet_name, 'senior', references)
@@ -190,9 +187,8 @@ def load_junior(excel_filename, errors, validation_errors, references):
     string_columns = [
       u'Reporting Senior Post',
     ]
-    n_a_for_blanks_columns = []
-    sheet_name = '(final data) junior-staff'
-    df = load_excel_store_errors(excel_filename, sheet_name, errors, validation_errors, input_columns, {}, [], integer_columns, string_columns, n_a_for_blanks_columns)
+    sheet_name = JUNIOR_SHEET_NAME
+    df = load_excel_store_errors(excel_filename, sheet_name, errors, validation_errors, input_columns, {}, [], integer_columns, string_columns)
     if df.dtypes['Reporting Senior Post']==numpy.float64:
         df['Reporting Senior Post'] = df['Reporting Senior Post'].fillna(-1).astype('int')
     in_sheet_validation(df, validation_errors, sheet_name, 'junior', references)
@@ -290,9 +286,15 @@ class PostReportLoopError(Exception):
     pass
 
 
+JOB_SHARE_COLUMNS_THAT_CAN_BE_DIFFERENT = set((
+    'Name', u'Actual Pay Ceiling (£)', u'Actual Pay Floor (£)',
+    'Total Pay', 'Contact Phone', 'Contact E-mail', 'Notes', 'FTE'))
+SENIOR_SHEET_NAME = '(final data) senior-staff'
+JUNIOR_SHEET_NAME = '(final data) junior-staff'
+
 def verify_graph(senior, junior, errors):
     '''Does checks on the senior and junior posts. Writes errors to supplied
-    empty list. Returns None.
+    list. Returns None.
 
     May raise ValidationFatalError if it is so bad that the organogram cannot
     be displayed (e.g. no "top post").
@@ -301,13 +303,34 @@ def verify_graph(senior, junior, errors):
     senior_ = senior[senior['Name'].astype(unicode) != "Eliminated"]
 
     # merge posts which are job shares
+    # "duplicated will be the grade, job title, job/team function,
+    # reports to senior post and salary cost of reports."
     # "post is duplicate save from name, pay columns, contact phone/email and
     #  notes"
-    cols = set(senior_.columns.values) - set((
-        'Name', u'Actual Pay Ceiling (£)', u'Actual Pay Floor (£)',
-        'Total Pay', 'Contact Phone', 'Contact E-mail', 'Notes',
-        'FTE'))
-    senior_ = senior_.drop_duplicates(keep='first', subset=cols)
+    job_share_columns_that_need_to_be_the_same = \
+        set(senior_.columns.values) - JOB_SHARE_COLUMNS_THAT_CAN_BE_DIFFERENT
+    senior_ = senior_.drop_duplicates(
+        keep='first', subset=job_share_columns_that_need_to_be_the_same)
+    # detect any remaining duplicate refs
+    duplicated_refs = senior_[
+        senior_.duplicated(subset=['Post Unique Reference'])
+        ]['Post Unique Reference']
+    for ref in duplicated_refs:
+        if ref in ('XX', 'xx', 0, '0'):
+            # it's ok to have several top posts (xx) or
+            # posts paid but on leave (0)
+            continue
+        # rows with that ref, just with the columns that need to be the same
+        rows = senior_[senior_['Post Unique Reference']==ref].loc[:,job_share_columns_that_need_to_be_the_same]
+        # consider pairs of those rows until we find a problem
+        for row_indexes in itertools.combinations(rows.T, 2):
+            row_pair = rows.loc[list(row_indexes)]
+            columns_with_different_values = \
+                row_pair.loc[:,row_pair.iloc[0]!=row_pair.iloc[1]].columns
+            error_cols = [column_name(senior.columns.get_loc(col_name))
+                         for col_name in columns_with_different_values]
+            error_rows = [row_name(index) for index, row in row_pair.iterrows()]
+            errors.append('Sheet %s - cells %s%s and %s%s should have the same value. "Post Unique Reference" value "%s" appears in multiple rows, indicating a job share. It is required for job share rows to have identical values in particular columns and that is not the case in this sheet. Rows %s and %s should not have different values for %s.' % (SENIOR_SHEET_NAME, error_cols[0], error_rows[0], error_cols[0], error_rows[1], ref, error_rows[0], error_rows[1], ', '.join(['"%s"' % c for c in columns_with_different_values])))
 
     # ensure at least one person is marked as top (XX)
     top_persons = senior_[senior_['Reports to Senior Post'].isin(('XX', 'xx'))]
@@ -328,15 +351,16 @@ def verify_graph(senior, junior, errors):
 
     # check there are no orphans in this tree
     reports_to = {}
+    refs_that_report_to_themselves = set()
     for index, post in senior_.iterrows():
         ref = post['Post Unique Reference']
-        if ref in reports_to:
-            errors.append('Senior post "Post Unique Reference" is not unique. The only occasion where two rows can have the same reference is for a job share, and in this case the rows must be identical save from name, pay columns, contact phone/email, notes and FTE. '
-                          'index:%s ref:"%s"' % (index, ref))
         reports_to[ref] = post['Reports to Senior Post']
         if ref == reports_to[ref]:
-            errors.append('Senior post reports to him/herself. '
-                          'index:%s ref:"%s"' % (index, ref))
+            errors.append(
+                'Sheet "%s" cell %s: Senior post reports to him/herself. '
+                'ref:"%s"' %
+                (SENIOR_SHEET_NAME, cell_name(index, column_index('k')), ref))
+            refs_that_report_to_themselves.add(ref)
     top_level_boss_by_ref = {}
 
     def get_top_level_boss_recursive(ref, posts_recursed=None):
@@ -384,9 +408,14 @@ def verify_graph(senior, junior, errors):
         except PostReportsToUnknownPostError, e:
             errors.append(str(e))
         except PostReportLoopError, posts_recursed:
-            errors.append('Reporting structure from Senior post %s "%s" '
-                          'ended up in a loop: %s'
-                          % (index, ref, posts_recursed))
+            if str(posts_recursed).split(' ')[-1] in \
+                    refs_that_report_to_themselves:
+                # error has already reported - no point flogging it
+                pass
+            else:
+                errors.append('Reporting structure from Senior post %s "%s" '
+                              'ended up in a loop: %s'
+                              % (index, ref, posts_recursed))
         else:
             if top_level_boss not in top_person_refs:
                 errors.append('Reporting from Senior post %s "%s" up to the '
@@ -395,10 +424,15 @@ def verify_graph(senior, junior, errors):
 
     # do all juniors report to a correct senior ref?
     junior_report_to_refs = set(junior['Reporting Senior Post'])
+    eliminated_posts = set(senior[senior['Name'].astype(unicode) == "Eliminated"]['Post Unique Reference'])
     bad_junior_refs = junior_report_to_refs - senior_post_refs
     for ref in bad_junior_refs:
-        errors.append('Junior post reporting to unknown senior post "%s"'
-                      % ref)
+        if ref in eliminated_posts:
+            errors.append('Junior post reporting to Eliminated senior post "%s"'
+                          % ref)
+        else:
+            errors.append('Junior post reporting to unknown senior post "%s"'
+                          % ref)
 
 def row_name(row_index):
     '''
@@ -469,14 +503,14 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     is_blank_row = not bool(row.iloc[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16]].any())  # ignore 'O' which is row[14]
     if not is_blank_row:
         a = row[0] or ''
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, 0))
         if 'XX' in a:
-            validation_errors.append('You cannot have "XX" in the "Post Unique Reference" column. %s' % cell_ref)
+            validation_errors.append('%s: You cannot have "XX" in the "Post Unique Reference" column.' % cell_ref)
         elif ' ' in a:
-            validation_errors.append('You cannot have spaces in the "Post Unique Reference" column. %s' % cell_ref)
+            validation_errors.append('%s: You cannot have spaces in the "Post Unique Reference" column.' % cell_ref)
         elif re.search(r'[¬!\"£$%^&()+=\{\}\[\]:;@\'#<>,.\\/]', a):
-            validation_errors.append('You cannot have punctuation/symbols in the "Post Unique Reference" column. %s' % cell_ref)
+            validation_errors.append('%s: You cannot have punctuation/symbols in the "Post Unique Reference" column.' % cell_ref)
 
     # senior column B is invalid if:
     # =NOT(
@@ -495,12 +529,12 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
         return value in (None, '')
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, 1))
         # if A is "0" or 0 then B must be "N/D"
         if a in ('0', 0):
             if b != 'N/D':
-                validation_errors.append('Because the "Post Unique Reference" is "0" (individual is paid but not in post) the name must be "N/D". %s' % cell_ref)
+                validation_errors.append('%s: Because the "Post Unique Reference" is "0" (individual is paid but not in post) the name must be "N/D".' % cell_ref)
         else:
             try:
                 p_is_greater_than_zero_or_a_string = int(p) > 0
@@ -514,13 +548,13 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
                 # b != 'N/D' or p not in ('N/D', 'N/A')
                 if b != 'N/D':
                     # i.e. b is N/A
-                    validation_errors.append(u'The "Name" cannot be "N/A" (unless "Total Pay (£)" is 0). %s' % cell_ref)  # unpaid people don't have to be disclosed
+                    validation_errors.append(u'%s: The "Name" cannot be "N/A" (unless "Total Pay (£)" is 0).' % cell_ref)  # unpaid people don't have to be disclosed
                 elif p not in ('N/D', 'N/A'):
                     # i.e. p is another string or a positive number (i.e. not 0 or N/D or N/A)
-                    validation_errors.append(u'The "Name" cannot be "N/D" unless the "Total Pay (\xa3)" is 0 or N/A or N/D. i.e. Someone whose pay must be disclosed must also have their name disclosed (unless they are unpaid). %s' % cell_ref)
+                    validation_errors.append(u'%s: The "Name" cannot be "N/D" unless the "Total Pay (\xa3)" is 0 or N/A or N/D. i.e. Someone whose pay must be disclosed must also have their name disclosed (unless they are unpaid).' % cell_ref)
             elif is_blank(b):
                 # we know A is not 0 because then A would require B to be 'N/D'
-                validation_errors.append(u'The "Name" cannot be blank. %s' % cell_ref)
+                validation_errors.append(u'%s: The "Name" cannot be blank.' % cell_ref)
 
     # senior column C is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -543,15 +577,15 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     c = row.iloc[column_index('C')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('C')))
         # invalid if C is blank
         if is_blank(c):
-            validation_errors.append(u'The "Grade (or equivalent)" cannot be blank. %s' % cell_ref)
+            validation_errors.append(u'%s: The "Grade (or equivalent)" cannot be blank.' % cell_ref)
         else:
             # invalid unless the value is in the listSeniorGrades
             if not_match(c, references['listSeniorGrades']):
-                validation_errors.append(u'The "Grade (or equivalent)" must be from the standard list: %s. %s' % (', '.join(['"%s"' % grade for grade in references['listSeniorGrades']]), cell_ref))
+                validation_errors.append(u'%s: The "Grade (or equivalent)" must be from the standard list: %s.' % (cell_ref, ', '.join(['"%s"' % grade for grade in references['listSeniorGrades']])))
 
     # senior column D is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -566,19 +600,19 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     d = row.iloc[column_index('D')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('D')))
         # invalid if D is blank
         if is_blank(d):
-            validation_errors.append(u'The "Job Title" cannot be blank. %s' % cell_ref)
+            validation_errors.append(u'%s: The "Job Title" cannot be blank.' % cell_ref)
         else:
             if isinstance(d, basestring) and d != 'N/D':
                 if a in (0, '0'):
                     if d != 'Not in post':
-                        validation_errors.append(u'Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Job Title" must be "Not in post". %s' % cell_ref)
+                        validation_errors.append(u'%s: Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Job Title" must be "Not in post".' % cell_ref)
                 else:
                     if d == 'Not in post':
-                        validation_errors.append(u'The "Job Title" can only be "Not in post" if the "Post Unique Reference" is "0" (individual is paid but not in post). %s' % cell_ref)
+                        validation_errors.append(u'%s: The "Job Title" can only be "Not in post" if the "Post Unique Reference" is "0" (individual is paid but not in post).' % cell_ref)
 
     # senior column E is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -593,19 +627,19 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     e = row.iloc[column_index('E')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('E')))
         # invalid if E is blank
         if is_blank(e):
-            validation_errors.append(u'The "Job/Team Function" cannot be blank. %s' % cell_ref)
+            validation_errors.append(u'%s: The "Job/Team Function" cannot be blank.' % cell_ref)
         else:
             if isinstance(e, basestring) and e != 'N/D':
                 if a == 0:  # but what about string '0'?
                     if e != 'N/A':
-                        validation_errors.append(u'Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Job/Team Function" must be "N/A". %s' % cell_ref)
+                        validation_errors.append(u'%s: Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Job/Team Function" must be "N/A".' % cell_ref)
                 else:
                     if e == 'N/A':
-                        validation_errors.append(u'The "Job/Team Function" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post). %s' % cell_ref)
+                        validation_errors.append(u'%s: The "Job/Team Function" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post).' % cell_ref)
 
     # NB Column F is no longer checked - it became optional with Sept 2016 spreadsheet
     # # senior column F is invalid if:
@@ -636,11 +670,11 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     g = row.iloc[column_index('G')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('G')))
         # invalid if G is blank or 'N/D'
         if is_blank(g) or g == 'N/D':
-            validation_errors.append(u'The "Organisation" must be disclosed - it cannot be blank or "N/D". %s' % cell_ref)
+            validation_errors.append(u'%s: The "Organisation" must be disclosed - it cannot be blank or "N/D".' % cell_ref)
 
     # senior column H is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -656,22 +690,22 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     h = row.iloc[column_index('H')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('H')))
         # invalid if H is blank or 'N/D'
         if is_blank(h) or h == 'N/D':
-            validation_errors.append(u'The "Unit" must be disclosed - it cannot be blank or "N/D". %s' % cell_ref)
+            validation_errors.append(u'%s: The "Unit" must be disclosed - it cannot be blank or "N/D".' % cell_ref)
         else:
             if a == 0:  # but what about string '0'?
                 if h != 'N/A':
-                    validation_errors.append(u'Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Unit" must be "N/A". %s' % cell_ref)
+                    validation_errors.append(u'%s: Because the "Post Unique Reference" is "0" (individual is paid but not in post), the "Unit" must be "N/A".' % cell_ref)
             else:
                 if h == 'N/A':
-                    validation_errors.append(u'The "Unit" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post). %s' % cell_ref)
+                    validation_errors.append(u'%s: The "Unit" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post).' % cell_ref)
                 else:
                     # invalid unless the value is in the list of units
                     if not_match(h, references['units']):
-                        validation_errors.append(u'The "Unit" must be from the standard list: %s. %s' % (', '.join(['"%s"' % grade for grade in references['units']]), cell_ref))
+                        validation_errors.append(u'%s: The "Unit" must be from the standard list: %s.' % (cell_ref, ', '.join(['"%s"' % grade for grade in references['units']])))
 
     # senior column I is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -689,24 +723,24 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     j = row.iloc[column_index('J')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('I')))
         # invalid if I is blank
         if is_blank(i):
-            validation_errors.append(u'The "Contact Phone" must be supplied - it cannot be blank. %s' % cell_ref)
+            validation_errors.append(u'%s: The "Contact Phone" must be supplied - it cannot be blank.' % cell_ref)
         else:
             if (is_number(i) or isinstance(i, basestring)) and \
                 (i != 'N/D' or j != 'N/D'):
                 if a in (0, '0') or b in ('Vacant', 'VACANT', 'vacant', 'Eliminated', 'ELIMINATED', 'eliminated'):
                     ref_value = '"Post Unique Reference" is "0" (individual is paid but not in post)' if a in (0, '0') else '"Name" is Vacant" or "Eliminated"'
                     if i != 'N/A':
-                        validation_errors.append(u'Because the %s, the "Contact Phone" must be "N/A". %s' % (ref_value, cell_ref))
+                        validation_errors.append(u'%s: Because the %s, the "Contact Phone" must be "N/A".' % (cell_ref, ref_value))
                 else:
                     if i == 'N/A':
-                        validation_errors.append(u'The "Contact Phone" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post) or the "Name" is "Vacant". %s' % cell_ref)
+                        validation_errors.append(u'%s: The "Contact Phone" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post) or the "Name" is "Vacant".' % cell_ref)
             else:
                 # i.e. i = N/D and j = N/D
-                validation_errors.append(u'You must provide at least one form of contact. You cannot have both "Contact Phone" and "Contact E-mail" as "N/D". %s' % cell_ref)
+                validation_errors.append(u'%s: You must provide at least one form of contact. You cannot have both "Contact Phone" and "Contact E-mail" as "N/D".' % cell_ref)
 
     # senior column J is invalid if:
     # =IF(AND(ISBLANK($A2),ISBLANK($J2)),
@@ -732,7 +766,7 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
 
     # valid if A and J are blank. If either has a value, we continue the logic.
     if not (is_blank(a) and is_blank(j)):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('J')))
         if (a in (0, '0') or b in ('Vacant', 'VACANT', 'vacant', 'Eliminated', 'ELIMINATED', 'eliminated')) and \
             j == 'N/A':
@@ -746,14 +780,14 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
             #                         '@' in j and '.' in j))
             # split up ao2 into the four conditions
             if is_blank(j) and not is_blank(a):
-                validation_errors.append(u'The "Contact E-mail" must be supplied - it cannot be blank. %s' % cell_ref)
+                validation_errors.append(u'%s: The "Contact E-mail" must be supplied - it cannot be blank.' % cell_ref)
             elif j == 'N/A' and a != '0':  # what about a = int 0!
-                validation_errors.append(u'The "Contact E-mail" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post). %s' % cell_ref)
+                validation_errors.append(u'%s: The "Contact E-mail" can only be "N/A" if the "Post Unique Reference" is "0" (individual is paid but not in post).' % cell_ref)
             elif i == 'N/D' and j == 'N/D':
-                validation_errors.append(u'You must provide at least one form of contact. You cannot have both "Contact Phone" and "Contact E-mail" as "N/D". %s' % cell_ref)
+                validation_errors.append(u'%s: You must provide at least one form of contact. You cannot have both "Contact Phone" and "Contact E-mail" as "N/D".' % cell_ref)
             elif not (j == 'N/D' or (isinstance(j, basestring) and
                                      '@' in j and '.' in j)):
-                validation_errors.append(u'The "Contact E-mail" must be a valid email address (containing "@" and "." characters) unless the "Name" is "Vacant" or "Eliminated", or the "Post Unique Reference" is "0" (the individual is paid but not in post). It cannot be blank. %s' % cell_ref)
+                validation_errors.append(u'%s: The "Contact E-mail" must be a valid email address (containing "@" and "." characters) unless the "Name" is "Vacant" or "Eliminated", or the "Post Unique Reference" is "0" (the individual is paid but not in post). It cannot be blank.' % cell_ref)
 
     # senior column K is invalid if:
     # =NOT(IF(ISBLANK($A2),
@@ -769,17 +803,17 @@ def in_sheet_validation_senior_columns(row, df, validation_errors, sheet_name, r
     k = row.iloc[column_index('K')]
     # valid if A is blank (i.e. as if the row is empty)
     if not is_blank(a):
-        cell_ref = 'See sheet "%s" cell %s' % \
+        cell_ref = 'Sheet "%s" cell %s' % \
             (sheet_name, cell_name(row.name, column_index('K')))
         # invalid if K is blank
         if is_blank(k):
-            validation_errors.append(u'The "Reports to Senior Post" value must be supplied - it cannot be blank. %s' % cell_ref)
+            validation_errors.append(u'%s: The "Reports to Senior Post" value must be supplied - it cannot be blank.' % cell_ref)
         else:
             if k != 'XX':  # what about lowercase?
                 seniorPostUniqueReference = df.ix[:, 0]
                 # invalid unless the value is in column A
                 if not_match(k, seniorPostUniqueReference):
-                    validation_errors.append(u'The "Reports to Senior Post" value must match one of the values in "Post Unique Reference" (column A) or be "XX" (which is a top level post - reports to no-one in this sheet). %s' % cell_ref)
+                    validation_errors.append(u'%s: The "Reports to Senior Post" value must match one of the values in "Post Unique Reference" (column A) or be "XX" (which is a top level post - reports to no-one in this sheet).' % cell_ref)
 
 def in_sheet_validation_junior_columns(row, df, validation_errors, sheet_name, references):
     # to do
@@ -856,17 +890,18 @@ def get_verify_level(graph):
 def load_xls_and_get_errors(xls_filename):
     '''
     Used by tso_combined.py
+    Does all checks and returns all errors.
     Returns: (senior_df, junior_df, errors, warnings, will_display)
     '''
-    errors = []
+    load_errors = []
     validation_errors = []
     warnings = []
-    references = get_references(xls_filename, errors, validation_errors, warnings)
-    senior_df = load_senior(xls_filename, errors, validation_errors, references)
-    junior_df = load_junior(xls_filename, errors, validation_errors, references)
+    references = get_references(xls_filename, load_errors, validation_errors, warnings)
+    senior_df = load_senior(xls_filename, load_errors, validation_errors, references)
+    junior_df = load_junior(xls_filename, load_errors, validation_errors, references)
 
-    if errors:
-        return None, None, errors + validation_errors, warnings, False
+    if load_errors:
+        return None, None, load_errors + validation_errors, warnings, False
 
     errors = validation_errors
     try:
@@ -885,11 +920,12 @@ def print_error(error_msg):
     print 'ERROR:', error_msg.encode('utf8')  # encoding for Drupal exec()
 
 
-def load_xls_and_print_errors(xls_filename, verify_level):
+def load_xls_and_stop_on_errors(xls_filename, verify_level, print_errors=True):
     '''
     Loads the XLS, verifies it to an appropriate level and returns the data.
 
-    If errors are not acceptable, it prints them and returns None
+    If errors are not acceptable, it prints them and returns None.
+    Returns: failure_stage, senior_df, junior_df, errors, warnings
     '''
     load_errors = []
     validation_errors = []
@@ -900,15 +936,17 @@ def load_xls_and_print_errors(xls_filename, verify_level):
 
     if load_errors:
         print 'Critical error(s):'
-        for error in load_errors:
-            print_error(error)
+        if print_errors:
+            for error in load_errors:
+                print_error(error)
         # errors mean no rows can be got from the file, so can't do anything
-        return
+        return 'load', senior_df, junior_df, load_errors, warnings
     if validation_errors and verify_level == 'load, display and be valid':
         print 'Validation error(s) during load:'
-        for error in validation_errors:
-            print_error(error)
-        return
+        if print_errors:
+            for error in validation_errors:
+                print_error(error)
+        return 'validation', senior_df, junior_df, validation_errors, warnings
 
     if verify_level != 'load':
         validate_errors = []
@@ -916,15 +954,17 @@ def load_xls_and_print_errors(xls_filename, verify_level):
             verify_graph(senior_df, junior_df, validate_errors)
         except ValidationFatalError, e:
             # display error - organogram is not displayable
-            print_error(unicode(e))
-            return
+            if print_errors:
+                print_error(unicode(e))
+            return 'validating tree', senior_df, junior_df, validate_errors, warnings
 
         if verify_level == 'load, display and be valid' and validate_errors:
-            for error in dedupe_list(validate_errors):
-                print_error(error)
-            return
-
-    return senior_df, junior_df
+           validate_errors = dedupe_list(validate_errors)
+           if print_errors:
+                for error in validate_errors:
+                    print_error(error)
+           return 'validating tree', senior_df, junior_df, validate_errors, warnings
+    return None, senior_df, junior_df, validate_errors, warnings
 
 
 def dedupe_list(things):
@@ -943,11 +983,12 @@ def main(input_xls_filepath, output_folder):
         verify_level = get_verify_level(date_)
     else:
         verify_level = 'load, display and be valid'
-    data = load_xls_and_print_errors(input_xls_filepath, verify_level)
-    if data is None:
+    failure_stage, senior_df, junior_df, errors, warnings = \
+        load_xls_and_stop_on_errors(input_xls_filepath, verify_level,
+                                    print_errors=True)
+    if failure_stage != None:
         # fatal error has been printed
         return
-    senior_df, junior_df = data
 
     # Calculate Organogram name
     _org = senior_df['Organisation']

@@ -129,7 +129,7 @@ def migrate(config_ini):
                 continue
 
             # Save to CSV
-            csv_filepaths = []
+            csv_rel_filepaths = []
             for senior_or_junior in ('senior', 'junior'):
                 out_filename = '{org}-{graph}-{senior_or_junior}.csv'.format(
                     org=munge_org(org.title, separation_char='_'),
@@ -139,12 +139,15 @@ def migrate(config_ini):
                     get_csv_filepath(out_filename, relative=True),
                     'csv_%s_filepath' % senior_or_junior,
                     organogram_dict, stats)
-                csv_filepaths.append(get_csv_filepath(out_filename))
-            senior_csv_filepath, junior_csv_filepath = csv_filepaths
-            #print 'Writing', senior_csv_filepath, junior_csv_filepath
+                csv_rel_filepaths.append(get_csv_filepath(out_filename, relative=True))
+            senior_csv_rel_filepath, junior_csv_rel_filepath = csv_rel_filepaths
+            senior_csv_filepath, junior_csv_filepath = \
+                [full_path(rel_path) for rel_path in csv_rel_filepaths]
 
             save_csvs(senior_csv_filepath, junior_csv_filepath,
                       senior_df, junior_df)
+            organogram_dict['csv_senior_filepath'] = senior_csv_rel_filepath
+            organogram_dict['csv_junior_filepath'] = junior_csv_rel_filepath
 
             # copy the XLS file into the organogram dir
             if row['original_xls_filepath']:
@@ -158,6 +161,15 @@ def migrate(config_ini):
             if os.path.exists(xls_filepath):
                 os.remove(xls_filepath)
             shutil.copyfile(source_xls_filepath, xls_filepath)
+            organogram_dict['xls_filepath'] = xls_rel_filepath
+
+            # save to the database
+            if existing_organogram:
+                existing_organogram.update(**organogram_dict)
+            else:
+                organogram = Organogram(**organogram_dict)
+                model.Session.add(organogram)
+            model.Session.commit()
         except:
             print 'Exception with --body "%s" --graph %s' % \
                 (row['body_title'], graph)
@@ -171,6 +183,7 @@ def migrate(config_ini):
     except:
         traceback.print_exc()
         import pdb; pdb.set_trace()
+
 #     publisher_id = Column(types.UnicodeText, nullable=False, index=True)
 #     date = Column(types.DateTime, nullable=False, index=True)  # i.e. version
 #     original_xls_filepath = Column(types.UnicodeText, nullable=True, index=True)  # where it was stored on tso or the upload filename

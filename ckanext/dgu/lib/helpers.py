@@ -2335,3 +2335,51 @@ def detect_license_id(licence_str):
         is_wholely_identified = None
 
     return license_id, is_wholely_identified
+
+def organogram_permissions_for_current_user_():
+    from ckan import model
+    # NB this is different to general permissions where editors also cascade
+    roles_that_cascade = ['admin']
+
+    # Based on organization_list_for_user
+    user = c.userobj
+    if not user:
+        return []
+    sysadmin = user.sysadmin
+
+    orgs_q = model.Session.query(model.Group) \
+        .filter(model.Group.is_organization == True) \
+        .filter(model.Group.state == 'active')
+
+    if not sysadmin:
+        roles = ['admin', 'editor']
+        user_id = user.id
+        q = model.Session.query(model.Member, model.Group) \
+            .filter(model.Member.table_name == 'user') \
+            .filter(model.Member.capacity.in_(roles)) \
+            .filter(model.Member.table_id == user_id) \
+            .filter(model.Member.state == 'active') \
+            .join(model.Group)
+
+        group_ids = set()
+        for member, group in q.all():
+            if member.capacity in roles_that_cascade:
+                group_ids |= set([
+                    grp_tuple[0] for grp_tuple
+                    in group.get_children_group_hierarchy(type='organization')
+                    ])
+            group_ids.add(group.id)
+
+        if not group_ids:
+            return []
+
+        orgs_q = orgs_q.filter(model.Group.id.in_(group_ids))
+
+    publishers = orgs_q.all()
+    publishers = sorted(publishers, key=lambda p: p.title)
+    return publishers
+
+def organogram_permissions_for_current_user():
+    if c.organogram_permissions == '':
+        c.organogram_permissions = organogram_permissions_for_current_user_()
+    return c.organogram_permissions
