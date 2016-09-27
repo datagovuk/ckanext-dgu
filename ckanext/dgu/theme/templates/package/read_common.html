@@ -263,7 +263,7 @@
               {% if can_manage_organogram %}
                 <li>
                   <span class="wrap-icon"><i class="icon-group"></i></span>
-                  <a href="/organogram/manage/{{ c.pkg_dict.get('organization',{}).get('name','') }}">Organogram publication</a>
+                  <a href="/organogram/manage/{{ (c.pkg_dict.get('organization') or {}).get('name','') }}">Organogram publication</a>
                 </li>
               {% endif %}
               <li>
