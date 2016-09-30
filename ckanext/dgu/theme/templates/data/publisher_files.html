@@ -1,0 +1,47 @@
+{% extends "page.html" %}
+
+{% block title %}Publisher Files{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('api_page', 'Metadata API') }}
+{% endblock %}
+
+{% block optional_head %}
+<style>
+  td {
+      padding-left: 20px;
+      padding-right: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block primary_content_inner %}
+
+    <h1>Publisher files</h1>
+
+    <p>These files are only available to users who have editor or admin permissions for a publisher.</p>
+
+    <table>
+      {% for dir in dirs %}
+        <tr>
+          <td>
+            <a href="/publisher-files/{{ dir.rel_path.lstrip('/') }}">{{ dir.name }}/</a>
+          </td>
+        </tr>
+      {% endfor %}
+      {% for file in file_details %}
+        <tr>
+          <td><a href="/publisher-files/{{ file.rel_path }}">{{ file.name }}</a></td>
+          <td>{{ file.modified }}</td>
+          <td>{{ file.size|filesizeformat }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+    {% if not (dirs or files) %}
+      No files found
+    {% endif %}
+
+  </div>
+
+  <p></p>  {# spacing #}
+{% endblock %}

@@ -472,14 +472,19 @@ class DataController(BaseController):
         if os.path.islink(path):
             path = os.path.realpath(path)
         if os.path.isdir(path):
-            if not rel_path.endswith('/'):
-                # we need a / on the end, or relative links don't work
-                return redirect(request.path + '/')
             root, dirs, files = os.walk(path).next()
+            rel_path_with_trailing_slash = rel_path.strip('/') + '/'
+            dirs = [
+                dict(name=dir_,
+                     rel_path=rel_path_with_trailing_slash + dir_,
+                     )
+                for dir_ in dirs]
             if rel_path not in ('/', '', None):
-                dirs.insert(0, '..')
+                dirs.insert(0, dict(
+                    name='..', rel_path=os.path.dirname(rel_path.rstrip('/'))))
             file_details = [
                 dict(name=file,
+                     rel_path=rel_path_with_trailing_slash + file,
                      size=os.path.getsize(root + '/' + file),
                      modified=time.ctime(os.path.getmtime(root + '/' + file)),
                      )
