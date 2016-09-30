@@ -499,13 +499,14 @@ class DataController(BaseController):
             abort(401, 'Unknown path %s' % path)
 
     def _serve_file(self, filepath):
-        user_filename = '_'.join(filepath.split('/')[-2:])
+        user_filename = filepath.split('/')[-1].encode('ascii', 'ignore')
         file_size = os.path.getsize(filepath)
 
-        headers = [('Content-Disposition', 'attachment; filename=\"'
-                   + user_filename + '\"'),
-                   ('Content-Type', 'text/plain'),
-                   ('Content-Length', str(file_size))]
+        headers = [
+            ('Content-Disposition',
+             'attachment; filename=\"%s\"' % user_filename),
+            ('Content-Type', 'text/plain'),
+            ('Content-Length', str(file_size))]
 
         fapp = FileApp(filepath, headers=headers)
 
