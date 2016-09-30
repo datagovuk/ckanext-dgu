@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pylons
@@ -9,8 +8,11 @@ import datetime
 import urllib
 import shutil
 import uuid
+import time
 
 from pylons import config
+from paste.fileapp import FileApp
+
 from ckan.lib.helpers import flash_success, flash_error
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h, redirect
@@ -465,14 +467,24 @@ class DataController(BaseController):
         path = self._get_path_relative_to_publisher_files_dir(rel_path)
         if not os.path.exists(path):
             abort(404, 'File not found')
-        elif os.path.isdir(path):
+        # resolve symbolic link, so it downloads with the actual filename, not
+        # the link name
+        if os.path.islink(path):
+            path = os.path.realpath(path)
+        if os.path.isdir(path):
             if not rel_path.endswith('/'):
                 # we need a / on the end, or relative links don't work
                 return redirect(request.path + '/')
             root, dirs, files = os.walk(path).next()
             if rel_path not in ('/', '', None):
                 dirs.insert(0, '..')
-            extra_vars = dict(dirs=dirs, files=files)
+            file_details = [
+                dict(name=file,
+                     size=os.path.getsize(root + '/' + file),
+                     modified=time.ctime(os.path.getmtime(root + '/' + file)),
+                     )
+                for file in files]
+            extra_vars = dict(dirs=dirs, file_details=file_details)
             return render('data/publisher_files.html', extra_vars=extra_vars)
         elif os.path.isfile(path):
             return self._serve_file(path)
@@ -490,11 +502,9 @@ class DataController(BaseController):
                    ('Content-Type', 'text/plain'),
                    ('Content-Length', str(file_size))]
 
-        from paste.fileapp import FileApp
         fapp = FileApp(filepath, headers=headers)
 
         return fapp(request.environ, self.start_response)
-
 
 
 def has_user_got_publisher_permissions():
