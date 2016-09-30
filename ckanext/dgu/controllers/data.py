@@ -445,4 +445,62 @@ class DataController(BaseController):
             errors.append("No dataset was selected")
         return len(errors) == 0, errors
 
+    def _get_publisher_files_dir(self):
+        return os.path.expanduser(pylons.config.get(
+            'dgu.publisher_files_dir',
+            '/var/lib/ckan/dgu/publisher_files'))
 
+    def _get_path_relative_to_publisher_files_dir(self, rel_path):
+        publisher_files_dir = self._get_publisher_files_dir()
+        abs_path = os.path.abspath(
+            os.path.join(publisher_files_dir, rel_path.lstrip('/')))
+        # double check we've not gone out of this dir
+        assert abs_path.startswith(publisher_files_dir)
+        return abs_path
+
+    def publisher_files(self, rel_path):
+        if not has_user_got_publisher_permissions():
+            abort(401, _('You need to be logged in as an editor or admin for a'
+                         ' publisher to see these files'))
+        path = self._get_path_relative_to_publisher_files_dir(rel_path)
+        if not os.path.exists(path):
+            abort(404, 'File not found')
+        elif os.path.isdir(path):
+            if not rel_path.endswith('/'):
+                # we need a / on the end, or relative links don't work
+                return redirect(request.path + '/')
+            root, dirs, files = os.walk(path).next()
+            if rel_path not in ('/', '', None):
+                dirs.insert(0, '..')
+            extra_vars = dict(dirs=dirs, files=files)
+            return render('data/publisher_files.html', extra_vars=extra_vars)
+        elif os.path.isfile(path):
+            return self._serve_file(path)
+        elif os.path.islink(path):
+            abort(401, 'Cannot use links')
+        else:
+            abort(401, 'Unknown path %s' % path)
+
+    def _serve_file(self, filepath):
+        user_filename = '_'.join(filepath.split('/')[-2:])
+        file_size = os.path.getsize(filepath)
+
+        headers = [('Content-Disposition', 'attachment; filename=\"'
+                   + user_filename + '\"'),
+                   ('Content-Type', 'text/plain'),
+                   ('Content-Length', str(file_size))]
+
+        from paste.fileapp import FileApp
+        fapp = FileApp(filepath, headers=headers)
+
+        return fapp(request.environ, self.start_response)
+
+
+
+def has_user_got_publisher_permissions():
+    if not c.userobj:
+        return False
+    if c.userobj.sysadmin:
+        return True
+    if c.user_obj.get_groups('organization'):
+        return True
