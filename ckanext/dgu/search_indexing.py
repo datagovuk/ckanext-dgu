@@ -57,8 +57,8 @@ class SearchIndexing(object):
 
         if asbool(pkg_dict.get('core-dataset', False)):
             pkg_dict['collection'].append('National Information Infrastructure')
-        #if dgu_helpers.is_dataset_organogram(pkg_dict):
-        #    pkg_dict['collection'].append('Organogram')
+        if dgu_helpers.is_dataset_organogram(pkg_dict):
+            pkg_dict['collection'].append('Organogram')
 
         # maybe put this in a property?
         #if 'API' in [p.upper() for p in pkg_dict['res_format']]:  # what about wfs?

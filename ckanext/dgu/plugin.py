@@ -504,8 +504,8 @@ class SearchPlugin(p.SingletonPlugin):
 
     def before_index(self, pkg_dict):
         """
-        Dynamically creates a license_id-is-ogl field to index on, and clean
-        up resource formats prior to indexing.
+        DGU-specific changes to the pkg_dict before it is indexed. The main
+        reason is so that we can add search facets.
         """
         log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
