@@ -682,3 +682,13 @@ class DguSpatialPlugin(p.SingletonPlugin):
 
         log.debug('No new or changed resources - won\'t process')
         return False
+
+
+class DguPublisherFiles(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
+
+    def after_map(self, map):
+        data_ctlr = 'ckanext.dgu.controllers.data:DataController'
+        map.connect('publisher_files', '/publisher-files{rel_path:.*?}',
+                    controller=data_ctlr, action='publisher_files')
+        return map
