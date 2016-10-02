@@ -518,5 +518,5 @@ def has_user_got_publisher_permissions():
         return False
     if c.userobj.sysadmin:
         return True
-    if c.user_obj.get_groups('organization'):
+    if c.userobj.get_groups('organization'):
         return True
