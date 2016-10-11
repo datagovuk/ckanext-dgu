@@ -30,6 +30,7 @@ def main(source, source_type, save_relevant_datasets_json=False,
 
     datasets = []  # legacy ones
     revamped_datasets = []  # ones created on 3rd October 2016 launch
+    revamped_datasets_by_org = {}
     revamped_resources = {}
     csv_out_rows = []
     csv_corrected_rows = []
@@ -52,13 +53,15 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 stats_datasets.add('Ignored dataset', dataset['name'])
                 continue
             #print dataset['title']
-            org_name = dataset['groups'][0] if dataset.get('groups') else ''
+            org_id = dataset['owner_org']
 
             if dataset['extras'].get('import_source', '') == 'organograms_v2':
                 revamped_datasets.append(dataset)
+                assert org_id not in revamped_datasets_by_org, org_id
+                revamped_datasets_by_org[org_id] = dataset
                 for res in dataset['resources']:
                     date = date_to_year_month(res['date'])
-                    revamped_resources[(org_name, date)] = res
+                    revamped_resources[(org_id, date)] = res
                 continue
             else:
                 # legacy dataset
@@ -84,7 +87,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 if res_url_filter and res['url'] != res_url_filter:
                     continue
                 resource_corrections(res, dataset, revamped_resources,
-                                     org_name,
+                                     revamped_datasets_by_org,
+                                     org_id,
                                      resources_to_delete,
                                      stats_res)
             for res in resources_to_delete:
@@ -116,7 +120,7 @@ def main(source, source_type, save_relevant_datasets_json=False,
         traceback.print_exc()
         import pdb; pdb.set_trace()
 
-    stats_dates.report_value_limit = 500
+    stats_res.report_value_limit = 500
     print '\nDates\n', stats_dates
     print '\nDatasets\n', stats_datasets
     print '\nResources\n', stats_res
@@ -156,7 +160,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
                     csv_writer.writerow(row)
             print 'Written', out_filename
 
-def resource_corrections(res, dataset, revamped_resources, org_name,
+def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_org,
+                         org_id,
                          resources_to_delete, stats_res):
     # e.g. "http:// http://reference.data.gov.uk/gov-structure/organogram/?pubbod=science-museum-group"
     res['url'] = res['url'].strip()
@@ -240,7 +245,7 @@ def resource_corrections(res, dataset, revamped_resources, org_name,
         # assume because dataset created 30/11/2011
         res['date'] = '30/09/2011'
     if dataset['name'] == 'staff-organograms-and-pay-chre' and '2011' not in res['description']:
-        # 2011 ones added 10 Jun 2011 and previous
+        # ones added 10 Jun 2011 and previous
         res['date'] = '30/06/2010'
     if dataset['name'] == 'staff-organograms-and-pay-chre' and '2011' in res['description']:
         # 2011 ones added 10 Jun 2011
@@ -268,10 +273,10 @@ def resource_corrections(res, dataset, revamped_resources, org_name,
     if res.get('date'):
         date = parse_date(res.get('date'))
         date_year_month = '%s-%s' % (date.year, date.month)
-        revamped_res = revamped_resources.get((org_name, date_year_month))
+        revamped_res = revamped_resources.get((org_id, date_year_month))
         if revamped_res:
             if res.get('format'):
-                if res['format'] == 'CSV':
+                if res['format'].upper() == 'CSV':
                     resources_to_delete.append(res)
                     stats_res.add('duplicate period to revamp csv deleted', res['url'])
                     return
@@ -280,7 +285,7 @@ def resource_corrections(res, dataset, revamped_resources, org_name,
                                   res['url'])
                     return
                 else:
-                    stats_res.add('??? duplicate period to revamp non-csv/rdf',
+                    stats_res.add('duplicate period to revamp non-csv/rdf - leave',
                                   '%s %s' % (res['format'], res['url']))
                     return
             else:
@@ -289,14 +294,37 @@ def resource_corrections(res, dataset, revamped_resources, org_name,
 
     # gov.uk URLs will often be duplicates
     if re.match(r'https:\/\/www.gov.uk\/government\/(organisations|publications|uploads)\/.*', res['url']):
+        if org_id not in revamped_datasets_by_org:
+            stats_res.add('gov.uk but org not known in new scheme', '%s %s' % (org_id, res['url']))
+            return
         # eg https://www.gov.uk/government/organisations/cabinet-office/series/cabinet-office-structure-charts
         # eg https://www.gov.uk/government/publications/bis-junior-staff-numbers-and-payscales-30-september-2012
         # eg https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/11577/1920406.csv
         if res.get('date'):
-            if date > datetime.datetime(2011, 1, 1):
-                # this data should be in the organogram tool - TODO CHECK
+            print '\n%s from %s added to dataset already with:' % (date_year_month, dataset['name'])
+            d = revamped_datasets_by_org[org_id]
+            for r in d['resources']:
+                print '  %s: %s' % (d['name'], r.get('date'))
+            print '\n'
+            #import pdb; pdb.set_trace()
+
+
+            if date > datetime.datetime(2012, 1, 1):
+                # this data should be in the organogram tool
                 if res.get('format'):
-                    if res['format'] == 'CSV':
+                    if res['format'].upper() == 'CSV':
+                        resources_to_delete.append(res)
+                        stats_res.add('gov.uk csv since 2012 deleted', res['url'])
+                        return
+                    else:
+                        stats_res.add('??? gov.uk non-csv since 2012',
+                                      '%s %s' % (res['format'], res['url']))
+                else:
+                    stats_res.add('??? gov.uk formatless since 2012', res['url'])
+            elif date > datetime.datetime(2011, 1, 1):
+                # this data should be in the organogram tool
+                if res.get('format'):
+                    if res['format'].upper() == 'CSV':
                         resources_to_delete.append(res)
                         stats_res.add('gov.uk csv since 2011 deleted', res['url'])
                         return
@@ -306,9 +334,9 @@ def resource_corrections(res, dataset, revamped_resources, org_name,
                 else:
                     stats_res.add('??? gov.uk formatless since 2011', res['url'])
             elif date > datetime.datetime(2010, 1, 1):
-                # this data should be in the organogram tool - TODO CHECK
+                # this data should be in the organogram tool
                 if res.get('format'):
-                    if res['format'] == 'CSV':
+                    if res['format'].upper() == 'CSV':
                         resources_to_delete.append(res)
                         stats_res.add('gov.uk csv 2010 deleted', res['url'])
                         return
@@ -327,7 +355,7 @@ def save_csv_rows(csv_rows, dataset):
     for res in dataset['resources']:
         csv_rows.append(dict(
             name=dataset['name'],
-            org_name=dataset['groups'][0] if dataset.get('groups') else '',
+            org_name=dataset['groups'][0] if dataset.get('groups') else dataset['owner_org'],
             notes='',   #dataset['notes'],
             res_name=res['description'] or res['name'],
             res_url=res['url'],
