@@ -279,6 +279,13 @@ def command(config_file):
         report_time_taken(log)
 
     if run_task('dump-json2'):
+        # since gov_daily.py is run with sudo, and a path to python in the venv
+        # rather than in an activated environment, and ckanapi creates
+        # subprocesses, we need to activate the environment. The same one as
+        # our current python interpreter.
+        bin_dir = os.path.dirname(sys.executable)
+        activate_this = os.path.join(bin_dir, 'activate_this.py')
+        execfile(activate_this, dict(__file__=activate_this))
         import ckanapi.cli.dump
         log.info('Creating database dumps - JSON 2')
         create_dump_dir_if_necessary()
@@ -290,6 +297,7 @@ def command(config_file):
         #arguments['ID_OR_NAME'] = ['mot-active-vts', 'road-accidents-safety-data']
         arguments['--processes'] = 4
         arguments['--remote'] = config['ckan.site_url']
+        arguments['--get-request'] = True
         dump_datasets(
             'v2.json', ckanapi.cli.dump.dump_things, 2,
             ckan, 'datasets', arguments,
