@@ -77,7 +77,8 @@ def command(config_file):
 
     import ckan.model as model
     import ckan.lib.dumper as dumper
-    from ckanext.dgu.lib.inventory import inventory_dumper
+    import ckanext.dgu.lib.dumper as dgu_dumper
+    from ckanext.dgu.lib.inventory import unpublished_dumper
 
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).filter_by(state='active').count()
@@ -183,37 +184,37 @@ def command(config_file):
                         log.info('Wrote openspending report %s', filepath)
 
     # Create dump for users
-    if run_task('dump'):
-        log.info('Creating database dump')
+    if run_task('dump-csv'):
+        log.info('Creating database dumps - CSV')
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
             os.makedirs(dump_dir)
-        query = model.Session.query(model.Package).filter(model.Package.state=='active')
         dump_file_base = start_time.strftime(dump_filebase)
+
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
 
-
-        # Explicitly dump the packages and resources to their respective CSV files
-        # before zipping them up and moving them into position.
-        import ckanext.dgu.lib.dumper as dumperlib
-
+        # Explicitly dump the packages and resources to their respective CSV
+        # files before zipping them up and moving them into position.
         dump_filepath = os.path.join(dump_dir, dump_file_base + '.csv.zip')
 
         log.info('Creating CSV files: %s' % dump_filepath)
-        dumpobj = dumperlib.CSVDumper()
+        dumpobj = dgu_dumper.CSVDumper()
         dumpobj.dump()
 
         dataset_file, resource_file = dumpobj.close()
 
-        log.info('Dumped datasets file is %dMb in size' % (os.path.getsize(dataset_file) / (1024*1024)))
-        log.info('Dumped resources file is %dMb in size' % (os.path.getsize(resource_file) / (1024*1024)))
+        log.info('Dumped datasets file is %dMb in size' % (
+            os.path.getsize(dataset_file) / (1024 * 1024)))
+        log.info('Dumped resources file is %dMb in size' % (
+            os.path.getsize(resource_file) / (1024 * 1024)))
 
         dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
         dump_file.write(dataset_file, "datasets.csv")
         dump_file.write(resource_file, "resources.csv")
         dump_file.close()
 
-        link_filepath = os.path.join(dump_dir, "data.gov.uk-ckan-meta-data-latest.csv.zip")
+        link_filepath = os.path.join(
+            dump_dir, 'data.gov.uk-ckan-meta-data-latest.csv.zip')
 
         if os.path.exists(link_filepath):
             os.unlink(link_filepath)
@@ -221,31 +222,50 @@ def command(config_file):
         os.remove(dataset_file)
         os.remove(resource_file)
 
-        # Dump the json and unpublished csv to the usual place.
-        for file_type, dumper_ in (('json', dumper.SimpleDumper().dump_json),
-                                  ('unpublished.csv', inventory_dumper),
-                                 ):
-            dump_filename = '%s.%s' % (dump_file_base, file_type)
-            dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
-            tmp_file = open(tmp_filepath, 'w+b')
-            log.info('Creating %s file: %s' % (file_type, dump_filepath))
-            dumper_(tmp_file, query)
-            tmp_file.close()
-            log.info('Dumped data file is %dMb in size' % (os.path.getsize(tmp_filepath) / (1024*1024)))
-            dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
-            dump_file.write(tmp_filepath, dump_filename)
-            dump_file.close()
+    def dump_datasets(file_type, dumper_func):
+        dump_filename = '%s.%s' % (dump_file_base, file_type)
+        dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
+        tmp_file = open(tmp_filepath, 'w+b')
+        log.info('Creating %s file: %s' % (file_type, dump_filepath))
+        query = model.Session.query(model.Package) \
+            .filter(model.Package.state == 'active')
+        dumper_func(tmp_file, query)
+        tmp_file.close()
+        log.info('Dumped data file is %dMb in size' % (os.path.getsize(tmp_filepath) / (1024*1024)))
+        dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
+        dump_file.write(tmp_filepath, dump_filename)
+        dump_file.close()
 
-            # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
-            # so that it is up-to-date with the latest version for both JSON and CSV.
-            link_filepath = os.path.join(dump_dir,
-                "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
+        # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
+        # so that it is up-to-date with the latest version for both JSON and CSV.
+        link_filepath = os.path.join(dump_dir,
+            "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
 
-            if os.path.exists(link_filepath):
-                os.unlink(link_filepath)
-            os.symlink(dump_filepath, link_filepath)
+        if os.path.exists(link_filepath):
+            os.unlink(link_filepath)
+        os.symlink(dump_filepath, link_filepath)
 
-            os.remove(tmp_filepath)
+        os.remove(tmp_filepath)
+
+
+    if run_task('dump-csv-unpublished'):
+        log.info('Creating database dumps - CSV unpublished')
+        if not os.path.exists(dump_dir):
+            log.info('Creating dump dir: %s' % dump_dir)
+            os.makedirs(dump_dir)
+        dump_file_base = start_time.strftime(dump_filebase)
+
+        dump_datasets('unpublished.csv', unpublished_dumper)
+        report_time_taken(log)
+
+    if run_task('dump-json'):
+        log.info('Creating database dumps - JSON')
+        if not os.path.exists(dump_dir):
+            log.info('Creating dump dir: %s' % dump_dir)
+            os.makedirs(dump_dir)
+        dump_file_base = start_time.strftime(dump_filebase)
+
+        dump_datasets('json', dumper.SimpleDumper().dump_json)
         report_time_taken(log)
 
     # Dump analysis
@@ -337,7 +357,9 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics', 'openspending', 'dump', 'dump_analysis', 'backup']
+TASKS_TO_RUN = ['analytics', 'openspending',
+                'dump-csv', 'dump-csv-unpublished', 'dump-json',
+                'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
