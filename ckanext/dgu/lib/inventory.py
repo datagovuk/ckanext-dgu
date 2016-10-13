@@ -6,15 +6,15 @@ from ckanext.dgu.plugins_toolkit import (c, NotAuthorized,
     ValidationError, get_action, check_access)
 from ckan.lib.search import SearchIndexError
 
-def inventory_dumper(tmpfile, query):
-    """ Dumps all of the inventory items to the open tmpfile using the
+def unpublished_dumper(tmpfile, query):
+    """ Dumps all of the unpublished items to the open tmpfile using the
         packages provided by query """
     import csv
     import dateutil.parser
 
     writer = csv.writer(tmpfile)
     writer.writerow(["Name", "Description", "Department", "Publish date", "Release notes"])
-    for pkg in query.all():
+    for pkg in query.yield_per(200):
         if not pkg.extras.get('unpublished', False):
             continue
 

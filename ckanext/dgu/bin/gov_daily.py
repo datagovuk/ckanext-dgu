@@ -77,7 +77,8 @@ def command(config_file):
 
     import ckan.model as model
     import ckan.lib.dumper as dumper
-    from ckanext.dgu.lib.inventory import inventory_dumper
+    import ckanext.dgu.lib.dumper as dgu_dumper
+    from ckanext.dgu.lib.inventory import unpublished_dumper
 
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).filter_by(state='active').count()
@@ -182,38 +183,40 @@ def command(config_file):
                             f.close()
                         log.info('Wrote openspending report %s', filepath)
 
-    # Create dump for users
-    if run_task('dump'):
-        log.info('Creating database dump')
+    # Create dumps for users
+    def create_dump_dir_if_necessary():
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
             os.makedirs(dump_dir)
-        query = model.Session.query(model.Package).filter(model.Package.state=='active')
+    if run_task('dump-csv'):
+        log.info('Creating database dumps - CSV')
+        create_dump_dir_if_necessary()
         dump_file_base = start_time.strftime(dump_filebase)
+
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
 
-
-        # Explicitly dump the packages and resources to their respective CSV files
-        # before zipping them up and moving them into position.
-        import ckanext.dgu.lib.dumper as dumperlib
-
+        # Explicitly dump the packages and resources to their respective CSV
+        # files before zipping them up and moving them into position.
         dump_filepath = os.path.join(dump_dir, dump_file_base + '.csv.zip')
 
         log.info('Creating CSV files: %s' % dump_filepath)
-        dumpobj = dumperlib.CSVDumper()
+        dumpobj = dgu_dumper.CSVDumper()
         dumpobj.dump()
 
         dataset_file, resource_file = dumpobj.close()
 
-        log.info('Dumped datasets file is %dMb in size' % (os.path.getsize(dataset_file) / (1024*1024)))
-        log.info('Dumped resources file is %dMb in size' % (os.path.getsize(resource_file) / (1024*1024)))
+        log.info('Dumped datasets file is %dMb in size' % (
+            os.path.getsize(dataset_file) / (1024 * 1024)))
+        log.info('Dumped resources file is %dMb in size' % (
+            os.path.getsize(resource_file) / (1024 * 1024)))
 
         dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
         dump_file.write(dataset_file, "datasets.csv")
         dump_file.write(resource_file, "resources.csv")
         dump_file.close()
 
-        link_filepath = os.path.join(dump_dir, "data.gov.uk-ckan-meta-data-latest.csv.zip")
+        link_filepath = os.path.join(
+            dump_dir, 'data.gov.uk-ckan-meta-data-latest.csv.zip')
 
         if os.path.exists(link_filepath):
             os.unlink(link_filepath)
@@ -221,31 +224,84 @@ def command(config_file):
         os.remove(dataset_file)
         os.remove(resource_file)
 
-        # Dump the json and unpublished csv to the usual place.
-        for file_type, dumper_ in (('json', dumper.SimpleDumper().dump_json),
-                                  ('unpublished.csv', inventory_dumper),
-                                 ):
-            dump_filename = '%s.%s' % (dump_file_base, file_type)
-            dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
+    def dump_datasets(file_type, dumper_func, dumper_type,
+                      *dumper_args, **dumper_kwargs):
+        '''
+        Runs the dump, outputing to a tempfile, zips it in correct place,
+        adds 'current' symlink.
+
+        dumper_func params depend on dumper_type:
+         1: (file object, Package query)
+         2: ckanapi.cli.dump.dump_things
+        '''
+        dump_file_base = start_time.strftime(dump_filebase)
+        dump_filename = '%s.%s' % (dump_file_base, file_type)
+        dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
+        log.info('Creating %s file: %s' % (file_type, dump_filepath))
+        if dumper_type == 1:
             tmp_file = open(tmp_filepath, 'w+b')
-            log.info('Creating %s file: %s' % (file_type, dump_filepath))
-            dumper_(tmp_file, query)
+            query = model.Session.query(model.Package) \
+                .filter(model.Package.state == 'active')
+            dumper_func(tmp_file, query)
             tmp_file.close()
-            log.info('Dumped data file is %dMb in size' % (os.path.getsize(tmp_filepath) / (1024*1024)))
-            dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
-            dump_file.write(tmp_filepath, dump_filename)
-            dump_file.close()
+        elif dumper_type == 2:
+            dumper_args[2]['--output'] = tmp_filepath
+            dumper_func(*dumper_args, **dumper_kwargs)
+        log.info('Dumped data file is %dMb in size' %
+                 (os.path.getsize(tmp_filepath) / (1024*1024)))
+        dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
+        dump_file.write(tmp_filepath, dump_filename)
+        dump_file.close()
 
-            # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
-            # so that it is up-to-date with the latest version for both JSON and CSV.
-            link_filepath = os.path.join(dump_dir,
-                "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
+        # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
+        # so that it is up-to-date with the latest version for both JSON and CSV.
+        link_filepath = os.path.join(dump_dir,
+            "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
 
-            if os.path.exists(link_filepath):
-                os.unlink(link_filepath)
-            os.symlink(dump_filepath, link_filepath)
+        if os.path.lexists(link_filepath):
+            os.unlink(link_filepath)
+        os.symlink(dump_filepath, link_filepath)
 
-            os.remove(tmp_filepath)
+        os.remove(tmp_filepath)
+
+    if run_task('dump-csv-unpublished'):
+        log.info('Creating database dumps - CSV unpublished')
+        create_dump_dir_if_necessary()
+
+        dump_datasets('unpublished.csv', unpublished_dumper, 1)
+        report_time_taken(log)
+
+    if run_task('dump-json'):
+        log.info('Creating database dumps - JSON')
+        create_dump_dir_if_necessary()
+
+        dump_datasets('json', dumper.SimpleDumper().dump_json, 1)
+        report_time_taken(log)
+
+    if run_task('dump-json2'):
+        # since gov_daily.py is run with sudo, and a path to python in the venv
+        # rather than in an activated environment, and ckanapi creates
+        # subprocesses, we need to activate the environment. The same one as
+        # our current python interpreter.
+        bin_dir = os.path.dirname(sys.executable)
+        activate_this = os.path.join(bin_dir, 'activate_this.py')
+        execfile(activate_this, dict(__file__=activate_this))
+        import ckanapi.cli.dump
+        log.info('Creating database dumps - JSON 2')
+        create_dump_dir_if_necessary()
+        ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
+                                  get_only=True)
+        devnull = open(os.devnull, 'w')
+        arguments = ConfigObject()
+        arguments['--all'] = True
+        #arguments['ID_OR_NAME'] = ['mot-active-vts', 'road-accidents-safety-data']
+        arguments['--processes'] = 4
+        arguments['--remote'] = config['ckan.site_url']
+        arguments['--get-request'] = True
+        dump_datasets(
+            'v2.jsonl', ckanapi.cli.dump.dump_things, 2,
+            ckan, 'datasets', arguments,
+            worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
 
     # Dump analysis
@@ -337,7 +393,18 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics', 'openspending', 'dump', 'dump_analysis', 'backup']
+
+class ConfigObject(dict):
+    '''A dict which doesn't barf when you've not set an option'''
+    def __getitem__(self, key):
+        if key in self:
+            return dict.__getitem__(self, key)
+        return  # not KeyError
+
+
+TASKS_TO_RUN = ['analytics', 'openspending',
+                'dump-csv', 'dump-csv-unpublished', 'dump-json', 'dump-json2',
+                'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
