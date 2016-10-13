@@ -299,7 +299,7 @@ def command(config_file):
         arguments['--remote'] = config['ckan.site_url']
         arguments['--get-request'] = True
         dump_datasets(
-            'v2.json', ckanapi.cli.dump.dump_things, 2,
+            'v2.jsonl', ckanapi.cli.dump.dump_things, 2,
             ckan, 'datasets', arguments,
             worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
