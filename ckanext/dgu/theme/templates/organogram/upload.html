@@ -1,0 +1,53 @@
+{% extends "page.html" %}
+
+{% block title %}Organogram upload{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('organogram_home', _('Organograms')) }}
+  {{ h.build_nav('organogram_publication_index', _('Publication')) }}
+  <li class="active">{% link_for publisher.title, controller='ckanext.dgu.controllers.organogram:DguOrganogramController', action='publication', org_name=publisher.name %}</li>
+  <li class="active">{% link_for 'Upload', controller='ckanext.dgu.controllers.organogram:DguOrganogramController', action='upload', org_name=publisher.name, date=date %}</li>
+{% endblock %}
+
+{% block primary_content %}
+
+<h1>Organogram upload</h1>
+
+<div class="form-type-managed-file form-item-field-organogram-und-8 form-item form-group">
+  <label for="edit-field-organogram-und-8-upload">
+    Provide organogram spreadsheet for:
+    <p style="margin-left: 20px">{{ publisher.title }}<br/>
+       {{ date.strftime('%d %b %Y') }}</p>
+  </label>
+
+  <form name="upload-file" method="POST" enctype="multipart/form-data" action="/organogram/publication/upload/{{publisher.name}}/{{date.strftime('%d-%m-%Y')}}">
+    <div class="file-widget form-managed-file clearfix input-group">
+      <input class="form-control form-file" type="file" id="upload" name="upload" size="22">
+      <span class="input-group-btn">
+        <input class="btn-primary btn form-submit ajax-processed" id="edit-field-organogram-und-8-upload-button" name="field_organogram_und_8_upload_button" value="Upload" type="submit">
+      </span>
+      <input class="btn-cancel btn btn-default form-submit" id="edit-field-organogram-und-8-cancel-button" name="cancel_button" value="Cancel" type="button">
+    </div>
+    <input type="hidden" name="publisher" value="{{ publisher.name }}">
+    <input type="hidden" name="date" value="{{ date.isoformat() }}">
+    <!--
+    <input type="hidden" name="field_organogram[und][8][_weight]" value="8">
+    <input type="hidden" name="field_organogram[und][8][fid]" value="0">
+    <input type="hidden" name="field_organogram[und][8][display]" value="1">
+    -->
+  </form>
+  <p class="help-block">
+    Files must be less than <strong>50 MB</strong>.<br>
+    Allowed file types: <strong>xls xlsx</strong>.
+  </p>
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+

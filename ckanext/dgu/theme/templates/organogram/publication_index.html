@@ -1,0 +1,30 @@
+{% extends "page.html" %}
+
+{% block title %}Organogram publication index{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('organogram_home', _('Organograms')) }}
+  {{ h.build_nav('organogram_publication_index', _('Publication')) }}
+{% endblock %}
+
+{% block primary_content %}
+
+  <h1>Organogram publication index</h1>
+
+  <p>To manage the publication of organogram data, select the relevant publisher:</p>
+
+  <select name="publisher" class="chzn-select">
+    {% for publisher in publishers %}
+      <option value="{{ publisher.name }}">{{ publisher.title }}</option>
+    {% endfor %}
+  </select>
+
+  <p></p> {# for spacing #}
+
+  <script type="text/javascript" >
+    $('.chzn-select').chosen().change(function(){
+        var name = $(this).val();
+        window.location.href = '/organogram/publication/' + name;
+    });
+  </script>
+{% endblock %}
