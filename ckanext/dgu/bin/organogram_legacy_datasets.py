@@ -13,6 +13,7 @@ import re
 from pprint import pprint
 import datetime
 
+import common
 import timeseries_convert
 from running_stats import Stats
 stats_datasets = Stats()
@@ -25,6 +26,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
 
     if source_type == 'json':
         all_datasets = get_datasets_from_json(source)
+    elif source_type == 'jsonl':
+        all_datasets = get_datasets_from_jsonl(source)
     else:
         all_datasets = get_datasets_from_ckan(source)
 
@@ -49,13 +52,32 @@ def main(source, source_type, save_relevant_datasets_json=False,
             if 'rganog' not in dataset_str \
                     and 'roles and salaries' not in dataset_str \
                     and 'pay and post' not in dataset_str \
-                    and 'posts and pay' not in dataset_str:
-                stats_datasets.add('Ignored dataset', dataset['name'])
+                    and 'posts and pay' not in dataset_str \
+                    and 'organisation chart' not in dataset_str \
+                    and 'organization chart' not in dataset_str \
+                    and 'org chart' not in dataset_str:
+                stats_datasets.add('Ignored - not organograms',
+                                   dataset['name'])
+                continue
+            if dataset['name'] in (
+                    'eastbourne-borough-council-public-toilets',
+                    ) \
+                    or dataset['id'] in (
+                        '47f69ebb-9939-419f-880d-1b976676cb0e',
+                    ):
+                stats_datasets.add('Ignored - not organograms',
+                                   dataset['name'])
+                continue
+            extras = dict((extra['key'], extra['value'])
+                          for extra in dataset['extras'])
+            if extras.get('import_source') == 'harvest':
+                stats_datasets.add('Ignored - harvested so can\'t edit it',
+                                   dataset['name'])
                 continue
             #print dataset['title']
             org_id = dataset['owner_org']
 
-            if dataset['extras'].get('import_source', '') == 'organograms_v2':
+            if extras.get('import_source') == 'organograms_v2':
                 revamped_datasets.append(dataset)
                 assert org_id not in revamped_datasets_by_org, org_id
                 revamped_datasets_by_org[org_id] = dataset
@@ -86,7 +108,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
             for res in dataset['resources']:
                 if res_url_filter and res['url'] != res_url_filter:
                     continue
-                resource_corrections(res, dataset, revamped_resources,
+                resource_corrections(res, dataset, extras,
+                                     revamped_resources,
                                      revamped_datasets_by_org,
                                      org_id,
                                      resources_to_delete,
@@ -99,7 +122,7 @@ def main(source, source_type, save_relevant_datasets_json=False,
             for res in dataset['resources']:
                 if res_url_filter and res['url'] != res_url_filter:
                     continue
-                if res['resource_type'] != 'documentation' and not res.get('date'):
+                if res.get('resource_type') != 'documentation' and not res.get('date'):
                     stats_dates.add('Missing date', dataset['name'])
                     break
             else:
@@ -121,8 +144,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
         import pdb; pdb.set_trace()
 
     stats_res.report_value_limit = 500
-    print '\nDates\n', stats_dates
     print '\nDatasets\n', stats_datasets
+    print '\nDates\n', stats_dates
     print '\nResources\n', stats_res
 
     if save_relevant_datasets_json:
@@ -160,7 +183,8 @@ def main(source, source_type, save_relevant_datasets_json=False,
                     csv_writer.writerow(row)
             print 'Written', out_filename
 
-def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_org,
+def resource_corrections(res, dataset, extras,
+                         revamped_resources, revamped_datasets_by_org,
                          org_id,
                          resources_to_delete, stats_res):
     # e.g. "http:// http://reference.data.gov.uk/gov-structure/organogram/?pubbod=science-museum-group"
@@ -170,6 +194,10 @@ def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_
     if res['url'] == 'http://fera.co.uk/aboutUs/documents/feraOrganogramAug13.pdf':
         res['date'] = '08/2013'
         res['resource_type'] = 'file'
+    if res['id'] == '8924a06d-2983-4671-b689-389da3d5a8b6':
+        # https://data.gov.uk/dataset/cambridgeshire-county-council-organisation-chart1/resource/
+        res['resource_type'] = 'documentation'
+        return
 
     # date fixes
     if dataset['name'] in ('organogram-staff-pay-passenger-focus',
@@ -269,6 +297,27 @@ def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_
             'http://www.sportengland.org/about_us/how_we_are_structured/our_executive_team/idoc.ashx?docid=bc55a7ed-0874-4765-970d-39bbc6d6ffe7&version=-1'):
         # assume because dataset created 20/10/2010 and one of the first 4 had date 30/06/2010
         res['date'] = '30/06/2010'
+    if dataset['name'] == 'norwich_organisation_chart':
+        # assume because it was added 19/11/2014
+        res['date'] = '30/06/2010'
+    if dataset['name'] == 'organisation-chart1':
+        # assume because it was added 25/03/2015
+        res['date'] = '03/2015'
+    if dataset['name'] == 'organisation-structure':
+        # assume based on temporal coverage 1/1/2014 - 31/12/2014
+        res['date'] = '2014'
+    if dataset['name'] == 'organisation-and-salary-information-for-craven-district-council':
+        if res['url'] == 'http://www.cravendc.gov.uk/CHttpHandler.ashx?id=8673&p=0':
+            res['date'] = '09/02/2015'  # from the pdf itself
+        else:
+            res['resource_type'] = 'documentation'
+            return
+    if dataset['name'] == 'organisation-chart-architects-registration-board-uk':
+        # added 29/10/2013
+        res['date'] = '30/09/2013'
+    if dataset['name'] == 'organisation-structure-local-government-transparency-code':
+        # added 31/03/2015
+        res['date'] = '31/03/2015'
 
     if res.get('date'):
         date = parse_date(res.get('date'))
@@ -308,17 +357,17 @@ def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_
             print '\n'
             #import pdb; pdb.set_trace()
 
-
             if date > datetime.datetime(2012, 1, 1):
                 # this data should be in the organogram tool
                 if res.get('format'):
                     if res['format'].upper() == 'CSV':
                         resources_to_delete.append(res)
-                        stats_res.add('gov.uk csv since 2012 deleted', res['url'])
+                        stats_res.add('delete - gov.uk csv since 2012 deleted', res['url'])
                         return
                     else:
-                        stats_res.add('??? gov.uk non-csv since 2012',
-                                      '%s %s' % (res['format'], res['url']))
+                        # lots of alternative formats - ODS, PPTX, XLS, HTML
+                        stats_res.add('keep - gov.uk non-csv since 2012',
+                                      '%s' % (res['format']))
                 else:
                     stats_res.add('??? gov.uk formatless since 2012', res['url'])
             elif date > datetime.datetime(2011, 1, 1):
@@ -329,8 +378,9 @@ def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_
                         stats_res.add('gov.uk csv since 2011 deleted', res['url'])
                         return
                     else:
-                        stats_res.add('??? gov.uk non-csv since 2011',
-                                      '%s %s' % (res['format'], res['url']))
+                        # mostly RDF
+                        stats_res.add('keep - gov.uk non-csv 2011',
+                                      '%s' % (res['format']))
                 else:
                     stats_res.add('??? gov.uk formatless since 2011', res['url'])
             elif date > datetime.datetime(2010, 1, 1):
@@ -338,30 +388,52 @@ def resource_corrections(res, dataset, revamped_resources, revamped_datasets_by_
                 if res.get('format'):
                     if res['format'].upper() == 'CSV':
                         resources_to_delete.append(res)
-                        stats_res.add('gov.uk csv 2010 deleted', res['url'])
+                        stats_res.add('delete - gov.uk csv 2010 deleted', res['url'])
                         return
                     else:
-                        stats_res.add('??? gov.uk non-csv 2010',
-                                      '%s %s' % (res['format'], res['url']))
+                        # mostly PDF and PPT
+                        stats_res.add('keep - gov.uk non-csv 2010',
+                                      '%s' % (res['format']))
                 else:
                     stats_res.add('??? gov.uk formatless 2010', res['url'])
             else:
                 stats_res.add('gov.uk pre-2010 - keep', res['url'])
+        elif extras('resource_type') != 'file':
+            # ignore documentation
+            pass
         else:
-            stats_res.add('??? gov.uk but no date', res['url'])
+            stats_res.add('??? gov.uk but no date', dataset['name'])
+
 
 def save_csv_rows(csv_rows, dataset):
     '''Saves the dataset to the csv_rows'''
     for res in dataset['resources']:
         csv_rows.append(dict(
             name=dataset['name'],
-            org_name=dataset['groups'][0] if dataset.get('groups') else dataset['owner_org'],
+            org_name=dataset['organization']['title'],
             notes='',   #dataset['notes'],
-            res_name=res['description'] or res['name'],
+            res_name=res['description'] or res.get('name', ''),
             res_url=res['url'],
             res_date=date_to_year_first(res.get('date') or ''),
-            res_type=res['resource_type'],
+            res_type=res.get('resource_type'),
             ))
+
+
+def get_datasets_from_jsonl(filepath):
+    with open(filepath, 'rb') as f:
+        while True:
+            line = f.readline()
+            if line == '':
+                break
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            try:
+                yield json.loads(line,
+                                 encoding='utf8')
+            except Exception:
+                traceback.print_exc()
+                import pdb; pdb.set_trace()
 
 
 def get_datasets_from_json(filepath):
@@ -430,6 +502,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.source.endswith('.json'):
         source_type = 'json'
+        if not os.path.exists(args.source):
+            parser.error("Error: File not found: %s" % args.source)
+    elif args.source.endswith('.jsonl'):
+        source_type = 'jsonl'
         if not os.path.exists(args.source):
             parser.error("Error: File not found: %s" % args.source)
     else:
