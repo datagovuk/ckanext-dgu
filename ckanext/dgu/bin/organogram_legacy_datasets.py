@@ -12,16 +12,22 @@ import copy
 import re
 from pprint import pprint
 import datetime
+from collections import defaultdict
+
+from paste.deploy.converters import asbool
 
 import common
 import timeseries_convert
 from running_stats import Stats
 stats_datasets = Stats()
+stats_merge = Stats()
 stats_dates = Stats()
 stats_res = Stats()
 
 
-def main(source, source_type, save_relevant_datasets_json=False,
+def main(source, source_type, destination,
+         save_relevant_datasets_json,
+         write,
          dataset_filter=None, res_url_filter=None):
 
     if source_type == 'json':
@@ -37,7 +43,6 @@ def main(source, source_type, save_relevant_datasets_json=False,
     revamped_resources = {}
     csv_out_rows = []
     csv_corrected_rows = []
-    datasets_to_delete = []
     try:
         for dataset in all_datasets:
 
@@ -61,11 +66,16 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 continue
             if dataset['name'] in (
                     'eastbourne-borough-council-public-toilets',
+                    'staff-organograms-and-pay-government-offices',
                     ) \
                     or dataset['id'] in (
                         '47f69ebb-9939-419f-880d-1b976676cb0e',
                     ):
                 stats_datasets.add('Ignored - not organograms',
+                                   dataset['name'])
+                continue
+            if asbool(dataset.get('unpublished')):
+                stats_datasets.add('Ignored - unpublished',
                                    dataset['name'])
                 continue
             extras = dict((extra['key'], extra['value'])
@@ -74,7 +84,6 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 stats_datasets.add('Ignored - harvested so can\'t edit it',
                                    dataset['name'])
                 continue
-            #print dataset['title']
             org_id = dataset['owner_org']
 
             if extras.get('import_source') == 'organograms_v2':
@@ -89,12 +98,33 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 # legacy dataset
                 datasets.append(dataset)
 
+        if save_relevant_datasets_json:
+            filename = 'datasets_organograms.json'
+            if not (dataset_filter or res_url_filter):
+                output = json.dumps(
+                    datasets + revamped_datasets,
+                    indent=4, separators=(',', ': '),  # pretty print)
+                    )
+                with open(filename, 'wb') as f:
+                    f.write(output)
+                print 'Written %s' % filename
+            else:
+                print 'Not written %s because you filtered by a ' \
+                    'dataset/resource' % filename
+
+        all_resource_ids_to_delete = defaultdict(list)  # dataset_name: res_id_list
+        dataset_names_to_delete = set()
         for dataset in datasets:
+            org_id = dataset['owner_org']
+
             # save csv as it has been
-            save_csv_rows(csv_out_rows, dataset)
+            save_csv_rows(csv_out_rows, dataset, None, None)
 
             original_dataset = copy.deepcopy(dataset)
             delete_dataset = False
+
+            dataset_to_merge_to = \
+                get_dataset_to_merge_to(dataset, revamped_datasets_by_org)
 
             # detect dates
             for res in dataset['resources']:
@@ -111,6 +141,7 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 resource_corrections(res, dataset, extras,
                                      revamped_resources,
                                      revamped_datasets_by_org,
+                                     dataset_to_merge_to,
                                      org_id,
                                      resources_to_delete,
                                      stats_res)
@@ -118,6 +149,10 @@ def main(source, source_type, save_relevant_datasets_json=False,
                 dataset['resources'].remove(res)
             if not dataset['resources']:
                 delete_dataset = True
+            elif resources_to_delete and not dataset_to_merge_to:
+                all_resource_ids_to_delete[dataset['name']].extend(
+                    res['id'] for res in resources_to_delete)
+            org_id = dataset['owner_org']  # it might have changed
 
             for res in dataset['resources']:
                 if res_url_filter and res['url'] != res_url_filter:
@@ -128,35 +163,36 @@ def main(source, source_type, save_relevant_datasets_json=False,
             else:
                 stats_dates.add('Ok dates', dataset['name'])
 
-            # update dataset TODO
+            # record changes
             if delete_dataset:
                 stats_datasets.add('Delete dataset - no resources', dataset['name'])
+                dataset_names_to_delete.add(dataset['name'])
+                continue
             elif original_dataset != dataset:
                 stats_datasets.add('Updated dataset', dataset['name'])
+                has_changed = True
             else:
                 stats_datasets.add('Unchanged dataset', dataset['name'])
+                has_changed = False
+
+            if dataset_to_merge_to:
+                stats_merge.add('Merge', dataset_to_merge_to)
+            else:
+                stats_merge.add('No merge', dataset['name'])
 
             # save csv with corrections
-            save_csv_rows(csv_corrected_rows, dataset)
+            save_csv_rows(csv_corrected_rows, dataset, has_changed, dataset_to_merge_to)
 
     except:
         traceback.print_exc()
         import pdb; pdb.set_trace()
 
+    stats_merge.report_value_limit = 500
     stats_res.report_value_limit = 500
     print '\nDatasets\n', stats_datasets
+    print '\nDataset merges\n', stats_merge
     print '\nDates\n', stats_dates
     print '\nResources\n', stats_res
-
-    if save_relevant_datasets_json:
-        filename = 'datasets_organograms.json'
-        output = json.dumps(
-            datasets + revamped_datasets,
-            indent=4, separators=(',', ': '),  # pretty print)
-            )
-        with open(filename, 'wb') as f:
-            f.write(output)
-        print 'Written %s' % filename
 
     # save csvs
     if dataset_filter or res_url_filter:
@@ -167,8 +203,11 @@ def main(source, source_type, save_relevant_datasets_json=False,
         print 'Not written csv because you specified a particular dataset'
     else:
         headers = [
-            'name', 'org_name', 'notes',
-            'res_name', 'res_url', 'res_date', 'res_type',
+            'name', 'org_title', 'org_id', 'notes',
+            'res_id', 'res_name', 'res_url', 'res_format',
+            'res_date', 'res_type',
+            'has_changed',
+            'merge_to_dataset',
             ]
         for csv_rows, out_filename in (
                 (csv_out_rows, 'organogram_legacy_datasets.csv'),
@@ -183,8 +222,158 @@ def main(source, source_type, save_relevant_datasets_json=False,
                     csv_writer.writerow(row)
             print 'Written', out_filename
 
+    # group merges by the revamped_dataset
+    resources_to_merge = defaultdict(list)  # revamped_dataset_name: resource_list
+    resources_to_update = defaultdict(list)  # dataset_name: resource_list
+    for row in csv_corrected_rows:
+        if row['has_changed'] is False:
+            continue
+        res = dict(
+            id=row['res_id'],
+            name=row['res_name'],
+            url=row['res_url'],
+            format=row['res_format'],
+            date=row['res_date'],
+            type=row['res_type'])
+        if row['merge_to_dataset']:
+            res['id'] = None  # ignore the id
+            resources_to_merge[row['merge_to_dataset']].append(res)
+            # also delete the merged dataset
+            if row['name'] not in dataset_names_to_delete:
+                dataset_names_to_delete.add(row['name'])
+        else:
+            resources_to_update[row['name']].append(res)
+
+    # write changes - merges etc
+    if destination:
+        write_caveat = ' (NOP without --write)'
+        print 'Writing changes to datasets' + write_caveat
+        stats_write_res = Stats()
+        stats_write_dataset = Stats()
+        ckan = common.get_ckanapi(destination)
+        import ckanapi
+
+        print 'Updating datasets'
+        for dataset_name, res_list in resources_to_update.iteritems():
+            dataset = ckan.action.package_show(id=dataset_name)
+            resources_by_id = dict((r['id'], r) for r in dataset['resources'])
+            dataset_changed = False
+            for res in res_list:
+                res_ref = '%s-%s' % (dataset_name, res_list.index(res))
+                res_to_update = resources_by_id.get(res['id'])
+                if res_to_update:
+                    res_changed = False
+                    for key in res.keys():
+                        if res[key] != res_to_update.get(key):
+                            res_to_update[key] = res[key]
+                            dataset_changed = True
+                            res_changed = True
+                    if res_changed:
+                        stats_write_res.add(
+                            'update - ok' + write_caveat, res_ref)
+                    else:
+                        stats_write_res.add(
+                            'update - not needed', res_ref)
+                else:
+                    stats_write_res.add(
+                        'update - could not find resource id', dataset_name)
+            if dataset_changed:
+                if write:
+                    ckan.action.package_update(dataset)
+                stats_write_dataset.add(
+                    'Update done' + write_caveat, dataset_name)
+            else:
+                stats_write_dataset.add(
+                    'Update not needed', dataset_name)
+
+        print 'Merging datasets'
+        for revamped_dataset_name, res_list in \
+                resources_to_merge.iteritems():
+            try:
+                dataset = ckan.action.package_show(id=revamped_dataset_name)
+            except ckanapi.NotFound:
+                stats_write_dataset.add(
+                    'Merge - dataset not found', revamped_dataset_name)
+                continue
+            existing_res_urls = set(r['url'] for r in dataset['resources'])
+            dataset_changed = False
+            for res in res_list:
+                res_ref = '%s-%s' % (revamped_dataset_name, res_list.index(res))
+                if res['url'] in existing_res_urls:
+                    stats_write_res.add(
+                        'merge - no change - resource URL already there',
+                        res_ref)
+                else:
+                    dataset_changed = True
+                    dataset['resources'].append(res)
+                    stats_write_res.add(
+                        'merge - add' + write_caveat, res_ref)
+            if dataset_changed:
+                if write:
+                    ckan.action.package_update(dataset)
+                stats_write_dataset.add(
+                    'Merge done' + write_caveat, revamped_dataset_name)
+            else:
+                stats_write_dataset.add('Merge not needed', revamped_dataset_name)
+
+        print 'Deleting resources'
+        for dataset_name, res_id_list in \
+                all_resource_ids_to_delete.iteritems():
+            if dataset_name in dataset_names_to_delete:
+                stats_write_dataset.add(
+                    'Delete resources not needed as deleting dataset later',
+                    dataset_name)
+                continue
+            try:
+                dataset = ckan.action.package_show(id=dataset_name)
+            except ckanapi.NotFound:
+                stats_write_dataset.add(
+                    'Delete res - dataset not found', dataset_name)
+                continue
+            existing_resources = \
+                dict((r['id'], r) for r in dataset['resources'])
+            dataset_changed = False
+            for res_id in res_id_list:
+                res_ref = '%s-%s' % (dataset_name, res_id_list.index(res_id))
+                existing_resource = existing_resources.get(res_id)
+                if existing_resource:
+                    dataset_changed = True
+                    dataset['resources'].remove(existing_resource)
+                    stats_write_res.add(
+                        'delete res - done' + write_caveat, res_ref)
+                else:
+                    stats_write_res.add(
+                        'delete res - could not find res id', res_ref)
+            if dataset_changed:
+                if write:
+                    ckan.action.package_update(dataset)
+                stats_write_dataset.add(
+                    'Delete res done' + write_caveat, dataset_name)
+            else:
+                stats_write_dataset.add(
+                    'Delete res not needed', dataset_name)
+
+        print 'Deleting datasets'
+        for dataset_name in dataset_names_to_delete:
+            try:
+                dataset = ckan.action.package_show(id=dataset_name)
+            except ckanapi.NotFound:
+                stats_write_dataset.add(
+                    'Delete dataset - not found', dataset_name)
+            else:
+                if write:
+                    ckan.action.package_delete(id=dataset_name)
+                stats_write_dataset.add(
+                    'Delete dataset - done' + write_caveat, dataset_name)
+
+        print '\nResources\n', stats_write_res
+        print '\nDatasets\n', stats_write_dataset
+    else:
+        print 'Not written changes to datasets'
+
 def resource_corrections(res, dataset, extras,
                          revamped_resources, revamped_datasets_by_org,
+                         dataset_to_merge_to,
                          org_id,
                          resources_to_delete, stats_res):
     # e.g. "http:// http://reference.data.gov.uk/gov-structure/organogram/?pubbod=science-museum-group"
@@ -198,6 +387,122 @@ def resource_corrections(res, dataset, extras,
         # https://data.gov.uk/dataset/cambridgeshire-county-council-organisation-chart1/resource/
         res['resource_type'] = 'documentation'
         return
+    if res['url'] == 'https://www.gov.uk/government/organisations/hm-revenue-customs/series/organisation':
+        res['resource_type'] = 'documentation'
+
+    # fix organization
+    if dataset['name'] == 'staff-organograms-and-pay-treasury-solicitors-department':
+        dataset['owner_id'] = '4bce2270-4307-4da2-b419-891139264b34'
+        dataset['organization'] = {
+            'id': '4bce2270-4307-4da2-b419-891139264b34',
+            'title': 'Treasury Solicitor\'s Department',
+            'name': 'treasury-solicitors-department',
+        }
+    elif dataset['name'] == 'organogram-and-staff-pay-data-for-the-disclosure-and-barring-service':
+        dataset['owner_id'] = "2738f6bd-e1e4-4af8-883b-845072293160"
+        dataset['organization'] = {
+            'title': "The Disclosure and Barring Service",
+            'name': "the-disclosure-and-barring-service",
+            'id': "2738f6bd-e1e4-4af8-883b-845072293160",
+        }
+    elif dataset['name'] == 'organogram-and-staff-pay-data-for-the-gangmasters-licensing-authority':
+        dataset['organization'] = {
+            'title': "Gangmasters Licensing Authority",
+            'name': "gangmasters-licensing-authority",
+            'id': "0eb2cb9d-59dd-43f6-a99f-f7c21ad227d5",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-dsa':
+        dataset['organization'] = {
+            'title': "Driving Standards Agency",
+            'name': "driving-standards-agency",
+            'id': "b79e03cc-24a0-428e-ba6a-aa00a4eedab4",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-dvla':
+        dataset['organization'] = {
+            'title': "Driver and Vehicle Licensing Agency",
+            'name': "driver-and-vehicle-licensing-agency",
+            'id': "9d416cc3-786b-4955-94c6-d03b8b9aeae4",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-ha':
+        dataset['organization'] = {
+            'title': "Highways Agency",
+            'name': "highways-agency",
+            'id': "2e608e14-7635-48b2-ba2a-6777aeee4807",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-mca':
+        dataset['organization'] = {
+            'title': "Maritime and Coastguard Agency",
+            'name': "maritime-and-coastguard-agency",
+            'id': "5e3fe168-abca-417c-b88e-83580a017495",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-vca':
+        dataset['organization'] = {
+            'title': "Vehicle Certification Agency",
+            'name': "vehicle-certification-agency",
+            'id': "fe0223c4-01ac-4770-9af5-c761fee7fbaf",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'organogram-vosa':
+        dataset['organization'] = {
+            'title': "Vehicle and Operator Services Agency",
+            'name': "vehicle-and-operator-services-agency",
+            'id': "a1e904c0-c067-40fc-b8a2-621ae32918aa",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'sjsm_org_pay':
+        dataset['organization'] = {
+            'title': "Sir John Soane's Museum",
+            'name': "sir-john-soanes-museum",
+            'id': "df009a00-36ee-4eb9-8e4f-1bff097a8ffb",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-ahvla':
+        dataset['organization'] = {
+            'title': "Animal Health and Veterinary Laboratories Agency",
+            'name': "animal-health-and-veterinary-laboratories-agency",
+            'id': "56addc06-2534-45db-acb5-41f007310501",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-ccwater':
+        dataset['organization'] = {
+            'title': "Consumer Council for Water",
+            'name': "consumer-council-for-water",
+            'id': "7e912f56-1fe0-4d03-9273-732a7b6f4d51",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-cefas':
+        dataset['organization'] = {
+            'title': "Centre for Environment, Fisheries & Aquaculture Science",
+            'name': "centre-for-environment-fisheries-aquaculture-science",
+            'id': "2f1c6ccb-3f21-40c0-8b26-41566c53eb2f",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-ihol':
+        dataset['organization'] = {
+            'title': "Independent Housing Ombudsman",
+            'name': "independent-housing-ombudsman",
+            'id': "c9b97267-2606-4e27-87a4-a58a21548b5d",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-nihrc':
+        dataset['organization'] = {
+            'title': "Northern Ireland Human Rights Commission",
+            'name': "northern-ireland-human-rights-commission",
+            'id': "ce440659-22bf-4919-871a-d6a8685309b3",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
+    elif dataset['name'] == 'staff-organograms-and-pay-pcni':
+        dataset['organization'] = {
+            'title': "Parades Commission for Northern Ireland",
+            'name': "parades-commission-for-northern-ireland",
+            'id': "842d6905-acfe-4b49-a1b8-f29bd50915b0",
+        }
+        dataset['owner_id'] = dataset['organization']['id']
 
     # date fixes
     if dataset['name'] in ('organogram-staff-pay-passenger-focus',
@@ -241,7 +546,7 @@ def resource_corrections(res, dataset, extras,
                 year += 2000
             if year < 2009 or year > 2017:
                 print stats_res.add('Invalid year', '%s %s' % (year, dataset['name']))
-                import pdb; pdb.set_Trace()
+                import pdb; pdb.set_trace()
             elif day in (30, 31) and month in (3, 9):
                 res['date'] = '%s/%s' % (month, year)
             else:
@@ -350,12 +655,11 @@ def resource_corrections(res, dataset, extras,
         # eg https://www.gov.uk/government/publications/bis-junior-staff-numbers-and-payscales-30-september-2012
         # eg https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/11577/1920406.csv
         if res.get('date'):
-            print '\n%s from %s added to dataset already with:' % (date_year_month, dataset['name'])
+            #print '\n%s from %s added to dataset already with:' % (date_year_month, dataset['name'])
             d = revamped_datasets_by_org[org_id]
-            for r in d['resources']:
-                print '  %s: %s' % (d['name'], r.get('date'))
-            print '\n'
-            #import pdb; pdb.set_trace()
+            #for r in d['resources']:
+            #    print '  %s: %s' % (d['name'], r.get('date'))
+            #print '\n'
 
             if date > datetime.datetime(2012, 1, 1):
                 # this data should be in the organogram tool
@@ -404,18 +708,28 @@ def resource_corrections(res, dataset, extras,
         else:
             stats_res.add('??? gov.uk but no date', dataset['name'])
 
+    if dataset_to_merge_to and res['format'] == 'HTML' \
+            and res.get('resource_type') != 'documentation':
+        stats_res.add('Mark HTML as documentation', res['url'])
+        res['resource_type'] = 'documentation'
 
-def save_csv_rows(csv_rows, dataset):
+
+def save_csv_rows(csv_rows, dataset, has_changed, dataset_to_merge_to):
     '''Saves the dataset to the csv_rows'''
     for res in dataset['resources']:
         csv_rows.append(dict(
             name=dataset['name'],
-            org_name=dataset['organization']['title'],
+            org_title=dataset['organization']['title'],
+            org_id=dataset['organization']['id'],
             notes='',   #dataset['notes'],
+            res_id=res['id'],
             res_name=res['description'] or res.get('name', ''),
             res_url=res['url'],
-            res_date=date_to_year_first(res.get('date') or ''),
+            res_format=res['format'],
+            res_date=res.get('date') or '',
             res_type=res.get('resource_type'),
+            has_changed=has_changed,
+            merge_to_dataset=dataset_to_merge_to,
             ))
 
 
@@ -455,8 +769,11 @@ def get_datasets_from_json(filepath):
                     import pdb; pdb.set_trace()
                 dataset_str = ''
 
-def date_to_year_first(date_day_first):
-    return '-'.join(date_day_first.split('/')[::-1])
+def get_dataset_to_merge_to(dataset, revamped_datasets_by_org):
+    merge_dataset = revamped_datasets_by_org.get(dataset.get('owner_org'))
+    if not merge_dataset:
+        return
+    return merge_dataset['name']
 
 
 def date_to_year_month(date_day_first):
@@ -494,10 +811,17 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Saves a JSON file of just the organogram '
                         'datasets')
-    parser.add_argument('--dataset',
+    parser.add_argument('-d', '--dataset',
                         help='Only do it for a single dataset name')
     parser.add_argument('--res-url',
                         help='Only do it for a single resource url')
+    parser.add_argument('--destination',
+                        help='Destination ckan (ini filename or URL), for when'
+                        'changes will be written with --write')
+    parser.add_argument('-w', '--write',
+                        action='store_true',
+                        help='Writes the changes to datasets (including '
+                        'merges)')
 
     args = parser.parse_args()
     if args.source.endswith('.json'):
@@ -510,5 +834,7 @@ if __name__ == '__main__':
             parser.error("Error: File not found: %s" % args.source)
     else:
         source_type = 'domain'
-    main(args.source, source_type, args.save_relevant_datasets_json,
+    main(args.source, source_type, args.destination,
+         args.save_relevant_datasets_json,
+         args.write,
          dataset_filter=args.dataset, res_url_filter=args.res_url)

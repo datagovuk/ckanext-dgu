@@ -26,3 +26,4 @@ datasets_all.jsonl
 datasets_organograms.json
 organogram_legacy_datasets.csv
 organogram_legacy_datasets_corrected.csv
+apikeys.cfg

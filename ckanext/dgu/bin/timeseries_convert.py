@@ -17,7 +17,7 @@ BOUNDARY = '(?:^|$| |\.|\(|\))'
 def add_date_to_resources(resources, just_year=False, dataset=None,
                           stats=None):
     '''Given a list of resource dicts, it tries to add a date value to them
-    all.
+    all. Sets date to e.g. '09/2012'.
 
     Specify just_year if it is an annual dataset and you want to ignore months.
 
