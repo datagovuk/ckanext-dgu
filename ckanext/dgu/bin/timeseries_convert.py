@@ -90,7 +90,8 @@ def fields_to_hunt_for_date(res, dataset=None):
     if title:
         yield 'title', title
     yield 'description', res['description']
-    yield 'url', re.sub('(%20|-|_|\.)', ' ', res['url'])
+    yield 'url', re.sub('(%20|_|\.|\/)', ' ', res['url'])
+    yield 'url-without-dashes', re.sub('(%20|-|_|\.|\/)', ' ', res['url'])
     if dataset:
         yield 'dataset-title', dataset['title']
         yield 'dataset-notes', dataset['notes']
@@ -184,6 +185,7 @@ def parse_month_as_word(month_word, year):
 # Tests - run with: python ckanext/dgu/bin/timeseries_convert.py
 if __name__ == '__main__':
     from nose.tools import assert_equal
+
     assert_equal(hunt_for_month_and_year('2013-06-25'), (6, 2013))
     assert_equal(hunt_for_month_and_year('21/10/11'), (10, 2011))
     assert_equal(hunt_for_month_and_year('a11-2014'), (None, None))
@@ -197,6 +199,17 @@ if __name__ == '__main__':
     assert_equal(hunt_for_month_and_year('nov-14'), (11, 2014))
     assert_equal(hunt_for_month_and_year('nov14'), (11, 2014))
     assert_equal(hunt_for_month_and_year('nov14'), (11, 2014))
+
+    def test_add_date_to_resource(expected_date, **res_fields):
+        res = dict(description='', url='')
+        res.update(**res_fields)
+        add_date_to_resource(res)
+        assert_equal(res['date'], expected_date)
+    test_add_date_to_resource('02/2011', description='February 2011')
+    test_add_date_to_resource('02/2011', url='/February%202011/')
+    test_add_date_to_resource('02/2011', url='/02-2011/')
+    test_add_date_to_resource('02/2011', url='/Feb-2011/')
+    test_add_date_to_resource('2011', url='/02/2011/')
 
     # can't parse yet
     assert_equal(hunt_for_month_and_year('15-2014'), (None, None))

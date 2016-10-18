@@ -44,6 +44,8 @@ def main(source, source_type, destination,
     csv_out_rows = []
     csv_corrected_rows = []
     try:
+        # find all the legacy organogram datasets
+        all_datasets = list(all_datasets)  # since we need to iterate it twice
         for dataset in all_datasets:
 
             if dataset_filter and dataset['name'] != dataset_filter:
@@ -80,23 +82,31 @@ def main(source, source_type, destination,
                 continue
             extras = dict((extra['key'], extra['value'])
                           for extra in dataset['extras'])
+            if extras.get('import_source') == 'organograms_v2':
+                continue
             if extras.get('import_source') == 'harvest':
                 stats_datasets.add('Ignored - harvested so can\'t edit it',
                                    dataset['name'])
                 continue
-            org_id = dataset['owner_org']
 
-            if extras.get('import_source') == 'organograms_v2':
-                revamped_datasets.append(dataset)
-                assert org_id not in revamped_datasets_by_org, org_id
-                revamped_datasets_by_org[org_id] = dataset
-                for res in dataset['resources']:
-                    date = date_to_year_month(res['date'])
-                    revamped_resources[(org_id, date)] = res
+            # legacy dataset
+            datasets.append(dataset)
+
+        # find the revamped organogram datasets
+        for dataset in all_datasets:
+            extras = dict((extra['key'], extra['value'])
+                          for extra in dataset['extras'])
+            if extras.get('import_source') != 'organograms_v2':
                 continue
-            else:
-                # legacy dataset
-                datasets.append(dataset)
+
+            org_id = dataset['owner_org']
+            revamped_datasets.append(dataset)
+            assert org_id not in revamped_datasets_by_org, org_id
+            revamped_datasets_by_org[org_id] = dataset
+            for res in dataset['resources']:
+                date = date_to_year_month(res['date'])
+                revamped_resources[(org_id, date)] = res
+            continue
 
         if save_relevant_datasets_json:
             filename = 'datasets_organograms.json'
@@ -230,11 +240,11 @@ def main(source, source_type, destination,
             continue
         res = dict(
             id=row['res_id'],
-            name=row['res_name'],
+            description=row['res_name'],  # description is required
             url=row['res_url'],
             format=row['res_format'],
             date=row['res_date'],
-            type=row['res_type'])
+            resource_type=row['res_type'])
         if row['merge_to_dataset']:
             res['id'] = None  # ignore the id
             resources_to_merge[row['merge_to_dataset']].append(res)
@@ -245,131 +255,140 @@ def main(source, source_type, destination,
             resources_to_update[row['name']].append(res)
 
     # write changes - merges etc
-    if destination:
-        write_caveat = ' (NOP without --write)'
-        print 'Writing changes to datasets' + write_caveat
-        stats_write_res = Stats()
-        stats_write_dataset = Stats()
-        ckan = common.get_ckanapi(destination)
-        import ckanapi
+    try:
+        if destination:
+            if write:
+                write_caveat = ''
+            else:
+                write_caveat = ' (NOP without --write)'
+            print 'Writing changes to datasets' + write_caveat
+            stats_write_res = Stats()
+            stats_write_dataset = Stats()
+            ckan = common.get_ckanapi(destination)
+            import ckanapi
 
-        print 'Updating datasets'
-        for dataset_name, res_list in resources_to_update.iteritems():
-            dataset = ckan.action.package_show(id=dataset_name)
-            resources_by_id = dict((r['id'], r) for r in dataset['resources'])
-            dataset_changed = False
-            for res in res_list:
-                res_ref = '%s-%s' % (dataset_name, res_list.index(res))
-                res_to_update = resources_by_id.get(res['id'])
-                if res_to_update:
-                    res_changed = False
-                    for key in res.keys():
-                        if res[key] != res_to_update.get(key):
-                            res_to_update[key] = res[key]
-                            dataset_changed = True
-                            res_changed = True
-                    if res_changed:
-                        stats_write_res.add(
-                            'update - ok' + write_caveat, res_ref)
+            print 'Updating datasets'
+            for dataset_name, res_list in resources_to_update.iteritems():
+                dataset = ckan.action.package_show(id=dataset_name)
+                resources_by_id = dict((r['id'], r) for r in dataset['resources'])
+                dataset_changed = False
+                for res in res_list:
+                    res_ref = '%s-%s' % (dataset_name, res_list.index(res))
+                    res_to_update = resources_by_id.get(res['id'])
+                    if res_to_update:
+                        res_changed = False
+                        for key in res.keys():
+                            if res[key] != res_to_update.get(key):
+                                res_to_update[key] = res[key]
+                                dataset_changed = True
+                                res_changed = True
+                        if res_changed:
+                            stats_write_res.add(
+                                'update - ok' + write_caveat, res_ref)
+                        else:
+                            stats_write_res.add(
+                                'update - not needed', res_ref)
                     else:
                         stats_write_res.add(
-                            'update - not needed', res_ref)
+                            'update - could not find resource id', dataset_name)
+                if dataset_changed:
+                    if write:
+                        ckan.action.package_update(**dataset)
+                    stats_write_dataset.add(
+                        'Update done' + write_caveat, dataset_name)
                 else:
-                    stats_write_res.add(
-                        'update - could not find resource id', dataset_name)
-            if dataset_changed:
-                if write:
-                    ckan.action.package_update(dataset)
-                stats_write_dataset.add(
-                    'Update done' + write_caveat, dataset_name)
-            else:
-                stats_write_dataset.add(
-                    'Update not needed', dataset_name)
+                    stats_write_dataset.add(
+                        'Update not needed', dataset_name)
 
-        print 'Merging datasets'
-        for revamped_dataset_name, res_list in \
-                resources_to_merge.iteritems():
-            try:
-                dataset = ckan.action.package_show(id=revamped_dataset_name)
-            except ckanapi.NotFound:
-                stats_write_dataset.add(
-                    'Merge - dataset not found', revamped_dataset_name)
-                continue
-            existing_res_urls = set(r['url'] for r in dataset['resources'])
-            dataset_changed = False
-            for res in res_list:
-                res_ref = '%s-%s' % (revamped_dataset_name, res_list.index(res))
-                if res['url'] in existing_res_urls:
-                    stats_write_res.add(
-                        'merge - no change - resource URL already there',
-                        res_ref)
+            print 'Merging datasets'
+            for revamped_dataset_name, res_list in \
+                    resources_to_merge.iteritems():
+                try:
+                    dataset = ckan.action.package_show(id=revamped_dataset_name)
+                except ckanapi.NotFound:
+                    stats_write_dataset.add(
+                        'Merge - dataset not found', revamped_dataset_name)
+                    continue
+                existing_res_urls = set(r['url'] for r in dataset['resources'])
+                dataset_changed = False
+                for res in res_list:
+                    res_ref = '%s-%s' % (revamped_dataset_name, res_list.index(res))
+                    if res['url'] in existing_res_urls:
+                        stats_write_res.add(
+                            'merge - no change - resource URL already there',
+                            res_ref)
+                    else:
+                        dataset_changed = True
+                        res['description'] += ' (from legacy dataset)'
+                        dataset['resources'].append(res)
+                        stats_write_res.add(
+                            'merge - add' + write_caveat, res_ref)
+                if dataset_changed:
+                    if write:
+                        ckan.action.package_update(**dataset)
+                    stats_write_dataset.add(
+                        'Merge done' + write_caveat, revamped_dataset_name)
                 else:
-                    dataset_changed = True
-                    dataset['resources'].append(res)
-                    stats_write_res.add(
-                        'merge - add' + write_caveat, res_ref)
-            if dataset_changed:
-                if write:
-                    ckan.action.package_update(dataset)
-                stats_write_dataset.add(
-                    'Merge done' + write_caveat, revamped_dataset_name)
-            else:
-                stats_write_dataset.add('Merge not needed', revamped_dataset_name)
+                    stats_write_dataset.add('Merge not needed', revamped_dataset_name)
 
-        print 'Deleting resources'
-        for dataset_name, res_id_list in \
-                all_resource_ids_to_delete.iteritems():
-            if dataset_name in dataset_names_to_delete:
-                stats_write_dataset.add(
-                    'Delete resources not needed as deleting dataset later',
-                    dataset_name)
-                continue
-            try:
-                dataset = ckan.action.package_show(id=dataset_name)
-            except ckanapi.NotFound:
-                stats_write_dataset.add(
-                    'Delete res - dataset not found', dataset_name)
-                continue
-            existing_resources = \
-                dict((r['id'], r) for r in dataset['resources'])
-            dataset_changed = False
-            for res_id in res_id_list:
-                res_ref = '%s-%s' % (dataset_name, res_id_list.index(res_id))
-                existing_resource = existing_resources.get(res_id)
-                if existing_resource:
-                    dataset_changed = True
-                    dataset['resources'].remove(existing_resource)
-                    stats_write_res.add(
-                        'delete res - done' + write_caveat, res_ref)
+            print 'Deleting resources'
+            for dataset_name, res_id_list in \
+                    all_resource_ids_to_delete.iteritems():
+                if dataset_name in dataset_names_to_delete:
+                    stats_write_dataset.add(
+                        'Delete resources not needed as deleting dataset later',
+                        dataset_name)
+                    continue
+                try:
+                    dataset = ckan.action.package_show(id=dataset_name)
+                except ckanapi.NotFound:
+                    stats_write_dataset.add(
+                        'Delete res - dataset not found', dataset_name)
+                    continue
+                existing_resources = \
+                    dict((r['id'], r) for r in dataset['resources'])
+                dataset_changed = False
+                for res_id in res_id_list:
+                    res_ref = '%s-%s' % (dataset_name, res_id_list.index(res_id))
+                    existing_resource = existing_resources.get(res_id)
+                    if existing_resource:
+                        dataset_changed = True
+                        dataset['resources'].remove(existing_resource)
+                        stats_write_res.add(
+                            'delete res - done' + write_caveat, res_ref)
+                    else:
+                        stats_write_res.add(
+                            'delete res - could not find res id', res_ref)
+                if dataset_changed:
+                    if write:
+                        ckan.action.package_update(**dataset)
+                    stats_write_dataset.add(
+                        'Delete res done' + write_caveat, dataset_name)
                 else:
-                    stats_write_res.add(
-                        'delete res - could not find res id', res_ref)
-            if dataset_changed:
-                if write:
-                    ckan.action.package_update(dataset)
-                stats_write_dataset.add(
-                    'Delete res done' + write_caveat, dataset_name)
-            else:
-                stats_write_dataset.add(
-                    'Delete res not needed', dataset_name)
+                    stats_write_dataset.add(
+                        'Delete res not needed', dataset_name)
 
-        print 'Deleting datasets'
-        for dataset_name in dataset_names_to_delete:
-            try:
-                dataset = ckan.action.package_show(id=dataset_name)
-            except ckanapi.NotFound:
-                stats_write_dataset.add(
-                    'Delete dataset - not found', dataset_name)
-            else:
-                if write:
-                    ckan.action.package_delete(id=dataset_name)
-                stats_write_dataset.add(
-                    'Delete dataset - done' + write_caveat, dataset_name)
+            print 'Deleting datasets'
+            for dataset_name in dataset_names_to_delete:
+                try:
+                    dataset = ckan.action.package_show(id=dataset_name)
+                except ckanapi.NotFound:
+                    stats_write_dataset.add(
+                        'Delete dataset - not found', dataset_name)
+                else:
+                    if write:
+                        ckan.action.package_delete(id=dataset_name)
+                    stats_write_dataset.add(
+                        'Delete dataset - done' + write_caveat, dataset_name)
 
-        print '\nResources\n', stats_write_res
-        print '\nDatasets\n', stats_write_dataset
-    else:
-        print 'Not written changes to datasets'
+            print '\nResources\n', stats_write_res
+            print '\nDatasets\n', stats_write_dataset
+        else:
+            print 'Not written changes to datasets'
+    except:
+        traceback.print_exc()
+        import pdb; pdb.set_trace()
+
 
 def resource_corrections(res, dataset, extras,
                          revamped_resources, revamped_datasets_by_org,
@@ -637,82 +656,82 @@ def resource_corrections(res, dataset, extras,
                 elif res['format'] == 'RDF':
                     stats_res.add('duplicate period to revamp rdf - leave',
                                   res['url'])
-                    return
                 else:
                     stats_res.add('duplicate period to revamp non-csv/rdf - leave',
                                   '%s %s' % (res['format'], res['url']))
-                    return
             else:
                 stats_res.add('??? duplicate period to revamp formatless since 2011', res['url'])
-                return
 
     # gov.uk URLs will often be duplicates
     if re.match(r'https:\/\/www.gov.uk\/government\/(organisations|publications|uploads)\/.*', res['url']):
         if org_id not in revamped_datasets_by_org:
             stats_res.add('gov.uk but org not known in new scheme', '%s %s' % (org_id, res['url']))
-            return
-        # eg https://www.gov.uk/government/organisations/cabinet-office/series/cabinet-office-structure-charts
-        # eg https://www.gov.uk/government/publications/bis-junior-staff-numbers-and-payscales-30-september-2012
-        # eg https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/11577/1920406.csv
-        if res.get('date'):
-            #print '\n%s from %s added to dataset already with:' % (date_year_month, dataset['name'])
-            d = revamped_datasets_by_org[org_id]
-            #for r in d['resources']:
-            #    print '  %s: %s' % (d['name'], r.get('date'))
-            #print '\n'
-
-            if date > datetime.datetime(2012, 1, 1):
-                # this data should be in the organogram tool
-                if res.get('format'):
-                    if res['format'].upper() == 'CSV':
-                        resources_to_delete.append(res)
-                        stats_res.add('delete - gov.uk csv since 2012 deleted', res['url'])
-                        return
-                    else:
-                        # lots of alternative formats - ODS, PPTX, XLS, HTML
-                        stats_res.add('keep - gov.uk non-csv since 2012',
-                                      '%s' % (res['format']))
-                else:
-                    stats_res.add('??? gov.uk formatless since 2012', res['url'])
-            elif date > datetime.datetime(2011, 1, 1):
-                # this data should be in the organogram tool
-                if res.get('format'):
-                    if res['format'].upper() == 'CSV':
-                        resources_to_delete.append(res)
-                        stats_res.add('gov.uk csv since 2011 deleted', res['url'])
-                        return
-                    else:
-                        # mostly RDF
-                        stats_res.add('keep - gov.uk non-csv 2011',
-                                      '%s' % (res['format']))
-                else:
-                    stats_res.add('??? gov.uk formatless since 2011', res['url'])
-            elif date > datetime.datetime(2010, 1, 1):
-                # this data should be in the organogram tool
-                if res.get('format'):
-                    if res['format'].upper() == 'CSV':
-                        resources_to_delete.append(res)
-                        stats_res.add('delete - gov.uk csv 2010 deleted', res['url'])
-                        return
-                    else:
-                        # mostly PDF and PPT
-                        stats_res.add('keep - gov.uk non-csv 2010',
-                                      '%s' % (res['format']))
-                else:
-                    stats_res.add('??? gov.uk formatless 2010', res['url'])
-            else:
-                stats_res.add('gov.uk pre-2010 - keep', res['url'])
-        elif extras.get('resource_type') != 'file':
-            # ignore documentation
-            pass
         else:
-            stats_res.add('??? gov.uk but no date', dataset['name'])
+            # eg https://www.gov.uk/government/organisations/cabinet-office/series/cabinet-office-structure-charts
+            # eg https://www.gov.uk/government/publications/bis-junior-staff-numbers-and-payscales-30-september-2012
+            # eg https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/11577/1920406.csv
+            if res.get('date'):
+                #print '\n%s from %s added to dataset already with:' % (date_year_month, dataset['name'])
+                d = revamped_datasets_by_org[org_id]
+                #for r in d['resources']:
+                #    print '  %s: %s' % (d['name'], r.get('date'))
+                #print '\n'
+
+                if date > datetime.datetime(2012, 1, 1):
+                    # this data should be in the organogram tool
+                    if res.get('format'):
+                        if res['format'].upper() == 'CSV':
+                            resources_to_delete.append(res)
+                            stats_res.add('delete - gov.uk csv since 2012 deleted', res['url'])
+                            return
+                        else:
+                            # lots of alternative formats - ODS, PPTX, XLS, HTML
+                            stats_res.add('keep - gov.uk non-csv since 2012',
+                                          '%s' % (res['format']))
+                    else:
+                        stats_res.add('??? gov.uk formatless since 2012', res['url'])
+                elif date > datetime.datetime(2011, 1, 1):
+                    # this data should be in the organogram tool
+                    if res.get('format'):
+                        if res['format'].upper() == 'CSV':
+                            resources_to_delete.append(res)
+                            stats_res.add('gov.uk csv since 2011 deleted', res['url'])
+                            return
+                        else:
+                            # mostly RDF
+                            stats_res.add('keep - gov.uk non-csv 2011',
+                                          '%s' % (res['format']))
+                    else:
+                        stats_res.add('??? gov.uk formatless since 2011', res['url'])
+                elif date > datetime.datetime(2010, 1, 1):
+                    # this data should be in the organogram tool
+                    if res.get('format'):
+                        if res['format'].upper() == 'CSV':
+                            resources_to_delete.append(res)
+                            stats_res.add('delete - gov.uk csv 2010 deleted', res['url'])
+                            return
+                        else:
+                            # mostly PDF and PPT
+                            stats_res.add('keep - gov.uk non-csv 2010',
+                                          '%s' % (res['format']))
+                    else:
+                        stats_res.add('??? gov.uk formatless 2010', res['url'])
+                else:
+                    stats_res.add('gov.uk pre-2010 - keep', res['url'])
+            elif extras.get('resource_type') != 'file':
+                # ignore documentation
+                pass
+            else:
+                stats_res.add('??? gov.uk but no date', dataset['name'])
 
     if dataset_to_merge_to and res['format'] == 'HTML' \
             and res.get('resource_type') != 'documentation':
         stats_res.add('Mark HTML as documentation', res['url'])
         res['resource_type'] = 'documentation'
 
+    # documentation shouldn't have a date - not editable in the form
+    if res.get('resource_type') == 'documentation' and res.get('date'):
+        res['date'] = None
 
 def save_csv_rows(csv_rows, dataset, has_changed, dataset_to_merge_to):
     '''Saves the dataset to the csv_rows'''
@@ -721,7 +740,7 @@ def save_csv_rows(csv_rows, dataset, has_changed, dataset_to_merge_to):
             name=dataset['name'],
             org_title=dataset['organization']['title'],
             org_id=dataset['organization']['id'],
-            notes='',   #dataset['notes'],
+            notes=dataset['notes'],
             res_id=res['id'],
             res_name=res['description'] or res.get('name', ''),
             res_url=res['url'],
@@ -777,10 +796,14 @@ def get_dataset_to_merge_to(dataset, revamped_datasets_by_org):
 
 
 def date_to_year_month(date_day_first):
+    # '30/9/2011'
     bits = date_day_first.replace('-', '/').split('/')[::-1]
+    # [u'2011', u'9', u'30']
     bits = [int(bit) for bit in bits]
+    # [2011, 9, 30]
     bits += [1] * (3 - len(bits))
-    return '%s-%s' % (bits[-1], bits[-2])
+    # [2011, 9, 30]
+    return '%s-%s' % (bits[-3], bits[-2])  #  '2011-9'
 
 
 def parse_date(date_day_first):
