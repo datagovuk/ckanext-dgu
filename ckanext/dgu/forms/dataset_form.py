@@ -579,6 +579,7 @@ def fold_in_schema_codelist_if_a_sub_dict(key, data, errors, context):
                 key = (schema_codelist, i, field)
                 if key in junk:
                     del junk[key]
+            i += 1
 
 def schema_codelist_validator(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
