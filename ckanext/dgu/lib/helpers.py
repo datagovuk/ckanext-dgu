@@ -530,7 +530,7 @@ def get_organization_from_resource(res_dict):
         return None
     return res.resource_group.package.get_organization()
 
-def ga_download_tracking(resource, publisher_name, action='download'):
+def ga_download_tracking(resource, pkg_dict, publisher_name, action='download'):
     '''Google Analytics event tracking for downloading a resource. (Universal
     Analytics syntax)
 
@@ -543,9 +543,82 @@ def ga_download_tracking(resource, publisher_name, action='download'):
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;ga('send','event','resource','%s','%s');"\
-           "setTimeout(function(){location.href=that.href;},200);return false;" \
-           % (action, resource.get('url'))
+    resource_dimensions = dict(
+        dimension4=publisher_name,
+        dimension5=resource['format'],
+        dimension6=resource.get('date') or '',
+        dimension7=(resource.get('qa') or {}).get('openness_score', ''),
+        dimension8=(pkg_dict.get('qa') or {}).get('openness_score', ''),
+        dimension9=(resource.get('archiver') or {}).get('is_broken', ''),
+    )
+    # TODO escaping
+    dimension_code = ''.join(
+        "ga('set', '%s', '%s');" % (key, value)
+        for key, value in resource_dimensions.iteritems())
+    return "var that=this;ga('send','event','resource','%s','%s');" % (action, resource.get('url')) + \
+        dimension_code + \
+        "setTimeout(function(){location.href=that.href;},200);return false;"
+
+
+def get_google_analytics_read_id():
+    return config.get('googleanalytics.write.id')
+
+def get_ga_custom_dimensions():
+    info = dict(
+        dimension1=c.user,  # user_id
+        dimension2='',  # user_status
+        )
+    if c.userobj:
+        if c.userobj.sysadmin:
+            info['dimension2'] = 'sysadmin' # user_status
+        else:
+            organizations = c.userobj.get_groups('organization')
+            if organizations:
+                info['dimension2'] = 'publisher' # user_status
+                info['dimension3'] = [o['name'] for o in organizations]
+    #c.environ['pylons.routes_dict']
+    controller = c.controller.split(':')[-1]
+    #controller_action = (controller.split(':')[-1], c.action)
+    if controller == 'PackageController' and \
+            c.action in ('read', 'resource_read', 'edit'):
+        try:
+            info['dimension4'] = c.pkg_dict['organization']['name']
+        except KeyError:
+            pass
+        try:
+            info['dimension8'] = c.pkg_dict['qa'].get('openness_score', '')
+        except KeyError:
+            pass
+        if c.action == 'resource_read':
+            info['dimension5'] = c.resource['format']
+            info['dimension6'] = british_date_to_ga_date(c.resource.get('date'))
+            try:
+                info['dimension7'] = c.resource['qa'].get('openness_score', '')
+            except KeyError:
+                pass
+            try:
+                info['dimension9'] = c.resource['archiver'].get('is_broken', '')
+            except KeyError:
+                pass
+    if controller == 'PublisherController' and c.action == 'read':
+        info['dimension4'] = c.group_dict['name']
+        #id = c.environ['pylons.routes_dict']['id']
+
+    # user_publishers User  dimension3
+    # content_publisher   Hit dimension4
+    # resource_format Hit dimension5
+    # resource_date   Hit dimension6
+    # resource_stars  Hit dimension7
+    # dataset_stars   Hit dimension8
+    # resource_broken Hit dimension9
+    return info
+
+def british_date_to_ga_date(british_date):
+    ''' 31/12/2016 -> 2016-12 '''
+    if not british_date:
+        return ''
+    bits = re.split('[^\d]', british_date)[::-1]
+    return '-'.join(bits[:2])
 
 def render_datetime(datetime_, date_format=None, with_hours=False):
     '''Render a datetime object or timestamp string as a pretty string
