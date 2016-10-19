@@ -575,7 +575,7 @@ def get_ga_custom_dimensions():
             organizations = c.userobj.get_groups('organization')
             if organizations:
                 info['dimension2'] = 'publisher' # user_status
-                info['dimension3'] = [o['name'] for o in organizations]
+                info['dimension3'] = ' '.join([o.name for o in organizations])
     #c.environ['pylons.routes_dict']
     controller = c.controller.split(':')[-1]
     #controller_action = (controller.split(':')[-1], c.action)
@@ -614,11 +614,14 @@ def get_ga_custom_dimensions():
     return info
 
 def british_date_to_ga_date(british_date):
-    ''' 31/12/2016 -> 2016-12 '''
+    ''' 31/9/2016 -> 2016-09 '''
     if not british_date:
         return ''
     bits = re.split('[^\d]', british_date)[::-1]
-    return '-'.join(bits[:2])
+    # pad the month
+    if bits[1:2]:
+        bits[1] = bits[1].zfill(2)
+    return ''.join(bits[:2])
 
 def render_datetime(datetime_, date_format=None, with_hours=False):
     '''Render a datetime object or timestamp string as a pretty string
