@@ -564,7 +564,6 @@ def get_google_analytics_read_id():
 
 def get_ga_custom_dimensions():
     info = dict(
-        dimension1=c.user,  # user_id
         dimension2='',  # user_status
         )
     if c.userobj:
