@@ -613,7 +613,8 @@ def get_ga_custom_dimensions():
     return info
 
 def british_date_to_ga_date(british_date):
-    ''' 31/9/2016 -> 2016-09 '''
+    ''' 31/9/2016 -> 201609
+    Google Analytics stores dates as YYYYMMDD etc'''
     if not british_date:
         return ''
     bits = re.split('[^\d]', british_date)[::-1]
