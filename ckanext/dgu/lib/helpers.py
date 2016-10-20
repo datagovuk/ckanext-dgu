@@ -530,32 +530,23 @@ def get_organization_from_resource(res_dict):
         return None
     return res.resource_group.package.get_organization()
 
-def ga_download_tracking_package_zip(pkg, pkg_dict, publisher_name):
+
+def ga_package_zip_resource(pkg, pkg_dict):
+    '''Returns a resource-like-dict, to provide to ga_download_tracking_data,
+    to inform GA about the package zip download.'''
+    from ckanext.packagezip.helpers import packagezip_url
     dataset_openness_score = \
         (pkg_dict.get('qa') or {}).get('openness_score', '')
-    from ckanext.packagezip.helpers import packagezip_url
-    return ga_download_tracking(
-        dict(
-            url=packagezip_url(pkg),
-            format='Data Package ZIP',
-            archiver={'is_broken': False},
-            qa={'openness_score': dataset_openness_score}
-            ),
-        pkg_dict, publisher_name)
+    resource = dict(
+        url=packagezip_url(pkg),
+        format='Data Package ZIP',
+        archiver={'is_broken': False},
+        qa={'openness_score': dataset_openness_score}
+        )
+    return resource
 
-def ga_download_tracking(resource, pkg_dict, publisher_name, action='download'):
-    '''Google Analytics event tracking for downloading a resource. (Universal
-    Analytics syntax)
 
-    Values for action: download, download-cache
-
-    e.g. ga('send', 'event', 'button', 'click', 'nav buttons', 4);
-
-    The call here is wrapped in a timeout to give the push call time to complete as some browsers
-    will complete the new http call without allowing ga() time to complete.  This *could* be resolved
-    by setting a target of _blank but this forces the download (many of them remote urls) into a new
-    tab/window.
-    '''
+def ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download'):
     resource_dimensions = dict(
         dimension4=publisher_name,
         dimension5=resource['format'],
@@ -564,17 +555,12 @@ def ga_download_tracking(resource, pkg_dict, publisher_name, action='download'):
         dimension8=(pkg_dict.get('qa') or {}).get('openness_score', ''),
         dimension9=(resource.get('archiver') or {}).get('is_broken', ''),
     )
-    # TODO escaping
-    dimension_code = ''.join(
-        "ga('set', '%s', '%s');" % (key, value)
-        for key, value in resource_dimensions.iteritems())
-    return "var that=this;ga('send','event','resource','%s','%s');" % (action, resource.get('url')) + \
-        dimension_code + \
-        "setTimeout(function(){location.href=that.href;},200);return false;"
+    return resource_dimensions, action, resource.get('url')
 
 
 def get_google_analytics_read_id():
     return config.get('googleanalytics.write.id')
+
 
 def get_ga_custom_dimensions():
     info = dict(
