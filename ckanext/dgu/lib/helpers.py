@@ -530,6 +530,19 @@ def get_organization_from_resource(res_dict):
         return None
     return res.resource_group.package.get_organization()
 
+def ga_download_tracking_package_zip(pkg, pkg_dict, publisher_name):
+    dataset_openness_score = \
+        (pkg_dict.get('qa') or {}).get('openness_score', '')
+    from ckanext.packagezip.helpers import packagezip_url
+    return ga_download_tracking(
+        dict(
+            url=packagezip_url(pkg),
+            format='Data Package ZIP',
+            archiver={'is_broken': False},
+            qa={'openness_score': dataset_openness_score}
+            ),
+        pkg_dict, publisher_name)
+
 def ga_download_tracking(resource, pkg_dict, publisher_name, action='download'):
     '''Google Analytics event tracking for downloading a resource. (Universal
     Analytics syntax)
