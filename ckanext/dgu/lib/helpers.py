@@ -579,7 +579,8 @@ def get_ga_custom_dimensions():
     controller = c.controller.split(':')[-1]
     #controller_action = (controller.split(':')[-1], c.action)
     if controller == 'PackageController' and \
-            c.action in ('read', 'resource_read', 'edit'):
+            c.action in ('read', 'resource_read', 'edit') and \
+            c.pkg_dict:
         try:
             info['dimension4'] = c.pkg_dict['organization']['name']
         except KeyError:
