@@ -583,7 +583,7 @@ def get_ga_custom_dimensions():
             c.pkg_dict:
         try:
             info['dimension4'] = c.pkg_dict['organization']['name']
-        except KeyError:
+        except (KeyError, TypeError):
             pass
         try:
             info['dimension8'] = c.pkg_dict['qa'].get('openness_score', '')
