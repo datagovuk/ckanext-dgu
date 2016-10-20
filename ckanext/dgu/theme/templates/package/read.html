@@ -125,7 +125,7 @@
         </p>
       {% elif not h.packagezip_has_data(c.pkg) %}
         <p style="margin-bottom: 20px;">
-            The <a href="{{h.packagezip_url(c.pkg)}}">Data Package Zip</a> is not recommended for this dataset
+            The <a href="{{h.packagezip_url(c.pkg)}}" onclick="{{ m.download_tracker_packagezip(c.pkg, c.pkg_dict, publisher_name) }}">Data Package Zip</a> is not recommended for this dataset
             <a class="js-tooltip" data-toggle="tooltip" data-html='true' data-placement="right" title="The zip file may not contain data. This occurs if the source data is not available, there are problems encountered during archival, or the data is only accessible via an API." href="javascript:0" style="text-decoration:none;color:#000;">
               <i class="icon-info-sign"></i>
             </a>
@@ -149,7 +149,7 @@
                       </div>
                       <div class="inner-row actions">
                         <div class="inner-cell">
-                          <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
+                          <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;" onclick="{{ m.download_tracker_packagezip(c.pkg, c.pkg_dict, publisher_name) }}">
                             <strong>
                               Download ZIP
                             </strong>
@@ -354,7 +354,7 @@
               {% endif %}
             </span>
             <span>
-              <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+              <a href="{{res.get('url', '')}}" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
                 <strong>
                   {% if is_download and not gemini %}
                     Download
@@ -384,7 +384,7 @@
 {#
           {% if gemini %}
             <li>
-              <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+              <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
                 <i class="icon-search"></i>&nbsp; {{res['action']}}
               </a>
             </li>
@@ -396,7 +396,7 @@
             </li>
           {% endif %}
 #}
-          <a class="dataset-resource-chevron js-tooltip" style="pointer-events:auto;" data-toggle="tooltip" title="{% if is_download %}Download{% else %}Direct Link{% endif %}" href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+          <a class="dataset-resource-chevron js-tooltip" style="pointer-events:auto;" data-toggle="tooltip" title="{% if is_download %}Download{% else %}Direct Link{% endif %}" href="{{res.get('url', '')}}" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
               {% if is_download and not gemini %}
                 <i class="icon-download-alt icon-25x"></i>&nbsp;
               {% else %}

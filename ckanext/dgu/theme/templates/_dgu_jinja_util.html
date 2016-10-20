@@ -498,3 +498,21 @@
     <p class="field_error">{{errors.get('themes-secondary', '')}}</p>
   {% endif %}
 {% endmacro %}
+
+{# javascript for sending a GA event when user clicks a data action (download usually) #}
+{% macro download_tracker(resource, pkg_dict, publisher_name, action='download') %}
+  {% set resource_dimensions, action, resource_url = h.ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download') %}
+  var that=this;
+  ga('send','event','resource','{{ action }}','{{ resource_url }}');
+  {% for key, value in resource_dimensions.iteritems() -%}
+    ga('set', '{{ key }}', '{{ value }}');
+  {%- endfor %}
+  {# The call here is wrapped in a timeout to give the push call time to complete as some browsers will complete the new http call without allowing ga() time to complete.  This *could* be resolved by setting a target of _blank but this forces the download (many of them remote urls) into a new tab/window. #}
+  setTimeout(function(){location.href=that.href;},200);
+  return false;
+{% endmacro %}
+
+{% macro download_tracker_packagezip(pkg, pkg_dict, publisher_name) %}
+  {% set resource = h.ga_package_zip_resource(pkg, pkg_dict) %}
+  {{ download_tracker(resource, pkg_dict, publisher_name) }}
+{% endmacro %}

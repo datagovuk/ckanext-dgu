@@ -17,6 +17,7 @@ from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      detect_license_id,
                                      get_license_from_id,
                                      linkify,
+                                     british_date_to_ga_date,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
@@ -488,3 +489,24 @@ class TestLinkify(object):
                      'Hello '
                      '(<a href="http://example.com/page.html" target="_blank">'
                      'http://example.com/page.html</a>) hello')
+
+class TestBritishDateToGaDate(object):
+    def test_year(self):
+        assert_equal(british_date_to_ga_date('2012'), '2012')
+
+    def test_month_year(self):
+        # no separator - appears to be the internal GA date type
+        # keep the '0' to allow sorting by text
+        assert_equal(british_date_to_ga_date('9/2012'), '201209')
+
+    def test_month_year(self):
+        # no separator - appears to be the internal GA date type
+        # keep the '0' to allow sorting by text
+        assert_equal(british_date_to_ga_date('12/2012'), '201212')
+
+    def test_day_month_year(self):
+        # lose the day - simplify for easier analysis
+        assert_equal(british_date_to_ga_date('1/9/2012'), '201209')
+
+    def test_blank(self):
+        assert_equal(british_date_to_ga_date(''), '')

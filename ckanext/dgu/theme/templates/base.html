@@ -96,3 +96,22 @@ ckan.favicon = /assets/img/favicon.ico
         "
       id="{{ body_id if body_id is defined }}"
 {% endblock %}
+
+{% block body_extras -%}
+  {# DGU defines google analytics stuff in templates rather than config.ini under "ckan.template_footer_end" so that pages can add custom dimension data #}
+  {% set ga_id = h.get_google_analytics_read_id() %}
+  {% if ga_id %}
+    <script type="text/javascript">
+      <!--//--><![CDATA[//><!--
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', '{{ ga_id }}', 'auto');
+      {% for key, value in h.get_ga_custom_dimensions().iteritems() -%}
+        ga('set', '{{ key }}', '{{ value }}');
+      {% endfor%}
+      {%- block google_analytics_extras -%}
+      {%- endblock -%}
+      ga('send', 'pageview');
+      //--><!]]>
+    </script>
+  {% endif %}
+{%- endblock %}
