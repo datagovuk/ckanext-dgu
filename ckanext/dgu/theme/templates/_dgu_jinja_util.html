@@ -499,8 +499,8 @@
   {% endif %}
 {% endmacro %}
 
-{# javascript for sending a GA event when user clicks a data action (download usually) #}
 {% macro download_tracker(resource, pkg_dict, publisher_name, action='download') %}
+  {# javascript for sending a GA event when user clicks a data action (download usually) #}
   {% set resource_dimensions, action, resource_url = h.ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download') %}
   var that=this;
   ga('send','event','resource','{{ action }}','{{ resource_url }}');

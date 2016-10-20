@@ -60,7 +60,7 @@
       {% set publisher = h.get_organization_from_resource(c.resource) %}
     <div class="pull-right">
       {% if c.resource.get('url') %}
-      <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{c.resource.get('url')}}" onclick="{{h.ga_download_tracking(c.resource, c.pkg_dict, publisher.name)}}">
+      <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{c.resource.get('url')}}" onclick="{{ m.download_tracker(c.resource, c.pkg_dict, publisher.name) }}">
         {% if c.resource.get('resource_type') == 'listing' %}
           <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'service' %}
@@ -81,7 +81,7 @@
 
       {% set cache_url, cache_timestamp = h.get_cache(c.resource) %}
       {% if cache_url and not h.get_resource_wms(c.resource) %}
-       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{h.ga_download_tracking(c.resource, c.pkg_dict, publisher.name, 'download-cache')}}">
+       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{m.download_tracker(c.resource, c.pkg_dict, publisher.name, 'download-cache') }}">
         <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp if cache_timestamp else 'unknown'}}">
           <i class="icon-save"></i>&nbsp; Cached
         </div>
