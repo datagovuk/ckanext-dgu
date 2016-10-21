@@ -78,7 +78,7 @@
         {% endif %}
       </a>
       {% endif %}
-
+{# Disabled
       {% set cache_url, cache_timestamp = h.get_cache(c.resource) %}
       {% if cache_url and not h.get_resource_wms(c.resource) %}
        <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{m.download_tracker(c.resource, c.pkg_dict, publisher.name, 'download-cache') }}">
@@ -87,6 +87,7 @@
         </div>
        </a>
        {% endif %}
+#}
       {% endwith %}
 
       {% if h.is_wms(c.resource) %}

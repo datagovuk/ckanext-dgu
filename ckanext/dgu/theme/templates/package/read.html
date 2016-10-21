@@ -113,7 +113,7 @@
 
     {% set publisher_name = c.pkg.get_organization().name %}
     {% set issue_count = h.get_issue_count(c.pkg.id) %}
-
+{# Disabled
     {% if not h.is_unpublished_item(c.pkg_dict) %}
       <h2>Data Package</h2>
       {% if h.packagezip_has_data(c.pkg) == None %}
@@ -167,6 +167,7 @@
           </div>
       {% endif %}
     {% endif %}
+#}
 
       <div class="dataset-resources">
         <!-- Resources -->
