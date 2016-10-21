@@ -266,6 +266,7 @@ class DataController(BaseController):
         set a <base> header if not present to make sure all relative links are
         resolved correctly.
         """
+        abort(403, 'This feature is currently disabled')
         from pylons import response
         from paste.fileapp import FileApp
         from ckanext.dgu.lib.helpers import tidy_url

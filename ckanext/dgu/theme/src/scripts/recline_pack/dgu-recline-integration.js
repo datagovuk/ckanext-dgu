@@ -180,7 +180,7 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
         my.showPlainTextData(data);
       });
     }
-    else if (resourceData.formatNormalized in {'html':'', 'htm':''}
+    /*else if (resourceData.formatNormalized in {'html':'', 'htm':''}
         ||  resourceData.url.substring(0,23)=='http://docs.google.com/') {
       // we displays a fullscreen dialog with the url in an iframe.
       my.$dialog().empty();
@@ -191,7 +191,7 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
       // Change this to be a specific element for #977
       $('#ckanext-html-preview').append(el);
       //my.$dialog().append(el);
-    }
+    }*/
     // images
     else if (resourceData.formatNormalized in {'png':'', 'jpg':'', 'gif':''}
         ||  resourceData.resource_type=='image') {
