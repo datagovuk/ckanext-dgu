@@ -79,16 +79,6 @@
       </a>
       {% endif %}
 
-      {% set cache_url, cache_timestamp = h.get_cache(c.resource) %}
-      {% if cache_url and not h.get_resource_wms(c.resource) %}
-       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{m.download_tracker(c.resource, c.pkg_dict, publisher.name, 'download-cache') }}">
-        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp if cache_timestamp else 'unknown'}}">
-          <i class="icon-save"></i>&nbsp; Cached
-        </div>
-       </a>
-       {% endif %}
-      {% endwith %}
-
       {% if h.is_wms(c.resource) %}
       {# Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise #}
         {{m.map_preview_button_direct(c.pkg_dict,small=False)}} {# Supply both since there is no ID in pkg_dict! #}
