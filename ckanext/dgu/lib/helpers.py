@@ -549,7 +549,7 @@ def ga_package_zip_resource(pkg, pkg_dict):
 def ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download'):
     resource_dimensions = dict(
         dimension4=publisher_name,
-        dimension5=resource['format'],
+        dimension5=resource.get('format'),
         dimension6=resource.get('date') or '',
         dimension7=(resource.get('qa') or {}).get('openness_score', ''),
         dimension8=(pkg_dict.get('qa') or {}).get('openness_score', ''),
@@ -589,7 +589,7 @@ def get_ga_custom_dimensions():
         except KeyError:
             pass
         if c.action == 'resource_read':
-            info['dimension5'] = c.resource['format']
+            info['dimension5'] = c.resource.get('format')
             info['dimension6'] = british_date_to_ga_date(c.resource.get('date'))
             try:
                 info['dimension7'] = c.resource['qa'].get('openness_score', '')
