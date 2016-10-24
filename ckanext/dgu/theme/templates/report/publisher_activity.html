@@ -4,9 +4,12 @@
     <li>Period: Current and previous quarter
      ({{h.render_datetime(data['period'][0])}} -
       {{h.render_datetime(data['period'][1])}})</li>
-    <li>Datasets created: {{data['totals']['num created']}}</li>
-    <li>Datasets modified: {{data['totals']['num modified']}}</li>
-    <li>Datasets created or modified: {{data['totals']['total']}}</li>
+    {# Don't show totals when including sub orgs because the datasets are double counted for both the org and parent department. #}
+    {% if not options.include_sub_organizations %}
+      <li>Datasets created: {{data['totals']['num created']}}</li>
+      <li>Datasets modified: {{data['totals']['num modified']}}</li>
+      <li>Datasets created or modified: {{data['totals']['total']}}</li>
+    {% endif %}
   </ul>
   <p>Note: some datasets will be created and modified during the period, hence why 'created or modified' is often less than the sum of the 'created' and 'modified' values.</p>
   <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
