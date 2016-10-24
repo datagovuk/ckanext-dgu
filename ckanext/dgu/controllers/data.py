@@ -199,11 +199,17 @@ class DataController(BaseController):
             '/var/lib/ckan/dgu/openspending_reports'))
 
     def openspending_report(self):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, 'User must be a sysadmin to view this page.')
+
         self._set_openspending_reports_dir()
         c.content = open (c.openspending_report_dir + "/index.html").read()
         return render('data/openspending_report.html')
 
     def openspending_publisher_report(self, id):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, 'User must be a sysadmin to view this page.')
+
         id = id.replace('.html', '')
         if id.startswith('publisher-'):
             publisher_name = id.replace('publisher-', '')
