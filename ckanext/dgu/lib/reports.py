@@ -241,7 +241,7 @@ def publisher_activity(organization, include_sub_organizations=False):
             filter(model.Group.type=='organization').\
             filter(model.Group.state=='active').order_by('name').\
             all()
-        for organization in all_orgs:
+        for organization in add_progress_bar(all_orgs):
             created, modified = _get_activity(
                 organization.name, include_sub_organizations, periods)
             created_names = [dataset[0] for dataset in created.values()[0]]
@@ -256,12 +256,15 @@ def publisher_activity(organization, include_sub_organizations=False):
                 ('num modified', num_modified),
                 ('total', num_total),
                 )))
-            totals['num created'] += num_created
-            totals['num modified'] += num_modified
-            totals['total'] += num_total
+            if not include_sub_organizations:
+                totals['num created'] += num_created
+                totals['num modified'] += num_modified
+                totals['total'] += num_total
 
         period_iso = [date_.isoformat()
                       for date_ in periods.values()[0]]
+
+        stats_by_org.sort(key=lambda x: -x['total'])
 
         return {'table': stats_by_org,
                 'totals': totals,
@@ -963,3 +966,16 @@ html_datasets_report_info = {
     'generate': html_datasets_report,
     'template': 'report/html_datasets_report.html',
     }
+
+
+def add_progress_bar(iterable, caption=None):
+    try:
+        # Add a progress bar, if it is installed
+        import progressbar
+        bar = progressbar.ProgressBar(widgets=[
+            (caption + ' ') if caption else '',
+            progressbar.Percentage(), ' ',
+            progressbar.Bar(), ' ', progressbar.ETA()])
+        return bar(iterable)
+    except ImportError:
+        return iterable
