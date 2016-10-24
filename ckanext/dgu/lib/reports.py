@@ -426,16 +426,21 @@ unpublished_report_info = {
 def last_resource_deleted(pkg):
 
     resource_revisions = model.Session.query(model.ResourceRevision) \
-                              .join(model.ResourceGroup) \
-                              .join(model.Package) \
-                              .filter_by(id=pkg.id) \
-                              .order_by(model.ResourceRevision.revision_timestamp) \
-                              .all()
+        .join(model.ResourceGroup) \
+        .join(model.Package) \
+        .filter_by(id=pkg.id) \
+        .order_by(model.ResourceRevision.revision_timestamp) \
+        .all()
     previous_rr = None
     # go through the RRs in reverse chronological order and when an active
     # revision is found, return the rr in the previous loop.
     for rr in resource_revisions[::-1]:
         if rr.state == 'active':
+            if not previous_rr:
+                # this happens v.v. occasionally where a resource_revision and
+                # its resource somehow manages to have a different
+                # resource_group_id
+                return None, ''
             return previous_rr.revision_timestamp, previous_rr.url
         previous_rr = rr
     return None, ''
@@ -446,23 +451,23 @@ def datasets_without_resources():
                 .filter_by(state='active')\
                 .order_by(model.Package.title)\
                 .all()
-    for pkg in pkgs:
+    for pkg in add_progress_bar(pkgs):
         if len(pkg.resources) != 0 or \
-          pkg.extras.get('unpublished', '').lower() == 'true':
+                pkg.extras.get('unpublished', '').lower() == 'true':
             continue
         org = pkg.get_organization()
         deleted, url = last_resource_deleted(pkg)
         pkg_dict = OrderedDict((
-                ('name', pkg.name),
-                ('title', pkg.title),
-                ('organization title', org.title),
-                ('organization name', org.name),
-                ('metadata created', pkg.metadata_created.isoformat()),
-                ('metadata modified', pkg.metadata_modified.isoformat()),
-                ('last resource deleted', deleted.isoformat() if deleted else None),
-                ('last resource url', url),
-                ('dataset_notes', lib.dataset_notes(pkg)),
-                ))
+            ('name', pkg.name),
+            ('title', pkg.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('metadata created', pkg.metadata_created.isoformat()),
+            ('metadata modified', pkg.metadata_modified.isoformat()),
+            ('last resource deleted', deleted.isoformat() if deleted else None),
+            ('last resource url', url),
+            ('dataset_notes', lib.dataset_notes(pkg)),
+            ))
         pkg_dicts.append(pkg_dict)
     return {'table': pkg_dicts}
 
