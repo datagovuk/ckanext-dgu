@@ -1,49 +1,45 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Differences - Revisions</py:def>
-  <py:def function="page_heading">
-    ${h.dataset_link(c.pkg)}
-    <span class="subheading">
-      <img src="/images/arrow-down-right.png"/> <a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History</a>
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> Revision Differences</span>
-    </span>
-  </py:def>
+{% block title %}Differences - Revisions{% endblock %}
 
-<py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/data/search">Datasets</a></li>
-    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg.name)}">${c.pkg.title}</a></li>
-    <li><a href="${h.url_for(controller='package',action='history',id=c.pkg.name)}">History</a></li>
-  </py:match>
+    <li><a href="{{h.url_for(controller='package',action='read',id=c.pkg.name)}}">{{c.pkg.title}}</a></li>
+    <li><a href="{{h.url_for(controller='package',action='history',id=c.pkg.name)}}">History</a></li>
+    <li><a href="{{request.url}}">Revision differences</a></li>
+{% endblock %}
 
-  <div py:match="content">
+{% block primary_content_inner %}
+<div>
       <h1>Viewing Dataset Diff</h1>
-      <h4 py:if="c.revision_from">From</h4>
-      <ul py:if="c.revision_from">
-        <li><strong>ID: </strong>${c.revision_from.id} </li>
-        <li><strong>Timestamp: </strong>${c.revision_from.timestamp} </li>
+      {% if c.revision_from %}
+      <h4>From</h4>
+      <ul >
+        <li><strong>ID: </strong>{{c.revision_from.id}} </li>
+        <li><strong>Timestamp: </strong>{{c.revision_from.timestamp}} </li>
       </ul>
       <h4>To</h4>
       <ul>
-        <li><strong>ID: </strong>${c.revision_to.id} </li>
-        <li><strong>Timestamp: </strong>${c.revision_to.timestamp} </li>
+        <li><strong>ID: </strong>{{c.revision_to.id}} </li>
+        <li><strong>Timestamp: </strong>{{c.revision_to.timestamp}} </li>
       </ul>
+      {% endif %}
 
-      <py:if test="c.diff">
+      {% if c.diff %}
         <table class="table table-bordered revision-diff-table">
           <tr>
             <th class="revision-left">Field</th><th class="revision-right">Difference</th>
           </tr>
-         <py:for each="field, diff in c.diff">
-            <tr><td class="revision-left"><pre style="border: none; background: inherit;">${field}</pre></td><td class="revision-right"><pre style="border: none; background: inherit;">${diff}</pre></td></tr>
-          </py:for>
+          {% for field, diff in c.diff %}
+            <tr><td class="revision-left"><pre style="border: none; background: inherit;">{{field}}</pre></td><td class="revision-right"><pre style="border: none; background: inherit;">{{diff}}</pre></td></tr>
+          {% endfor %}
         </table>
-      </py:if>
-      <py:if test="not c.diff">
+      {% else %}
         <h3>No differences</h3>
-      </py:if>
+      {% endif %}
   </div>
 
-  <xi:include href="layout.html" />
-</html>
+
+
+{% endblock %}
+

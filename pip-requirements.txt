@@ -10,23 +10,20 @@
 ## ckanext-dgu dependencies
 -r pip-requirements-local.txt
 
+
 ## Related extensions
 
-# ckanext-csw
--e git+https://github.com/okfn/ckanext-csw.git@#egg=ckanext-csw
-
 # ckanext-harvest
--e git+https://github.com/datagovuk/ckanext-harvest.git@dgu#egg=ckanext-harvest
+-e git+https://github.com/datagovuk/ckanext-harvest.git@2.0#egg=ckanext-harvest
 
 # ckanext-spatial
 -e git+https://github.com/datagovuk/ckanext-spatial.git@dgu#egg=ckanext-spatial
 
-
 # ckanext-qa
--e git+https://github.com/datagovuk/ckanext-qa.git@temp_working#egg=ckanext-qa
+-e git+https://github.com/ckan/ckanext-qa.git#egg=ckanext-qa
 
 # ckanext-archiver
--e git+https://github.com/datagovuk/ckanext-archiver.git#egg=ckanext-archiver
+-e git+https://github.com/ckan/ckanext-archiver.git#egg=ckanext-archiver
 
 # ckanext-ga-report
 -e git+https://github.com/datagovuk/ckanext-ga-report.git#egg=ckanext-ga-report
@@ -34,17 +31,24 @@
 # ckanext-datapreview
 -e git+https://github.com/datagovuk/ckanext-datapreview.git#egg=ckanext-datapreview
 
+# ckanext-report
+-e git+https://github.com/datagovuk/ckanext-report.git#egg=ckanext-report
+
+# ckanext-taxonomy
+-e git+https://github.com/datagovuk/ckanext-taxonomy.git#egg=ckanext-taxonomy
+
+# ckanext-hierarchy
+-e git+https://github.com/datagovuk/ckanext-hierarchy.git#egg=ckanext-hierarchy
+
 ## Related extension dependencies
 
 # Copied from ckanext-spatial's pip-requirements.txt:
 GeoAlchemy>=0.6
 Shapely>=1.2.13
 owslib
-lxml<=2.2.99
+lxml==3.4.4
 argparse
 # Selenium driver for Python
 selenium==2.28.0
 fabric==1.5.3
 oauthlib==0.6.3
-# ONS loader needs datautildate
--e git+https://github.com/okfn/datautildate.git@#egg=datautildate

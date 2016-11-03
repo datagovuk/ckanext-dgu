@@ -3,20 +3,21 @@
 {% block title %}Data API{% endblock %}
 
 {% block breadcrumb_content %}
-  {{ h.build_nav('api_page', _('CKAN API')) }}
+  {{ h.build_nav('api_page', 'Metadata API') }}
 {% endblock %}
 
-<h1>Data Catalogue API</h1>
 
 {% block primary_content_inner %}
 
-    <h1>CKAN API Notes</h1>
-    <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
+    <h1>Metadata API</h1>
+
+    <h3>CKAN API Notes</h3>
+    <p>Developers can access the data catalogue with the metadata API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
 
     {% set url = g.site_url+('/' if g.site_url[-1]!='/' else '')+'api' %}
     <p>The base URL for the API is: <a href="{{url}}">{{url}}</a></p>
 
-    <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/ckan-2.0.2/api.html">http://docs.ckan.org/en/ckan-2.0.2/api.html</a>.</p>
+    <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/release-v2.2.3/api.html">http://docs.ckan.org/en/release-v2.2.3/api.html</a>.</p>
   </div>
 
 {% endblock %}

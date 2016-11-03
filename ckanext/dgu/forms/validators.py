@@ -11,6 +11,7 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
 from ckan import plugins as p
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 
 def to_json(key, data, errors, context):
@@ -86,47 +87,75 @@ def populate_from_publisher_if_missing(key, data, errors, context):
         return
     data[key] = group.extras.get(field_name, None)
 
+
 def validate_license(key, data, errors, context):
     """
-    Validates the selected license options.
-
-    Validation rules must be true to validate:
-
-     license_id == ''                             => access_constraints != ''
-     license_id != '__extra__' ^ license_id != '' => access_constraints == ''
-
-    Additional transformations occur:
-
-     license_id == '__extra__' => licence_id := None
-     access_constraints != ''    => license_id := access_constraints
-     access_constraints is DROPPED
-
+    Validates and saves properly the selected license options.
     """
     # Unpublished data doesn't need a licence
     if p.toolkit.asbool(data.get(('unpublished',))):
         return
 
-    if data[('license_id',)]== '__extra__': # harvested dataset
-        data[('license_id',)] = None
-        return
-
-    license_id = bool(data[('license_id',)])
-    license_id_other = bool(data.get(('access_constraints',)))
-
-    if not (license_id ^ license_id_other):
-        if license_id:
-            # i.e. both license_id and access_constraints filled in
-            errors[('license_id',)] = ['Leave the "Access Constraints" box empty if '
-                                       'selecting a license from the list']
+    using_form = ('licence_in_form',) in data
+    if using_form:
+        licence = data.pop(('licence_in_form',))
+        license_id = data.get(('license_id',))
+        if license_id and license_id != '__other__':
+            # in the form, license_id takes priority over any value in the
+            # licence field
+            data[('licence',)] = ''
         else:
-            # i.e. neither license_id nor access_constraints filled in
-            errors[('license_id',)] = ['Please enter the access constraints.']
+            # in the form, user has selected 'other'. Transfer the value from
+            # 'licence_in_form'.
+            data[('licence',)] = licence
+    elif ('licence',) in data:
+        # licence may be as a key on its own
+        licence = data.get(('licence',), '')
+    else:
+        # licence may be in an extra e.g.
+        #   (u'extras', 14, u'key'): u'licence',
+        #   (u'extras', 14, u'value'): u'Use limitation; Copyright;',
+        licence = _get_extra(data, 'licence', fallback='')
 
-    if not license_id and license_id_other:
-        data[('license_id',)] = data[('access_constraints',)]
-    if license_id_other:
-        del data[('access_constraints',)]
-    del errors[('access_constraints',)]
+    # 'licence' is free text to go to/from the extra.
+    # If there is a 'licence', set licence_id to any detected licence. (for
+    # harvested datasets which don't have the licence picker)
+    if licence:
+        data[('license_id',)], data[('licence',)] = \
+            dgu_helpers.get_licence_fields_from_free_text(licence)
+
+    # Require some for of licence, unless this is a UKLP dataset
+    if not licence:
+        if not data.get(('license_id',)):
+            uklp = _get_extra(data, 'UKLP')
+            if not uklp:
+                errors[('license_id',)] = ['Please provide a licence.']
+
+    # If no license_id, it should be '' because of the 'unicode' validator,
+    # otherwise if it is None it saves as u'None'.
+    if data.get(('license_id',)) in (None, 'None'):
+        data[('license_id',)] = ''
+
+    # Write the licence extra
+    licence = data.get(('licence',))
+    if licence:
+        data[('extras', 99, 'key')] = 'licence'
+        data[('extras', 99, 'value')] = licence
+    if ('licence',) in data:
+        del data[('licence',)]
+
+    return
+
+
+def _get_extra(data, key, fallback=None):
+    i = 0
+    while True:
+        if ('extras', i, 'key') not in data:
+            return None
+        if data[('extras', i, 'key')] == key:
+            return data.get(('extras', i, 'value'), fallback)
+        i += 1
+
 
 def validate_resources(key, data, errors, context):
     """
@@ -198,7 +227,8 @@ def unmerge_resources(key, data, errors, context):
     """
     Splits the merged resources back into their respective resource types.
 
-    And removes the 'resources' entry.
+    It leaves the 'resources' entry there too, for compatibility with other
+    sites harvesting DGU etc.
 
     This post-processing only occurs if there have been no validation errors.
     """

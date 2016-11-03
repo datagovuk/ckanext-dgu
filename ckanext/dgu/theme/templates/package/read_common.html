@@ -38,50 +38,42 @@
         </span>
         {% endif %}
       <span class="dropdown">
-        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="API&nbsp;&amp;&nbsp;Apps">
-          <i class="icon-code icon-2x"></i>
-          <div class="dropdown-chevron"></div>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Metadata&nbsp;API">
+          <span class="api-icon">
+              <i class="icon-code icon-2x"></i>
+          </span>
+          <div class="dropdown-chevron api-chevron" ></div>
         </a>
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
-          <div class="panel-heading">Do More With This Data</div>
+          <div class="panel-heading">Metadata API</div>
           <div class="panel-body">
-            <ul>
-              <li><a href="/node/add/app?dataset={{c.pkg_dict.get('name')}}">Share your app &raquo;</a><br/></li>
-              <li><a href="/node/add/data-request?dataset={{c.pkg_dict.get('name')}}">Request new data &raquo;</a></li>
-            </ul>
-
             <p>The information on this page (the dataset metadata) is also available in JSON format.</p>
             <ul>
               <li>
-                <b>API: </b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}">
-                  {{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}
-                </a>
+                <b><a href="{{h.url_for(controller='api', action='action', ver='3', id=c.pkg.name, logic_function='package_show')}}"  target="_blank">Metadata JSON for this dataset</a></b>
               </li>
               <li>
-                <b>Data Package JSON: </b>
-                <a href="{{ h.datapackage_url(c.pkg) }}">{{ h.datapackage_url(c.pkg) }}</a></li>
+                <b><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
+                  Metadata API Documentation
+                </a></b>
+              </li>
+              </ul>
+              <ul>
               <li>
-                <a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
-                  Read more about this site's CKAN API &raquo;
-                </a>
+                <b><a href="{{ h.datapackage_url(c.pkg) }}" target="_blank">Data Package JSON</a></b>
+              </li>
+              <li>
+                <b><a href="http://dataprotocols.org/data-packages/" target="_blank">Data Package JSON Documentation</a></b>
               </li>
             </ul>
-            {% if h.has_packagezip(c.pkg) %}
-            <p>A Data Package Zip containing the cached resources held by data.gov.uk is also available for download:</p>
-            <ul>
-              <li><a href="{{ h.packagezip_url(c.pkg) }}">Data Package Zip</a></li>
-            </ul>
-            {% endif %}
           </div>
         </div>
-      </span>
+    </span>
       {% if c.user %} <!-- #1272 Only viewable if you log in -->
-        <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="{{h.url_for(controller='package', action='history', id=c.pkg.name)}}">
+        <a style="margin-left:2px;" class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="{{h.url_for(controller='package', action='history', id=c.pkg.name)}}">
           <i class="icon-time icon-2x"></i>
         </a>
       {% endif %}
-
-
     </div>
     <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
     <div class="h1-subheading" id="license-info">
@@ -110,13 +102,12 @@
             {% if isogl %}
               <a href="{{url or 'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'}}" rel="dc:rights">
                 <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
-                Open Government Licence{{separator}}
-              </a>
+                Open Government Licence</a>{{separator}}
             {% else %}
               {% if url %}
                 <a href="{{url}}" rel="dc:rights">{{license_text}}</a>
               {% else%}
-                <span rel="dc:rights"><em>&ldquo;{{license_text}}&rdquo;</em>{{separator}}</span>
+                <span rel="dc:rights"><em>&ldquo;{{h.linkify(license_text)}}&rdquo;</em>{{separator}}</span>
               {% endif %}
             {% endif %}
           {% endwith %}
@@ -136,7 +127,7 @@
     </div>
 
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;">
-      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg.id) %}
+      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg_dict) %}
       Openness rating:
       <span class="star-rating">
         <span class="tooltip">
@@ -199,11 +190,13 @@
 
         {% set can_update=h.check_access('package_update',{'id':c.pkg.id}) %}
         {% set can_delete=h.check_access('package_delete', {'id':c.pkg.id}) and not h.is_package_deleted(c.pkg) %}
+        {% set is_organogram=h.is_dataset_organogram(c.pkg.extras) %}
+        {% set can_manage_organogram=is_organogram and h.check_access('package_create',{'owner_org': c.pkg.owner_org}) %}
         {% set harvest_object=h.get_harvest_object(c.pkg) %}
         {% set can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id}) %}
         {% set update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name) %}
         {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
-        {% set admin_mode = can_update or can_delete or can_harvest %}
+        {% set admin_mode = can_update or can_delete or can_harvest or can_manage_organogram %}
 
       <div class="{{m.if_(admin_mode,'col-md-8','col-md-12')}}">
         <!-- Description -->
@@ -267,18 +260,26 @@
           <div class="panel-heading" style="font-weight: bold;">Administrator Tools</div>
           <div class="panel-body">
             <ul class="administrator-tools">
-              {% if can_update %}
+              {% if can_manage_organogram %}
+                <li>
+                  <span class="wrap-icon"><i class="icon-group"></i></span>
+                  <a href="/organogram/manage/{{ (c.pkg_dict.get('organization') or {}).get('name','') }}">Organogram publication</a>
+                </li>
+              {% endif %}
               <li>
                 <span class="wrap-icon"><i class="icon-edit"></i></span>
-                <a href="{{update_link}}">Edit dataset properties &raquo;</a>
+                {% if can_update %}
+                  <a href="{{update_link}}">Edit dataset properties &raquo;</a>
+                {% else %}
+                  <a href="#" style="pointer-events:none;">Edit not allowed
+                    {% if harvest_object %}
+                      (future harvests will overwrite manual changes)
+                    {% elif is_organogram %}
+                      (managed by 'Organogram publication')
+                    {% endif %}
+                  </a>
+                {% endif %}
               </li>
-              {% endif %}
-              {% if not can_update and harvest_object %}
-              <li>
-                <span class="wrap-icon"><i class="icon-edit"></i></span>
-                <a href="#" style="pointer-events:none;">Edit not allowed (future harvests will overwrite manual changes)</a>
-              </li>
-              {% endif %}
               {% if can_update and h.is_unpublished_item(c.pkg_dict) %}
               <li>
                 {% with will_be_published,when=h.will_be_published(c.pkg_dict) %}
@@ -336,4 +337,3 @@
     {% endwith %}
   </div>
 {% endblock %}
-

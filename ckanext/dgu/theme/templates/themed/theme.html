@@ -1,15 +1,14 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <xi:include href="../_dgu_util.html" />
+{% block title %}{{c.theme_name}} - {{ super() }}{% endblock %}
 
-  <py:def function="page_title">${c.theme_name}</py:def>
+  <h1>{{c.theme_name}}</h1>
 
-  <div py:match="content">
+
+  <py:def function="page_title"></py:def>
+
+{% block primary_content_inner %}
+  <div>
     (not implemented)
   </div>
-
-  <xi:include href="../layout.html" />
-</html>
+{% endblock %}

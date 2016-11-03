@@ -82,6 +82,26 @@ class Stats(dict):
         return self.report()
 
 
+class StatsWithSum(Stats):
+    # {category:[(id, number_to_sum), ...]}
+    _init_value = []
+
+    def add(self, category, id_, float_to_sum):
+        self._init_category(category)
+        self[category].append((id_, float_to_sum))
+        return ('%s: %s %s' % (category, id_, float_to_sum)).encode('ascii', 'ignore') # so you can log it too
+
+    def report_value(self, category):
+        '''Returns the value for a category and value to sort categories by.'''
+        values = self[category]
+        number_of_values = len(values)
+        sum_of_nums = sum(num for id_, num in values)
+        value_str = '%i total=%s %r' % (number_of_values, sum_of_nums, values)
+        if len(value_str) > self.report_value_limit:
+            value_str = value_str[:self.report_value_limit] + '...'
+        return (value_str, number_of_values)
+
+
 # deprecated name - kept for backward compatibility
 class StatsList(Stats):
     pass

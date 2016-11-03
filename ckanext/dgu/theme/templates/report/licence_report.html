@@ -1,0 +1,35 @@
+<ul>
+  <li>Datasets: {{data['num_datasets']}}</li>
+  <li>Licences: {{data['num_licences']}}</li>
+</ul>
+<p>NB Unpublished datasets are excluded from this report</p>
+
+<table class="table table-bordered table-condensed" id="report-table" style="width: 100%; table-layout: fixed;">
+  <thead>
+    <tr class="js-tooltip">
+    <th style="width: 150px">data.gov.uk standard licence</th>
+    <th style="width: 400px">Custom terms</th>
+    <th style="">Datasets</th>
+    </tr>
+  </thead>
+  <tbody style="word-wrap: break-word;">
+    {% for row_dict in data['table'] %}
+    <tr>
+    <td>{{row_dict['license_title']}} {% if not row_dict['license_title'] and row_dict['licence'] %}(Custom){% endif %}</td>
+    <td>{{h.linkify(row_dict['licence'])}}</td>
+    <td>
+      {% set names = row_dict['dataset_names'].split() %}
+      {% set titles = row_dict['dataset_titles'].split('|') %}
+      {% set truncate = 10 %}
+      {{ titles|length }}:
+      {% for name in names[:truncate] %}
+        <a href="{{ h.url_for(controller='package', action='read', id=name) }}">{{ titles[loop.index0] }}</a> &nbsp;
+      {% endfor %}
+      {% if names|length > truncate %}
+         ...
+      {% endif %}
+    </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

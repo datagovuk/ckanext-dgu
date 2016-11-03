@@ -15,7 +15,6 @@ import itertools
 import datetime
 import random
 import types
-import json
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -40,11 +39,11 @@ def groupby(*args, **kwargs):
 def resource_as_json(resource):
     return json.dumps(resource)
 
-def is_resource_broken(resource_id):
-    from ckanext.archiver.model import Archival
-
-    archival = Archival.get_for_resource(resource_id)
-    return archival and archival.is_broken==True
+def is_resource_broken(resource):
+    archival = resource.get('archiver')
+    if not archival:
+        return None # don't know
+    return archival.get('is_broken')
 
 def _is_additional_resource(resource):
     """
@@ -65,20 +64,6 @@ def _is_individual_resource(resource):
     """
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
-
-# NB these 3 functions are overwritten by the other function of the same name,
-# but we should probably use these ones in preference
-def additional_resources(package):
-    """Extract the additional resources from a package"""
-    return filter(_is_additional_resource, package.get('resources'))
-
-def timeseries_resources(package):
-    """Extract the timeseries resources from a package"""
-    return filter(_is_timeseries_resource, package.get('resources'))
-
-def individual_resources(package):
-    """Extract the individual resources from a package"""
-    return filter(_is_individual_resource, package.get('resources'))
 
 def resource_type(resource):
     """
@@ -263,6 +248,10 @@ def userobj_from_username(username):
     return model.User.get(username)
 
 
+def drupal_user_id_from_username(username):
+    return username.split('user_d')[-1]
+
+
 def user_properties(user):
     '''
     Given a user, returns the user object and whether they are a system user or
@@ -325,9 +314,7 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     user_name, user, user_drupal_id, type_, this_is_me = user_properties(user_name)
 
     # Now decide how to display the user
-    if c.is_an_official is '':
-        c.is_an_official = bool(c.groups or is_sysadmin())
-    if (c.is_an_official or this_is_me or type_ is None):
+    if (is_an_official() or this_is_me or type_ is None):
         # User can see the actual user name - i.e. if:
         # * viewer is an official
         # * viewing ones own user
@@ -337,12 +324,12 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
                 name = 'System Process (%s)' % user_name
             else:
                 name = user.fullname or user.name
-            if type_ == 'official' or not user_drupal_id:
-                # officials use the CKAN user page for the time being (useful for debug)
+
+            if not user_drupal_id:
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # Public use the Drupal user page.
-                link_url = '/users/%s' % user_drupal_id
+                link_url = '/user/%s' % user_drupal_id
+
             return (name, link_url)
         else:
             if type_ == 'system':
@@ -421,7 +408,7 @@ def render_partial_datestamp(datestamp_str):
     except:
         try:
             request_path = t.request.path
-        except TypeError:
+        except:   # This may be TypeError or KeyError
             # not in a request (e.g. in a test)
             request_path = ''
         log.error('Could not render datestamp: %r %s', datestamp_str,
@@ -430,15 +417,14 @@ def render_partial_datestamp(datestamp_str):
 
 
 def get_cache(resource_dict):
-    from ckanext.archiver.model import Archival
-    archival = Archival.get_for_resource(resource_dict['id'])
+    archival = resource_dict.get('archiver')
     if not archival:
         return (None, None)
-    url = (archival.cache_url or '').strip().replace('None', '')
+    url = (archival['cache_url'] or '').strip().replace('None', '')
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
-    url = url.replace('http://data.gov.uk/', '/')
-    return url, archival.updated
+    url = re.sub('https?://data.gov.uk/', '/', url)
+    return url, render_datestamp(archival['updated'])
 
 
 # used in render_stars and read_common.html
@@ -459,16 +445,10 @@ def mini_stars_and_caption(num_stars):
     return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
 # Used in read_common.html
-def calculate_dataset_stars(dataset_id):
-    from ckan.logic import get_action, NotFound
-    from ckan import model
+def calculate_dataset_stars(dataset_dict):
     if not is_plugin_enabled('qa'):
         return (0, '', '')
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
-    except NotFound:
-        return (0, '', '')
+    qa = dataset_dict.get('qa')
     if not qa:
         return (0, '', '')
     return (qa['openness_score'],
@@ -476,16 +456,10 @@ def calculate_dataset_stars(dataset_id):
             qa['updated'])
 
 # Used in resource_read.html
-def render_resource_stars(resource_id):
-    from ckan.logic import get_action, NotFound
-    from ckan import model
+def render_resource_stars(resource_dict):
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_resource_show')(context, {'id': resource_id})
-    except NotFound:
-        return 'To be determined'
+    qa = resource_dict.get('qa')
     if not qa:
         return 'To be determined'
     return render_stars(qa['openness_score'], qa['openness_score_reason'],
@@ -502,26 +476,24 @@ def does_detected_format_disagree(detected_format, resource_format):
     return is_disagreement
 
 # used by resource_read.html
+# This is DGU's version of h.qa_openness_stars_resource_html
 def render_qa_info_for_resource(resource_dict):
-    resource_id = resource_dict['id']
-    from ckan.logic import get_action, NotFound
-    from ckan import model
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_resource_show')(context, {'id': resource_id})
-    except NotFound:
+    # Archiver holds details of whether the link is broken
+    archival = resource_dict.get('archiver')
+    reason_list = [archival['status'], archival['reason']] if archival else []
+    # QA holds details of openness score
+    qa = resource_dict.get('qa')
+    if not (qa or archival):
         return 'To be determined'
-    if not qa:
-        return 'To be determined'
-    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
-    resource = model.Resource.get(resource_id)
+    resource_format_disagrees = does_detected_format_disagree(qa['format'], resource_dict['format']) if qa else None
     ctx = {'qa': qa,
+           'archival': archival,
            'reason_list': reason_list,
-           'resource_format': resource.format,
-           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
-           'is_data': resource_dict['resource_type'] in ('file', None),
+           'resource_format': resource_dict['format'],
+           'resource_format_disagrees': resource_format_disagrees,
+           'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
 
@@ -558,22 +530,98 @@ def get_organization_from_resource(res_dict):
         return None
     return res.resource_group.package.get_organization()
 
-def ga_download_tracking(resource, publisher_name, action='download'):
-    '''Google Analytics event tracking for downloading a resource. (Universal
-    Analytics syntax)
 
-    Values for action: download, download-cache
+def ga_package_zip_resource(pkg, pkg_dict):
+    '''Returns a resource-like-dict, to provide to ga_download_tracking_data,
+    to inform GA about the package zip download.'''
+    from ckanext.packagezip.helpers import packagezip_url
+    dataset_openness_score = \
+        (pkg_dict.get('qa') or {}).get('openness_score', '')
+    resource = dict(
+        url=packagezip_url(pkg),
+        format='Data Package ZIP',
+        archiver={'is_broken': False},
+        qa={'openness_score': dataset_openness_score}
+        )
+    return resource
 
-    e.g. ga('send', 'event', 'button', 'click', 'nav buttons', 4);
 
-    The call here is wrapped in a timeout to give the push call time to complete as some browsers
-    will complete the new http call without allowing ga() time to complete.  This *could* be resolved
-    by setting a target of _blank but this forces the download (many of them remote urls) into a new
-    tab/window.
-    '''
-    return "var that=this;ga('send','event','resource','%s','%s');"\
-           "setTimeout(function(){location.href=that.href;},200);return false;" \
-           % (action, resource.get('url'))
+def ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download'):
+    resource_dimensions = dict(
+        dimension4=publisher_name,
+        dimension5=resource.get('format'),
+        dimension6=resource.get('date') or '',
+        dimension7=(resource.get('qa') or {}).get('openness_score', ''),
+        dimension8=(pkg_dict.get('qa') or {}).get('openness_score', ''),
+        dimension9=(resource.get('archiver') or {}).get('is_broken', ''),
+    )
+    return resource_dimensions, action, resource.get('url')
+
+
+def get_google_analytics_read_id():
+    return config.get('googleanalytics.write.id')
+
+
+def get_ga_custom_dimensions():
+    info = dict(
+        dimension2='',  # user_status
+        )
+    if c.userobj:
+        if c.userobj.sysadmin:
+            info['dimension2'] = 'sysadmin' # user_status
+        else:
+            organizations = c.userobj.get_groups('organization')
+            if organizations:
+                info['dimension2'] = 'publisher' # user_status
+                info['dimension3'] = ' '.join([o.name for o in organizations])
+    #c.environ['pylons.routes_dict']
+    controller = c.controller.split(':')[-1]
+    #controller_action = (controller.split(':')[-1], c.action)
+    if controller == 'PackageController' and \
+            c.action in ('read', 'resource_read', 'edit') and \
+            c.pkg_dict:
+        try:
+            info['dimension4'] = c.pkg_dict['organization']['name']
+        except (KeyError, TypeError):
+            pass
+        try:
+            info['dimension8'] = c.pkg_dict['qa'].get('openness_score', '')
+        except KeyError:
+            pass
+        if c.action == 'resource_read':
+            info['dimension5'] = c.resource.get('format')
+            info['dimension6'] = british_date_to_ga_date(c.resource.get('date'))
+            try:
+                info['dimension7'] = c.resource['qa'].get('openness_score', '')
+            except KeyError:
+                pass
+            try:
+                info['dimension9'] = c.resource['archiver'].get('is_broken', '')
+            except KeyError:
+                pass
+    if controller == 'PublisherController' and c.action == 'read':
+        info['dimension4'] = c.group_dict['name']
+        #id = c.environ['pylons.routes_dict']['id']
+
+    # user_publishers User  dimension3
+    # content_publisher   Hit dimension4
+    # resource_format Hit dimension5
+    # resource_date   Hit dimension6
+    # resource_stars  Hit dimension7
+    # dataset_stars   Hit dimension8
+    # resource_broken Hit dimension9
+    return info
+
+def british_date_to_ga_date(british_date):
+    ''' 31/9/2016 -> 201609
+    Google Analytics stores dates as YYYYMMDD etc'''
+    if not british_date:
+        return ''
+    bits = re.split('[^\d]', british_date)[::-1]
+    # pad the month
+    if bits[1:2]:
+        bits[1] = bits[1].zfill(2)
+    return ''.join(bits[:2])
 
 def render_datetime(datetime_, date_format=None, with_hours=False):
     '''Render a datetime object or timestamp string as a pretty string
@@ -651,17 +699,20 @@ def list_flatten(data):
         return data
 
 def dgu_format_icon(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    icon_name = 'document'
-    if fmt is not None and fmt['icon']!='':
-        icon_name = fmt['icon']
-    url = '/images/fugue/%s.png' % icon_name
+    icon_filename = None
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        canonical_format = format_line[1]
+        icon_filename = formats.get_icon(canonical_format)
+    if not icon_filename:
+        icon_filename = 'document'
+    url = '/images/fugue/%s.png' % icon_filename
     return icon_html(url)
 
 def dgu_format_name(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    if fmt is not None:
-        return fmt['display_name']
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        return format_line[1]
     return format_string
 
 def name_for_uklp_type(package):
@@ -758,15 +809,16 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
+
 def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
-                       is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
+                       is_location_data, dataset_is_from_ns_pubhub):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified', 'la-function', 'la-service'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
         field_names_display_only_if_value.append('import_source')
@@ -807,8 +859,6 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-    if is_local_government_data:
-        field_names.add(('la-function', 'la-service'))
 
     field_names.add_after('date_added_to_dgu', 'theme')
     if pkg_extras.get('theme-secondary'):
@@ -950,10 +1000,17 @@ def sort_by_location_disabled():
 def relevancy_disabled():
     return not(bool(t.request.params.get('q')))
 
-def get_resource_formats():
-    from ckanext.dgu.lib.formats import Formats
-    return json.dumps(Formats.by_display_name().keys())
+_canonical_formats_json = None
 
+def get_resource_formats():
+    global _canonical_formats_json
+    if not _canonical_formats_json:
+        formats = ckan.lib.helpers.resource_formats()
+        canonical_formats = set()
+        for mimetype, canonical, human in formats.values():
+            canonical_formats.add(canonical)
+        _canonical_formats_json = json.dumps(sorted(canonical_formats))
+    return _canonical_formats_json
 
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
@@ -1007,13 +1064,7 @@ def isopen(pkg):
         # in the same pkg.license field.
         license_text = pkg.license_id
     else:
-        # UKLP might have multiple licenses and don't adhere to the License
-        # values, so are in the 'licence' extra.
-        license_text_list = json_list(pkg.extras.get('licence') or '')
-        # UKLP might also have a URL to go with its licence
-        license_text_list.extend([pkg.extras.get('licence_url', '') or '',
-                                  pkg.extras.get('licence_url_title') or ''])
-        license_text = ';'.join(license_text_list)
+        license_text = pkg.extras.get('licence') or ''
     open_licenses = [
         'Open Government Licen',
         'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
@@ -1031,44 +1082,45 @@ def isopen(pkg):
             return True
     return False
 
+
+link_regex = None
+
+def linkify(string):
+    global link_regex
+    if link_regex is None:
+        link_regex = re.compile(r'(^|\s|\()(https?://[^\s"]+?)([\.;]?($|\s|\)))')
+    return Markup(link_regex.sub(r'\1<a href="\2" target="_blank">\2</a>\3', string))
+
+
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen, isogl), ... ]
+    licenses = []  # [(title, url, isopen, isogl), ... ]
+    licence = pkg.extras.get('licence') or ''
 
-    # Normal datasets (created in the form) store the licence in the
-    # pkg.license value as a License.id value.
-    if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id:
-        # However if the user selects 'free text' in the form, that is stored in
-        # the same pkg.license field.
-        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
+    if pkg.license_id and not licence:
+        # just license_id
+        if pkg.license:
+            licenses.append((pkg.license.title.split('::')[-1],
+                             pkg.license.url,
+                             pkg.license.isopen(),
+                             pkg.license.id == 'uk-ogl'))
+        else:
+            # i.e. license_id is unknown - probably harvested from another ckan
+            licenses.append((pkg.license_id, None, None, None))
 
-    # UKLP might have multiple licenses and don't adhere to the License
-    # values, so are in the 'licence' extra.
-    license_extra_list = json_list(pkg.extras.get('licence') or '')
-    for license_extra in license_extra_list:
-        license_extra_url = None
-        if license_extra.startswith('http'):
-            license_extra_url = license_extra
-        # british-waterways-inspire-compliant-service-metadata specifies OGL as
-        # only one of many licenses. Set is_ogl bar a little higher - licence
-        # text must start off saying it is OGL.
-        is_ogl = license_extra.startswith('Open Government Licen')
-        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
+    elif not licence:
+        # no licence at all
+        pass
+    else:
+        # licence and possibly license_id too
+        if pkg.license_id == 'uk-ogl':
+            # OGL icon & link
+            licenses.append((None, None, None, True))
+        # Licence text
+        licenses.append((licence, None, None, False))
 
-    # UKLP might also have a URL to go with its licence
-    license_url = pkg.extras.get('licence_url')
-    if license_url:
-        license_url_is_ogl = \
-            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
-            '//reference.data.gov.uk/id/open-government-licence' in license_url
-        already_said_we_are_ogl = any([license[3] for license in licenses])
-        if not (license_url_is_ogl and already_said_we_are_ogl):
-            license_url_title = pkg.extras.get('licence_url_title') or license_url
-            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
+
 
 def get_dataset_openness(pkg):
     licenses = get_licenses(pkg) # [(title,url,isopen)...]
@@ -1181,6 +1233,7 @@ def prep_user_detail():
         c.user_dict['fullname']     = None
         c.user_dict['email']        = None
         c.user_dict['openid']       = None
+    return ""
 
 def user_get_groups(uid):
     from ckan import model
@@ -1393,11 +1446,14 @@ def are_legacy_extras(data):
 
 def timeseries_resources():
     from ckan.lib.field_types import DateType
-    unsorted = c.pkg_dict.get('timeseries_resources', [])
+    unsorted = [res for res in c.pkg_dict.get('resources', [])
+                if _is_timeseries_resource(res)]
     get_iso_date = lambda resource: DateType.form_to_db(resource.get('date'),may_except=False)
     return sorted(unsorted, key=get_iso_date)
 
 def additional_resources():
+    return [res for res in c.pkg_dict.get('resources', [])
+            if _is_additional_resource(res)]
     return c.pkg_dict.get('additional_resources', [])
 
 def gemini_resources():
@@ -1408,19 +1464,22 @@ def gemini_resources():
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
          'type': 'XML',
+         'format': 'XML',
          'action': 'View',
          'id': '',
-         'gemini':True},
+         'gemini': True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
+         'format': 'HTML',
          'action': 'View',
          'id': '',
-         'gemini':True}]
+         'gemini': True}]
     return gemini_resources
 
 def individual_resources():
-    r = c.pkg_dict.get('individual_resources', [])
+    r = [res for res in c.pkg_dict.get('resources', [])
+         if _is_individual_resource(res)]
     # In case the schema changes, the resources may or may not be split up into
     # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
@@ -1475,6 +1534,12 @@ def init_resources_for_nav():
             c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
                 additional_resources() + gemini_resources()
 
+
+def is_dataset_organogram(pkg_extras):
+    extras = dict(pkg_extras)
+    return extras.get('import_source') == 'organograms_v2'
+
+
 def was_dataset_harvested(pkg_extras):
     extras = dict(pkg_extras)
     # NB hopefully all harvested resources will soon use import_source=harvest
@@ -1498,14 +1563,6 @@ def is_location_data(pkg_dict):
 def dataset_is_from_ns_pubhub(pkg_dict):
     if get_pkg_dict_extra(pkg_dict, 'external_reference') == 'ONSHUB':
         return True
-
-def is_local_government_data(pkg_dict):
-    if pkg_dict['organization']:
-        from ckan import model
-        org = model.Group.get(pkg_dict['organization']['id'])
-        if org:
-            if org.extras.get('category') == 'local-council':
-                return True
 
 # end of 'Type'/'Source' of dataset functions
 
@@ -1675,6 +1732,10 @@ def search_facet_text(key,value):
         if value=='true':
             return 'Show NII datasets'
         return 'Hide NII datasets'
+    if key=='api':
+        if value=='true':
+            return 'Show datasets with APIs'
+        return 'Hide datasets with APIs'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'
@@ -2050,11 +2111,15 @@ def parse_date(date_string):
             pass
         return FakeDate(year='')
 
-def user_page_url():
+def user_page_url(register=False):
     from ckan.lib.base import h
-    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
-                  else h.url_for(controller='user', action='me')
-    if not c.user:
+    if 'dgu_drupal_auth' in config['ckan.plugins']:
+        url = '/user' if register is False else '/user/register'
+    else:
+        url = h.url_for(controller='user', action='me') \
+            if register is False else \
+            h.url_for(controller='user', action='register')
+    if not c.user and request.path != '/':
         url += '?destination=%s' % request.path[1:]
     return url
 
@@ -2251,3 +2316,98 @@ def ensure_ids_are_in_a_list_of_dicts(l):
 
 def get_sla():
     return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
+
+def get_issue_count(pkg_id):
+    if not is_plugin_enabled('issues'):
+        return 0
+    return 10
+
+
+def get_license_from_id(license_id):
+    '''If the license_id is known, returns the License object. If unknown it
+    returns None.'''
+    from ckan import model
+    license_register = model.Package.get_license_register()
+    try:
+        return license_register[license_id]
+    except KeyError:
+        return None
+
+
+def get_licence_fields_from_free_text(licence_str):
+    '''Using a free text licence (e.g. harvested), this func returns license_id
+    and licence extra ready to be saved to the dataset dict. It returns a blank
+    licence if it is wholely expressed by the license_id.
+
+    return (license_id, licence)
+    '''
+    license_id, is_wholely_identified = \
+        detect_license_id(licence_str)
+    if license_id and is_wholely_identified:
+        licence = None
+    else:
+        licence = licence_str
+    return (license_id, licence)
+
+
+licence_regexes = None
+
+
+def detect_license_id(licence_str):
+    '''Given licence free text, detects if it mentions a known licence.
+
+    :returns (license_id, is_wholely_identified)
+    '''
+    license_id = ''
+
+    global licence_regexes
+    if licence_regexes is None:
+        licence_regexes = {}
+        licence_regexes['ogl'] = [
+            re.compile('open government licen[sc]e', re.IGNORECASE),
+            re.compile(r'\b\(ogl\)\b', re.IGNORECASE),
+            re.compile(r'\bogl\b', re.IGNORECASE),
+            re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]*'),
+            re.compile(r'<?http\:\/\/www.ordnancesurvey\.co\.uk\/oswebsite\/docs\/licences\/os-opendata-licence.pdf'),  # because it redirects to OGL now
+            ]
+        licence_regexes['ogl-detritus'] = re.compile(
+            r'(%s)' % '|'.join((
+                'OGL Terms and Conditions apply',
+                r'\bUK\b',
+                'v3\.0',
+                'v3',
+                'version 3',
+                'for public sector information',
+                'Link to the',
+                'Ordnance Survey Open Data Licence',
+                'Licence',
+                'None',
+                'OGLs and agreements explained',
+                'In accessing or using this data, you are deemed to have accepted the terms of the',
+                'attribution required',
+                'Use of data subject to the Terms and Conditions of the OGL',
+                'data is free to use for provided the source is acknowledged as specified in said document',
+                'Released under the OGL',
+                'citation of publisher and online resource required on reuse',
+                'conditions',
+                'Public data \(Crown Copyright\)',
+                '[;\.\-:\(\),]*',
+                )), re.IGNORECASE
+            )
+        licence_regexes['spaces'] = re.compile(r'\s+')
+    is_ogl = False
+    for ogl_regex in licence_regexes['ogl']:
+        licence_str, replacements = ogl_regex.subn('OGL', licence_str)
+        if replacements:
+            is_ogl = True
+    if is_ogl:
+        license_id = 'uk-ogl'
+        # get rid of phrases that just repeat existing OGL meaning
+        licence_str = licence_regexes['ogl-detritus'].sub('', licence_str)
+        licence_str = licence_str.replace('OGL', '')
+        licence_str = licence_regexes['spaces'].sub(' ', licence_str)
+        is_wholely_identified = bool(len(licence_str) < 2)
+    else:
+        is_wholely_identified = None
+
+    return license_id, is_wholely_identified

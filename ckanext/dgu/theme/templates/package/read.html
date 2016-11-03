@@ -2,6 +2,7 @@
 
 {% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
 {% import "_dgu_jinja_util.html" as m with context %}
+{% import "issues/common.html" as common with context %}
 
 {#
    c.pkg_dict - the result of package_show
@@ -11,6 +12,7 @@
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
     <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
+
     <script type="text/javascript">
       window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
     </script>
@@ -48,7 +50,6 @@
 
     {% set is_location_data          = h.is_location_data(c.pkg_dict) %}
     {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
-    {% set is_local_government_data  = h.is_local_government_data(c.pkg_dict) %}
 
     <!-- Warn if reading old revision -->
     {% if c.pkg_revision_id %}
@@ -105,13 +106,69 @@
       </div>
     </div>
 
-
     <div id="dataset">
       <!--! id=dataset for ckanext-spatial -->
     </div>
 
+
     {% set publisher_name = c.pkg.get_organization().name %}
+    {% set issue_count = h.get_issue_count(c.pkg.id) %}
+{# Disabled
     {% if not h.is_unpublished_item(c.pkg_dict) %}
+      <h2>Data Package</h2>
+      {% if h.packagezip_has_data(c.pkg) == None %}
+        <p style="margin-bottom: 20px;">
+            The Data Package Zip has not been generated for this dataset yet
+            <a class="js-tooltip" data-toggle="tooltip" data-html='true' data-placement="right" title="This is probably because the dataset is new. Please check again later." href="javascript:0" style="text-decoration:none;color:#000;">
+              <i class="icon-info-sign"></i>
+            </a>
+        </p>
+      {% elif not h.packagezip_has_data(c.pkg) %}
+        <p style="margin-bottom: 20px;">
+            The <a href="{{h.packagezip_url(c.pkg)}}" onclick="{{ m.download_tracker_packagezip(c.pkg, c.pkg_dict, publisher_name) }}">Data Package Zip</a> is not recommended for this dataset
+            <a class="js-tooltip" data-toggle="tooltip" data-html='true' data-placement="right" title="The zip file may not contain data. This occurs if the source data is not available, there are problems encountered during archival, or the data is only accessible via an API." href="javascript:0" style="text-decoration:none;color:#000;">
+              <i class="icon-info-sign"></i>
+            </a>
+        </p>
+      {% else %}
+          <p>Download a copy of all of the cached resources for this dataset</p>
+          <div class="datapackage-zip">
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="dataset-resource">
+                  <div class="dataset-resource-format">
+                    <i class="icon-25x icon-archive"></i>
+                    <span class="format-name">ZIP</span>
+                  </div>
+                  <div class="dataset-resource-text">
+                    <div class="inner">
+                      <div class="inner-row description">
+                        <div class="inner-cell">
+                          All data
+                        </div>
+                      </div>
+                      <div class="inner-row actions">
+                        <div class="inner-cell">
+                          <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;" onclick="{{ m.download_tracker_packagezip(c.pkg, c.pkg_dict, publisher_name) }}">
+                            <strong>
+                              Download ZIP
+                            </strong>
+                            {% if h.packagezip_size(c.pkg)  %}
+                              ({{h.packagezip_size(c.pkg)|filesizeformat}})
+                            {% endif %}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div><!-- /dataset-resource -->
+              </div><!-- /col-sm-6 -->
+            </div>
+          </div>
+      {% endif %}
+    {% endif %}
+#}
+
       <div class="dataset-resources">
         <!-- Resources -->
         {% if h.individual_resources() %}
@@ -130,7 +187,7 @@
   	      {% endfor %}
         {% endif %}
       </div>
-    {% endif %}
+
     {% if not h.is_unpublished_item(c.pkg_dict) %}
     <div class="dataset-resources-additional">
       {% if h.additional_resources() or h.gemini_resources() %}
@@ -150,7 +207,7 @@
       <h2>Additional Information</h2>
       <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
         <tbody>
-          {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
+          {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub) %}
           <tr>
             {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #}
             <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
@@ -193,56 +250,142 @@
     </ul>
     {% endif %}
 
-    <div id="comments-container">
+    {% if h.issues_enabled(c.pkg_dict) %}
+    <br/>
+      {% if c.user %}
+      <a href="{{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            New Issue &raquo;
+      </a>
+      {% else %}
+      <a href="/user/login?destination={{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            Login to create an issue &raquo;
+      </a>
+
+      {% endif %}
+    </a>
+      <section class="module issues-home">
+      <h2>Issues</h2>
+      {% set issues = h.issues_list(c.pkg_dict.id, status='open') %}
+      {% if issues['count'] %}
+        <p>{{ ungettext('{number} open issue', '{number} open issues', issues['count']).format(number=issues['count']) }}:</p>
+        <div class="clearfix"></div>
+        <ul id="issue-list" class="issue-list-group list-group">
+          {% for issue in issues['results'] %}
+              {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 open issues</p>
+      {% endif %}
+      {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
+      {% if closed_issues['count'] %}
+        <p>
+          {{ ungettext('{number} closed issue', '{number} closed issues', closed_issues['count']).format(number=closed_issues['count']) }}
+          &nbsp;
+           <span class="show-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >View</span> <i class="icon-chevron-right"></i></span>
+          <span class="hide-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >Hide</span> <i class="icon-chevron-down"></i></span>
+        </p>
+        <ul id="issue-list-closed" class="issue-list-group list-group">
+          {% for issue in closed_issues['results'] %}
+            {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 closed issues</p>
+      {% endif %}
+      </section>
+    {% endif %}
+    <br/>
+
+ <div id="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
       <div style="height: 50px;" class="comments-spinner"></div>
-    </div>
+  </div>
+
 {% endmacro %}
 
 
 {% macro resource_table(resources, publisher_name) %}
+  {% set non_download_formats = ('HTML', 'API', 'WMS', 'WCS', 'SPARQL') %}
   <div class="row">
     {% for res in resources %}
     <div class="col-sm-6">
     <div class="dataset-resource">
       <div class="dataset-resource-format">
-        <i class="icon-3x icon-file-text"></i>
+        <i class="icon-25x icon-file-text"></i>
         <span class="format-name">
           {% if res.get('gemini',False) %}
             {{res.get('type','')}}
           {% else %}
-            {{res.get('format','')}}
+            {{res.get('format','').upper()}}
           {% endif %}
         </span>
       </div>
       <div class="dataset-resource-text">
         <div class="inner">
-          <div class="inner2">
-            {% if h.is_resource_broken(res['id']) %}
-              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}#qualitycheck" style="text-decoration:none;color:#D43F3A;">
-                <i class="icon-exclamation-sign"></i>
+          <div class="inner-row description">
+            <span class="inner-cell">
+              {% if res.get('scraped') or res.get('scraper_url') %}
+                {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
+              {% endif %}
+              {{res.get('date','')}}
+              {{h.resource_display_name(res)}}
+            </span>
+          </div>
+          <div class="inner-row actions">
+           <div class="inner-cell">
+            {% with %}
+            {% set is_location_data = h.is_location_data(c.pkg_dict) %}
+            {% set gemini = res.get('gemini',False) %} {# i.e. the gemini metadata links, shown as resources #}
+            {% set is_download = not is_location_data and res.get('resource_type') != 'api' and (res.format or '').upper() not in non_download_formats and res.get('archiver', {}).get('format') not in non_download_formats %}
+            {% set is_html = not is_download and (res.format == 'HTML' or res.get('archiver', {}).get('format') == 'HTML') %}
+            <span>
+              {# exclamation mark #}
+              {% if h.is_resource_broken(res) %}
+                <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}#qualitycheck" style="text-decoration:none;color:#D43F3A;">
+                  <i class="icon-exclamation-sign"></i>
+                </a>
+              {% endif %}
+              {% if not gemini %}
+                <a href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}" style="padding-right: 15px">
+                  <strong>
+                    Details
+                  </strong>
+                </a>
+              {% endif %}
+            </span>
+            <span>
+              <a href="{{res.get('url', '')}}" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
+                <strong>
+                  {% if is_download and not gemini %}
+                    Download
+                  {% else %}
+                    Link
+                    {% if not is_html and res.format %} to {% endif %}
+                  {% endif %}
+                  {% if not is_html and res.format %}
+                    {{ res.format }}
+                  {% endif %}
+                </strong>
+                {% if is_download and res.get('archiver') and res['archiver'].get('size') %}
+                  ({{ res['archiver']['size']|filesizeformat }})
+                {% endif %}
               </a>
-            {% endif %}
-
-            {% if res.get('scraped') or res.get('scraper_url') %}
-              {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
-            {% endif %}
-            {{res.get('date','')}}
-            {{h.resource_display_name(res)}}
+            </span>
+            {% endwith %}
+           </div>
           </div>
         </div>
       </div>
-      <div class="dropdown" style="pointer-events:none;">
-        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
-          <i class="icon-chevron-down"></i>
-        </a>
+      <div class="download-box" style="display: none">
         {% with %}
           {% set gemini      = res.get('gemini',False) %}
           {% set is_download = not is_location_data and res.get('resource_type') == 'file' %}
-        <ul class="dropdown-menu" role="menu" style="pointer-events:auto;">
+          {# Details #}
+{#
           {% if gemini %}
             <li>
-              <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+              <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
                 <i class="icon-search"></i>&nbsp; {{res['action']}}
               </a>
             </li>
@@ -253,41 +396,16 @@
               </a>
             </li>
           {% endif %}
-
-          {% if not gemini%}
-            <li>
-              <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
-                <i class="icon-download-alt"></i>&nbsp;
-                {% if is_download %}
-                  Download
-                {% else %}
-                  Direct Link
-                {% endif %}
-              </a>
-            </li>
-          {% endif %}
-          {% with %}
-            {% set cache_url, cache_timestamp = h.get_cache(res) %}
-            {% if not gemini and cache_url %}
-            <li>
-              <a href="{{cache_url}}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on {{cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown date'}}" onclick="{{h.ga_download_tracking(res, publisher_name, 'download-cache')}}">
-                <i class="icon-save"></i>&nbsp;
-                Cached
-              </a>
-            </li>
-            {% endif %}
-          {% endwith %}
-          {% if not gemini and not h.get_cache(res)[0] %}
-            <li>
-              <a class="disabled">
-                <i class="icon-save"></i>&nbsp;
-                (no cache available)
-              </a>
-            </li>
-          {% endif %}
-        </ul><!-- /dropdown-mnu-->
+#}
+          <a class="dataset-resource-chevron js-tooltip" style="pointer-events:auto;" data-toggle="tooltip" title="{% if is_download %}Download{% else %}Direct Link{% endif %}" href="{{res.get('url', '')}}" onclick="{{ m.download_tracker(res, c.pkg_dict, publisher_name) }}">
+              {% if is_download and not gemini %}
+                <i class="icon-download-alt icon-25x"></i>&nbsp;
+              {% else %}
+                <i class="icon-link icon-25x"></i>&nbsp;
+              {% endif %}
+          </a>
         {% endwith %}
-      </div><!--/dropdown-->
+      </div><!--/download-box-->
     </div><!-- /dataset-resource -->
     </div><!-- /col-sm-6 -->
     {% endfor %}

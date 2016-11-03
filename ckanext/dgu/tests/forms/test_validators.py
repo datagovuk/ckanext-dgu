@@ -93,7 +93,7 @@ class TestMergeResources(object):
         ignored = {}
         merge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
-        
+
         assert_equal(data, result_data)
 
     def test_merging_only_occurs_after_other_validation(self):
@@ -176,7 +176,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_just_timeseries_resources(self):
@@ -216,7 +216,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_just_individual_resources(self):
@@ -254,7 +254,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_mixture_of_resource_types(self):
@@ -288,7 +288,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_error_keys_are_unmerged(self):
@@ -351,7 +351,7 @@ class TestResourceTypeValidators(object):
 
         # allows 'documentation'
         assert_equal (f('documentation'), 'documentation')
-        
+
         # disallows 'docs'
         assert_raises(Invalid, f, 'docs')
 
@@ -373,7 +373,7 @@ class TestResourceTypeValidators(object):
         # allows 'file' and 'api;
         assert_equal (f('api'), 'api')
         assert_equal (f('file'), 'file')
-        
+
         # disallows 'docs'
         assert_raises(Invalid, f, 'docs')
 
@@ -434,58 +434,69 @@ class TestRemoveBlankResources:
 
         assert_equal(result_data, expected_data)
         assert_equal(errors, expected_errors)
-    
+
+
 class TestValidateLicense:
-    def check(self, license_id, access_constraints, expected_data, expected_errors):
+    def check(self, license_id, licence, in_form,
+              expected_data, expected_errors):
         errors = {}
-        data = {('license_id',):license_id,
-                ('access_constraints',):access_constraints}
-        errors = {('license_id',):None,
-                ('access_constraints',):None}
+        # The form submits a different key for the licence extra to that which
+        # you'd supply when using the API (e.g. doing package_update during
+        # harvesting). This is because the validation wants to know whether you
+        # are using the form or not since it uses slightly different validation.
+        licence_key = 'licence_in_form' if in_form else 'licence'
+        data = {('license_id',): license_id,
+                (licence_key,): licence}
+        errors = {('license_id',): None}
         validate_license(key=None, data=data, errors=errors, context=None)
         assert_equal(data, expected_data)
         assert_equal(errors, expected_errors)
 
-# DR: These are the rules from the validate_license docstring.
-#     * The first case is clear and that is what is tested mainly.
-    '''
-    Validation rules must be true to validate:
-
-     license_id == ''                             => access_constraints != ''
-     license_id != '__extra__' ^ license_id != '' => access_constraints == ''
-
-    Additional transformations occur:
-
-     license_id == '__extra__' => licence_id := None
-     access_constraints != ''    => license_id := access_constraints
-     access_constraints is DROPPED
-    '''
-#     * license_id == '__extra__' occurs when editing a record that was
-#     harvested and the license text is in package.extra['licence']
-#     * I don't know why free text gets put in the license_id field - seems
-#     wrong, so I will change this as part of #308.
     def test_form_dropdown(self):
-        self.check('uk-ogl', '',
+        self.check('uk-ogl', '', True,
                    {('license_id',): 'uk-ogl'},
-                   {('license_id',): None})
+                   {('license_id',): None, })
 
     def test_form_free_text(self):
-        self.check('', 'Free form',
-                   {('license_id',): 'Free form'},
+        self.check('__other__', 'Free form', True,
+                   {('license_id',): '',
+                    ('extras', 99, 'key'): 'licence',
+                    ('extras', 99, 'value'): 'Free form'},
                    {('license_id',): None})
 
-    def test_blank(self):
-        self.check('', '',
-                   {('license_id',): ''},
-                   {('license_id',): ['Please enter the access constraints.']})
+    def test_form_ogl_detected_as_part(self):
+        self.check('__other__', 'OGL and other terms', True,
+                   {('license_id',): 'uk-ogl',
+                    ('extras', 99, 'key'): 'licence',
+                    ('extras', 99, 'value'): 'OGL and other terms'},
+                   {('license_id',): None})
 
-    def test_harvested_license(self):
-        # A harvested dataset has license as free form text and it lives
-        # in package.extra['licence'], which
-        # is not displayed in the license part of the form (only under
-        # extras) and is not validated by validate_license.
-        self.check('__extra__', '',
-                   {('license_id',): None, ('access_constraints',): ''},
-                   {('license_id',): None, ('access_constraints',): None})
-        # I don't know why access_constraints pops up in these results - does
-        # that delete the extra?!
+    def test_form_ogl_detected_as_part_in_uklp_list(self):
+        self.check('__other__', 'OGL; Other terms', True,
+                   {('license_id',): 'uk-ogl',
+                    ('extras', 99, 'key'): 'licence',
+                    ('extras', 99, 'value'): 'OGL; Other terms'},
+                   {('license_id',): None})
+
+    def test_form_ogl_detected_in_whole(self):
+        self.check('__other__', 'OGL', True,
+                {('license_id',): 'uk-ogl'},
+                   {('license_id',): None, })
+
+    def test_form_blank(self):
+        self.check('', '', True,
+                   {('license_id',): ''},
+                   {('license_id',): ['Please provide a licence.']})
+
+    def test_api_license_id(self):
+        self.check('uk-ogl', '', False,
+                   {('license_id',): 'uk-ogl'},
+                   {('license_id',): None, })
+
+    def test_api_free_text(self):
+        # With the API, if you specify a licence then license_id gets ignored
+        self.check('ignored', 'Free form', False,
+                   {('license_id',): '',
+                    ('extras', 99, 'key'): 'licence',
+                    ('extras', 99, 'value'): 'Free form'},
+                   {('license_id',): None})

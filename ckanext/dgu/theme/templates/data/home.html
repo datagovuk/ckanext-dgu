@@ -1,0 +1,83 @@
+{% extends "page.html" %}
+
+{% set body_id="home-page" %}
+
+{% import "_dgu_jinja_util.html" as m with context %}
+
+{% block title %}data.gov.uk{% endblock %}
+
+{#  No breadcrumbs #}
+{% block breadcrumb %}
+{% endblock %}
+
+
+{% block primary_content_inner %}
+
+  <div class="home">
+
+    {# <h3>Search {{ "{:,}".format(num_datasets) }} Datasets</h3> #}
+
+    <h1 class="hidden-apart-from-screen-reader">Search government data</h1>
+
+    <div class="row"/>
+      <div class="prime-left">
+
+        {# Search box with number of datasets #}
+        {% if request.params.get('v') == '3' %}
+          {{ m.search_form(mini=false, placeholder='Search for data') }}
+        {% endif %}
+
+        {% if request.params.get('v', '1') in ('1', '2') %}
+        <form class="site-search" action="/data/search" method="get" role="search">
+          <div class="header-search-content">
+            <label for="search-main">Search for data</label>
+            <input type="search" name="q" id="search-main" class="js-search-focus" title="Search">
+            <input class="submit btn-primary" type="submit" value="Search">
+          </div>
+        </form>
+        {% endif %}
+
+        <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
+
+      </div>
+
+      {% if request.params.get('v') == '2' %}
+      <div class="prime-right">
+        <div class="stats">
+          <a href="/data/search">
+            <span class="count">{{ "{:,}".format(num_datasets) }}</span>
+            <strong>datasets</strong>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <h1>Browse data by theme</h1>
+
+    {% macro theme_items(themes) %}
+      {% for theme, theme_name, theme_description in themes[:] %}
+        <li class="theme">
+          <h4><a href="/data/search?theme-primary={{ theme_name|urlencode }}">{{ theme }}</a></h4>
+          <p>{{ theme_description }}</p>
+        </li>
+      {% endfor %}
+    {% endmacro %}
+    <div class="row"/>
+      <ul class="theme-list">
+          {{ theme_items(themes[:4]) }}
+      </ul>
+      <ul class="theme-list">
+          {{ theme_items(themes[4:8]) }}
+      </ul>
+      <ul class="theme-list">
+          {{ theme_items(themes[8:]) }}
+      </ul>
+    </div>
+
+    {# ensures a margin before the footer #}
+    <div class="clearfix"></div>
+
+  </div>
+
+{% endblock %}

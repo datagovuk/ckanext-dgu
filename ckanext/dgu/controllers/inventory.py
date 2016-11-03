@@ -229,9 +229,13 @@ class InventoryController(BaseController):
         file_root = config.get('inventory.temporary.storage', '/tmp')
         filename = os.path.join(file_root, make_uuid()) + "-{0}".format(incoming)
 
+        # Ensure the directory for  exists, the uploaded filename may contain a path
+        directory =  os.path.dirname(filename)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
         with inventory_lib.UploadFileHelper(incoming, request.POST['upload'].file) as f:
             open(filename, 'wb').write(f.read())
-
 
         job_id, timestamp = inventory_lib.enqueue_document(c.userobj, filename, c.group)
         jobdict = json.loads(c.group.extras.get('inventory.jobs', '{}'))

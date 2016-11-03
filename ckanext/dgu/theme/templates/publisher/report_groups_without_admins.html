@@ -1,31 +1,29 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Publisher report</py:def>
-  <py:def function="page_heading">Publisher report</py:def>
+{% block title %}New - Publisher Report - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
+  <h1>Publisher report</h1>
+
+
+{% block breadcrumb_content %}
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
     <li><a href="/publisher/report_groups_without_admins">Publishers without admins</a></li>
-  </py:match>
+{% endblock %}
 
-
-  <div py:match="content">
-      <h3>Publishers without admins (${ c.non_admin_count})</h3>
-      <table id="admins" py:if="c.non_admin_count > 0" class="table table-bordered">
+{% block primary_content_inner %}
+  <div>
+      <h3>Publishers without admins ({{ c.non_admin_count}})</h3>
+      {% if c.non_admin_count > 0 %}
+    <table id="admins"  class="table table-bordered">
         <tr>
           <th>Publisher</th>
         </tr>
-        <py:for each="publisher in c.non_admin">
+        {% for publisher in c.non_admin %}
           <tr>
-            <td><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=publisher.name)}">${publisher.title}</a></td>
+            <td><a href="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=publisher.name)}}">{{publisher.title}}</a></td>
           </tr>
-        </py:for>
+        {% endfor %}
       </table>
+      {% endif %}
   </div>
-
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}

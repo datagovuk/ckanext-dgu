@@ -90,7 +90,7 @@
 {% macro breadcrumbs(kvlist) %}
   <div class="col-md-12">
     <ul id="breadcrumbs">
-      <li><a href="/"><i class="icon-home"></i></a></li>
+      <li><a href="/">Home</a></li>
       {% for k,v in kvlist %}
         <li class="spacer">&nbsp;/&nbsp;</li>
         <li><a href="{{v}}">{{k}}</a></li>
@@ -113,10 +113,42 @@
             <input class="form-control" type="text" name="q" value="{{c.q}}" results="0" placeholder="{{placeholder}}" />
             <span class="input-group-btn">
               <button type="submit" class="btn btn-default">
-                <i class="icon-search"></i>
+                {% if mini %}
+                  <img src="/images/icon_search_333_28.png" class="icon-img" style="height: 14px;"/>
+                {% else %}
+                  <img src="/images/icon_search_333_50.png" class="icon-img" style="height: 25px;"/>
+                {% endif %}
               </button>
             </span>
           </div>
+
+          <div>
+      {% if mini %}
+      <span class="dropdown">
+          <a href="#" class="dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Advanced Search" style="color: #666; font-size: 12px; text-decoration: underline; text-align:center; display: block;">
+            Search Tips
+          </a>
+
+          <div class="panel panel-default dropdown-menu" style="width: 500px; margin-left: -1px;">
+            <div class="panel-heading" style="margin-top: -10px;"><strong>Search Tips</strong></div>
+            <div class="panel-body">
+
+                <ul>
+                  <li><span class='search-terms'>"armed forces" expenses</span> - search for exact phrases by putting quote marks around them</li>
+                  <li><span class='search-terms'>primary school -care</span> - exclude words or quoted phrases by using a minus sign or NOT</li>
+                  <li><span class='search-terms'>primary OR secondary school</span> - use 'OR' to allow alternatives (the default is to 'AND' all of the terms)</li>
+                  <li><span class='search-terms'>publisher:cabinet-office res_format:CSV</span> - search only in a particular field. </li>
+                </ul>
+
+                <p>For more tips on searching see the <a href="http://guidance.data.gov.uk/finding_data.html#keyword-search-tips" target="_blank">Finding Data guidance</a></p>
+
+            </div>
+          </div>
+        </span>
+        {% endif %}
+        </div>
+
+          </center>
           {% if c.fields %}
             {% for k,v in c.fields %}
               <input type="hidden" name="{{k}}" value="{{v}}"/>
@@ -142,9 +174,9 @@
         <div class="right-inner auto-height">
         <div class="chevron"></div>
         {% if not c.query_error %}
-          {% set count = c.page.item_count if c.page != '' else (c.package_count or 0) %}
-          <div class="result-count">{{count}}</div>
-          <div class="result-count-footer">Dataset{{if_(count!=1,'s')}}</div>
+          {% set count = c.page.item_count if c.page != '' else (num_datasets or c.package_count or 0) %}
+          <div class="result-count">{{ "{:,}".format(count) }}</div>
+          <div class="result-count-footer">dataset{{if_(count!=1,'s')}}</div>
         {% else %}
           <div class="result-count-footer">Search Error</div>
         {% endif %}
@@ -302,9 +334,16 @@
                 )}}
       <div class="facet-divider"></div>
       {{facet_box(
-                'NII datasets',
-                h.search_facets_unselected(['core_dataset']),
-                h.search_facets_selected(['core_dataset']),
+                'Collection',
+                h.search_facets_unselected(['collection']),
+                h.search_facets_selected(['collection']),
+                'No further filters to apply.'
+                )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'API',
+                h.search_facets_unselected(['api']),
+                h.search_facets_selected(['api']),
                 'No further filters to apply.'
                 )}}
       <div class="facet-divider"></div>
@@ -458,4 +497,22 @@
   {% if errors.get('themes-secondary', '') %}
     <p class="field_error">{{errors.get('themes-secondary', '')}}</p>
   {% endif %}
+{% endmacro %}
+
+{% macro download_tracker(resource, pkg_dict, publisher_name, action='download') %}
+  {# javascript for sending a GA event when user clicks a data action (download usually) #}
+  {% set resource_dimensions, action, resource_url = h.ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download') %}
+  var that=this;
+  ga('send','event','resource','{{ action }}','{{ resource_url }}');
+  {% for key, value in resource_dimensions.iteritems() -%}
+    ga('set', '{{ key }}', '{{ value }}');
+  {%- endfor %}
+  {# The call here is wrapped in a timeout to give the push call time to complete as some browsers will complete the new http call without allowing ga() time to complete.  This *could* be resolved by setting a target of _blank but this forces the download (many of them remote urls) into a new tab/window. #}
+  setTimeout(function(){location.href=that.href;},200);
+  return false;
+{% endmacro %}
+
+{% macro download_tracker_packagezip(pkg, pkg_dict, publisher_name) %}
+  {% set resource = h.ga_package_zip_resource(pkg, pkg_dict) %}
+  {{ download_tracker(resource, pkg_dict, publisher_name) }}
 {% endmacro %}

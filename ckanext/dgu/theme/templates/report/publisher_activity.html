@@ -1,5 +1,43 @@
+{% if options['organization'] == None %}
 
-{% for quarter in data['quarters'] %}
+  <ul>
+    <li>Period: Current and previous quarter
+     ({{h.render_datetime(data['period'][0])}} -
+      {{h.render_datetime(data['period'][1])}})</li>
+    {# Don't show totals when including sub orgs because the datasets are double counted for both the org and parent department. #}
+    {% if not options.include_sub_organizations %}
+      <li>Datasets created: {{data['totals']['num created']}}</li>
+      <li>Datasets modified: {{data['totals']['num modified']}}</li>
+      <li>Datasets created or modified: {{data['totals']['total']}}</li>
+    {% endif %}
+  </ul>
+  <p>Note: some datasets will be created and modified during the period, hence why 'created or modified' is often less than the sum of the 'created' and 'modified' values.</p>
+  <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
+    <thead>
+      <tr>
+      <th style="width: 500px">Publisher</th>
+      <th style="width: 100px">Datasets created</th>
+      <th style="width: 100px">Datasets modified</th>
+      <th style="width: 100px">Created or modified</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in table %}
+      <tr>
+          <td>{{ h.link_to(row['organization title'], h.relative_url_for(organization=row['organization name'])) }}
+            {{ h.link_to('(publisher)', h.url_for(controller='organization',action='read',id=row['organization name'])) }}
+          </td>
+          <td>{{ row['num created'] }}</td>
+          <td>{{ row['num modified'] }}</td>
+          <td>{{ row['total'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+
+  {% for quarter in data['quarters'] %}
     <div style="margin-top: 10px; margin-bottom:10px;">
       <h3>
           {{quarter.capitalize()}} Quarter
@@ -44,4 +82,6 @@
       </div>
       {% endfor %}
     </div>
-{% endfor %}
+  {% endfor %}
+
+{% endif %}

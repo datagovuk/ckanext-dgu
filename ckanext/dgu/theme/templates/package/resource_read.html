@@ -60,12 +60,12 @@
       {% set publisher = h.get_organization_from_resource(c.resource) %}
     <div class="pull-right">
       {% if c.resource.get('url') %}
-      <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{c.resource.get('url')}}" onclick="{{h.ga_download_tracking(c.resource, publisher.name)}}">
+      <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{c.resource.get('url')}}" onclick="{{ m.download_tracker(c.resource, c.pkg_dict, publisher.name) }}">
         {% if c.resource.get('resource_type') == 'listing' %}
           <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'service' %}
           <i class="icon-search"></i>&nbsp; View
-        {% elif c.resource.get('resource_type') == 'api' %}
+        {% elif c.resource.get('resource_type') == 'api' or c.resource.format.upper() == 'API'%}
           <i class="icon-code"></i>&nbsp; API Endpoint
         {% else %}
             <div class="download">
@@ -78,15 +78,16 @@
         {% endif %}
       </a>
       {% endif %}
-
+{# Disabled
       {% set cache_url, cache_timestamp = h.get_cache(c.resource) %}
       {% if cache_url and not h.get_resource_wms(c.resource) %}
-       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{h.ga_download_tracking(c.resource, publisher.name, 'download-cache')}}">
-        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown'}}">
+       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{m.download_tracker(c.resource, c.pkg_dict, publisher.name, 'download-cache') }}">
+        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp if cache_timestamp else 'unknown'}}">
           <i class="icon-save"></i>&nbsp; Cached
         </div>
        </a>
        {% endif %}
+#}
       {% endwith %}
 
       {% if h.is_wms(c.resource) %}
@@ -134,11 +135,12 @@
       <tr>
         <!--! This is data, so show 5 stars of openness -->
         <td class="key">Resource Openness:</td>
-        <td class="value">{{h.render_resource_stars(c.resource['id'])}}</td>
+        <td class="value">{{h.render_resource_stars(c.resource)}}</td>
       </tr>
       {% endif %}
       <tr>
         <td class="key">Quality Check:<a name="qualitycheck"></a></td>
+        {# render_qa_info_for_resource is DGU's version of h.qa_openness_stars_resource_html #}
         <td class="value">{{h.render_qa_info_for_resource(c.resource)}}</td>
       </tr>
       {% for field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource, h.as_dict(c.pkg_extras)) %}

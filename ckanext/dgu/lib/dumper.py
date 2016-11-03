@@ -112,6 +112,7 @@ class CSVDumper(object):
             # TODO Get a better list of fields to dump than just what we see in
             # the first dataset...
             self.dataset_keys = sorted(pkg_dict.keys())
+            self.dataset_keys.remove('license')  # duplicate
             self.write_header(self.dataset_keys)
 
         url = config.get('ckan.site_url')

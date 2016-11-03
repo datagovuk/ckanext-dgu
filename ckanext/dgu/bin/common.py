@@ -3,6 +3,46 @@ import os
 class ScriptError(Exception):
     pass
 
+
+def get_ckanapi(config_ini_or_ckan_url, **kwargs):
+    '''Given a config.ini filepath or a remote CKAN URL, returns a ckanapi
+    instance that you can use to call action commands
+    '''
+    import ConfigParser
+    print 'Connecting to CKAN...'
+    import ckanapi
+    import sys
+    if config_ini_or_ckan_url.startswith('http'):
+        # looks like a hostname e.g. https://data.gov.uk
+        ckan_url = config_ini_or_ckan_url
+        # Load the apikey from a config file
+        config = ConfigParser.ConfigParser()
+        config_filepath = '~/.ckan'
+        try:
+            config.read(os.path.expanduser(config_filepath))
+            apikey = config.get(ckan_url, 'apikey')
+        except ConfigParser.Error, e:
+            print 'Error reading file with api keys configured: %s' % e
+            print 'Ensure you have a file: %s' % config_filepath
+            print 'With the api key of the ckan user "script", something like:'
+            print '  [%s]' % ckan_url
+            print '  apikey = fb3355-b55234-4549baac'
+            sys.exit(1)
+        ckan = ckanapi.RemoteCKAN(ckan_url,
+                                  apikey=apikey,
+                                  user_agent='dgu script',
+                                  **kwargs)
+    else:
+        # must be a config.ini filepath
+        load_config(config_ini_or_ckan_url)
+        register_translator()
+        # use 'script' username to identify bulk changes by script (rather than
+        # a publisher)
+        ckan = ckanapi.LocalCKAN(username='script')
+    print '...connected.'
+    return ckan
+
+
 def remove_readonly_fields(pkg):
     '''Takes a package dictionary and gets rid of any read-only fields
     so that you can write the package to the API.'''
@@ -21,6 +61,7 @@ def load_config(config_filepath):
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
+
 def register_translator():
     # Register a translator in this thread so that
     # the _() functions in logic layer can work
@@ -37,15 +78,18 @@ def register_translator():
 
 def get_resources_using_options(options, state='active'):
     '''
-    Returns resources, filtered by commandline options 'dataset' and
+    Returns resources, filtered by command-line options 'dataset' and
     'resource'.
+    TODO: add filter by organization_ref
     '''
     return get_resources(state=state, resource_id=options.resource,
                          dataset_name=options.dataset)
 
 
 def get_resources(state='active', resource_id=None, dataset_name=None):
-    ''' Returns all active resources, or filtered by the given criteria. '''
+    ''' Returns all active resources, or filtered by the given criteria.
+    TODO: add filter by organization_ref
+    '''
     from ckan import model
     resources = model.Session.query(model.Resource) \
                 .filter_by(state=state) \
@@ -66,8 +110,16 @@ def get_resources(state='active', resource_id=None, dataset_name=None):
     print '%i resources (%s)' % (len(resources), ' '.join(criteria))
     return resources
 
+def get_datasets_using_options(options, state='active'):
+    '''
+    Returns (from the local db) datasets, filtered by command-line option 'dataset'.
+    TODO: add filter by organization_ref
+    '''
+    return get_datasets(state=state, dataset_name=options.dataset)
+
 def get_datasets(state='active', dataset_name=None, organization_ref=None):
-    ''' Returns all active datasets, or filtered by the given criteria. '''
+    ''' Returns (from the local db) all active datasets, or filtered by the
+    given criteria. '''
     from ckan import model
     datasets = model.Session.query(model.Package) \
                     .filter_by(state=state)
@@ -85,6 +137,46 @@ def get_datasets(state='active', dataset_name=None, organization_ref=None):
     return datasets
 
 
+def get_datasets_via_api(ckan, options=None, q=None, fq=None,
+                         dataset_name=None, organization_ref=None):
+    ''' Returns (from a ckanapi object) all active datasets, or filtered by the
+    given criteria. 'options' is common command-line options.'''
+    q = q or '*:*'
+    fq = fq or {}
+    if options and hasattr(options, 'organization'):
+        organization_ref = options.organization
+    if options and hasattr(options, 'dataset'):
+        dataset_name = options.dataset
+    if organization_ref:
+        if is_id(organization_ref):
+            org_id = organization_ref
+        else:
+            from ckan import model
+            org = model.Group.get(organization_ref)
+            assert org
+            org_id = org.id
+        fq['owner_org'] = org_id
+    if dataset_name:
+        if isinstance(dataset_name, list):
+            # use regex to search for multiple names
+            # name:/(name1|name2)/
+            dataset_name = '/(%s)/' % '|'.join(dataset_name)
+        fq['name'] = dataset_name
+    fq_str = ' '.join('%s:%s' % (k, v) for k, v in fq.items())
+    page_size = 200
+    search_options = dict(q=q, fq=fq_str, start=0, rows=page_size)
+    print 'Package Search: ', search_options
+    while True:
+        response = ckan.action.package_search(**search_options)
+        if not response['results']:
+            break
+        print 'Package progress: %s/%s' % \
+            (search_options['start'], response['count'])
+        for result in response['results']:
+            yield result
+        search_options['start'] += page_size
+
+
 def name_stripped_of_url(url_or_name):
     '''Returns a name. If it is in a URL it strips that bit off.
 
@@ -97,3 +189,10 @@ def name_stripped_of_url(url_or_name):
     if url_or_name.startswith('http'):
         return url_or_name.split('/')[-1]
     return url_or_name
+
+
+def is_id(id_string):
+    '''Returns whether the string looks like a revision id or not'''
+    import re
+    reg_ex = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    return bool(re.match(reg_ex, id_string))

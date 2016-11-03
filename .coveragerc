@@ -1,0 +1,10 @@
+[report]
+omit =
+    */site-packages/*
+    */python?.?/*
+    ckan/*
+    ckanext/dgu/tests/*
+    ckanext/dgu/testtools/*
+    ckanext/dgu/bin/*
+include =
+    ckanext/dgu/*

@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import pylons
@@ -9,12 +8,17 @@ import datetime
 import urllib
 import shutil
 import uuid
+import time
 
 from pylons import config
+from paste.fileapp import FileApp
+
 from ckan.lib.helpers import flash_success, flash_error
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h, redirect
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
+from ckanext.dgu.lib.home import get_themes
+
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +39,29 @@ class DataController(BaseController):
                 # TODO: send an email to the admin person (#1285)
             else:
                 raise
+
+    def home(self):
+        extra_vars = {}
+
+        # Get the dataset count using search
+        # (shouldn't cache, as it makes it more likely to be out of sync with
+        # the data page)
+        from ckan.lib.search import SearchError, SearchQueryError
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'for_view': True,
+                   'auth_user_obj': c.userobj}
+        data_dict = {
+                'q': '*:*',
+                'fq': '+dataset_type:dataset',
+                #'facet.field': facets.keys(),
+                'rows': 0,
+            }
+        query = get_action('package_search')(context, data_dict)
+        extra_vars['num_datasets'] = query['count']
+
+        extra_vars['themes'] = get_themes()
+
+        return render('data/home.html', extra_vars=extra_vars)
 
     def linked_data_admin(self):
         """
@@ -172,11 +199,17 @@ class DataController(BaseController):
             '/var/lib/ckan/dgu/openspending_reports'))
 
     def openspending_report(self):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, 'User must be a sysadmin to view this page.')
+
         self._set_openspending_reports_dir()
         c.content = open (c.openspending_report_dir + "/index.html").read()
         return render('data/openspending_report.html')
 
     def openspending_publisher_report(self, id):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, 'User must be a sysadmin to view this page.')
+
         id = id.replace('.html', '')
         if id.startswith('publisher-'):
             publisher_name = id.replace('publisher-', '')
@@ -201,9 +234,6 @@ class DataController(BaseController):
 
     def viz_investment_readiness_programme(self):
         return render('viz/investment_readiness_programme.html')
-
-    def viz_front_page(self):
-        return render('viz/front_page.html')
 
     def contracts_archive(self, relative_url='/'):
         import requests
@@ -242,6 +272,7 @@ class DataController(BaseController):
         set a <base> header if not present to make sure all relative links are
         resolved correctly.
         """
+        abort(403, 'This feature is currently disabled')
         from pylons import response
         from paste.fileapp import FileApp
         from ckanext.dgu.lib.helpers import tidy_url
@@ -423,4 +454,76 @@ class DataController(BaseController):
             errors.append("No dataset was selected")
         return len(errors) == 0, errors
 
+    def _get_publisher_files_dir(self):
+        return os.path.expanduser(pylons.config.get(
+            'dgu.publisher_files_dir',
+            '/var/lib/ckan/dgu/publisher_files'))
 
+    def _get_path_relative_to_publisher_files_dir(self, rel_path):
+        publisher_files_dir = self._get_publisher_files_dir()
+        abs_path = os.path.abspath(
+            os.path.join(publisher_files_dir, rel_path.lstrip('/')))
+        # double check we've not gone out of this dir
+        assert abs_path.startswith(publisher_files_dir)
+        return abs_path
+
+    def publisher_files(self, rel_path):
+        if not has_user_got_publisher_permissions():
+            abort(401, _('You need to be logged in as an editor or admin for a'
+                         ' publisher to see these files'))
+        path = self._get_path_relative_to_publisher_files_dir(rel_path)
+        if not os.path.exists(path):
+            abort(404, 'File not found')
+        # resolve symbolic link, so it downloads with the actual filename, not
+        # the link name
+        if os.path.islink(path):
+            path = os.path.realpath(path)
+        if os.path.isdir(path):
+            root, dirs, files = os.walk(path).next()
+            rel_path_with_trailing_slash = rel_path.strip('/') + '/'
+            dirs = [
+                dict(name=dir_,
+                     rel_path=rel_path_with_trailing_slash + dir_,
+                     )
+                for dir_ in dirs]
+            if rel_path not in ('/', '', None):
+                dirs.insert(0, dict(
+                    name='..', rel_path=os.path.dirname(rel_path.rstrip('/'))))
+            file_details = [
+                dict(name=file,
+                     rel_path=rel_path_with_trailing_slash + file,
+                     size=os.path.getsize(root + '/' + file),
+                     modified=time.ctime(os.path.getmtime(root + '/' + file)),
+                     )
+                for file in files]
+            extra_vars = dict(dirs=dirs, file_details=file_details)
+            return render('data/publisher_files.html', extra_vars=extra_vars)
+        elif os.path.isfile(path):
+            return self._serve_file(path)
+        elif os.path.islink(path):
+            abort(401, 'Cannot use links')
+        else:
+            abort(401, 'Unknown path %s' % path)
+
+    def _serve_file(self, filepath):
+        user_filename = filepath.split('/')[-1].encode('ascii', 'ignore')
+        file_size = os.path.getsize(filepath)
+
+        headers = [
+            ('Content-Disposition',
+             'attachment; filename=\"%s\"' % user_filename),
+            ('Content-Type', 'text/plain'),
+            ('Content-Length', str(file_size))]
+
+        fapp = FileApp(filepath, headers=headers)
+
+        return fapp(request.environ, self.start_response)
+
+
+def has_user_got_publisher_permissions():
+    if not c.userobj:
+        return False
+    if c.userobj.sysadmin:
+        return True
+    if c.userobj.get_groups('organization'):
+        return True

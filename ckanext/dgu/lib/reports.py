@@ -3,6 +3,8 @@ import datetime
 import logging
 import os
 
+from paste.deploy.converters import asbool
+
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
@@ -185,6 +187,21 @@ def get_quarter_dates(datetime_now):
             'last': (last_q_started, last_q_ended)}
 
 
+def get_quarter_dates_merged(datetime_now):
+    '''Returns the dates for the period including this (current) quarter and
+    the last quarter. Uses calendar year, so 1 Jan to 31 Mar etc.'''
+    now = datetime_now
+    month_this_q_started = (now.month - 1) // 3 * 3 + 1
+    this_q_started = datetime.datetime(now.year, month_this_q_started, 1)
+    this_q_ended = datetime.datetime(now.year, now.month, now.day)
+    last_q_started = datetime.datetime(
+                      this_q_started.year + (this_q_started.month-3)/12,
+                      (this_q_started.month-4) % 12 + 1,
+                      1)
+    last_q_ended = this_q_started - datetime.timedelta(days=1)
+    return {'this_and_last': (last_q_started, this_q_ended)}
+
+
 def publisher_activity(organization, include_sub_organizations=False):
     """
     Contains information about the datasets a specific organization has
@@ -192,8 +209,74 @@ def publisher_activity(organization, include_sub_organizations=False):
     departments for their quarterly transparency reports.
     """
     import datetime
+
+    now = datetime.datetime.now()
+
+    if organization:
+        quarters = get_quarter_dates(now)
+
+        created, modified = _get_activity(
+            organization, include_sub_organizations, quarters)
+
+        datasets = []
+        for quarter_name in quarters:
+            datasets += sorted(created[quarter_name], key=lambda x: x[1])
+            datasets += sorted(modified[quarter_name], key=lambda x: x[1])
+        columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
+
+        quarters_iso = dict(
+            [(last_or_this, [date_.isoformat() for date_ in q_list])
+             for last_or_this, q_list in quarters.iteritems()])
+
+        return {'table': datasets, 'columns': columns,
+                'quarters': quarters_iso}
+    else:
+        # index
+        periods = get_quarter_dates_merged(now)
+
+        stats_by_org = []
+        totals = collections.defaultdict(int)
+        import ckan.model as model
+        all_orgs = model.Session.query(model.Group).\
+            filter(model.Group.type=='organization').\
+            filter(model.Group.state=='active').order_by('name').\
+            all()
+        for organization in add_progress_bar(all_orgs):
+            created, modified = _get_activity(
+                organization.name, include_sub_organizations, periods)
+            created_names = [dataset[0] for dataset in created.values()[0]]
+            modified_names = [dataset[0] for dataset in modified.values()[0]]
+            num_created = len(created_names)
+            num_modified = len(modified_names)
+            num_total = len(set(created_names) | set(modified_names))
+            stats_by_org.append(OrderedDict((
+                ('organization name', organization.name),
+                ('organization title', organization.title),
+                ('num created', num_created),
+                ('num modified', num_modified),
+                ('total', num_total),
+                )))
+            if not include_sub_organizations:
+                totals['num created'] += num_created
+                totals['num modified'] += num_modified
+                totals['total'] += num_total
+
+        period_iso = [date_.isoformat()
+                      for date_ in periods.values()[0]]
+
+        stats_by_org.sort(key=lambda x: -x['total'])
+
+        return {'table': stats_by_org,
+                'totals': totals,
+                'period': period_iso}
+
+
+def _get_activity(organization_name, include_sub_organizations, periods):
     import ckan.model as model
     from paste.deploy.converters import asbool
+
+    created = dict((period_name, []) for period_name in periods)
+    modified = dict((period_name, []) for period_name in periods)
 
     # These are the authors whose revisions we ignore, as they are trivial
     # changes. NB we do want to know about revisions by:
@@ -207,22 +290,16 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'Fix duplicate resources',
                       'fix_secondary_theme.py',
                       )
-    system_author_template = 'script-%'  # "%" is a wildcard
+    system_author_template = 'script%'  # "%" is a wildcard
 
-    created = {'this': [], 'last': []}
-    modified = {'this': [], 'last': []}
-
-    now = datetime.datetime.now()
-    quarters = get_quarter_dates(now)
-
-    if organization:
-        organization = model.Group.by_name(organization)
+    if organization_name:
+        organization = model.Group.by_name(organization_name)
         if not organization:
             raise p.toolkit.ObjectNotFound()
 
-    if not organization:
+    if not organization_name:
         pkgs = model.Session.query(model.Package)\
-                .all()
+                    .all()
     else:
         pkgs = model.Session.query(model.Package)
         pkgs = lib.filter_by_organizations(pkgs, organization,
@@ -257,26 +334,26 @@ def publisher_activity(organization, include_sub_organizations=False):
             .filter(~model.Revision.author.in_(system_authors))\
             .filter(~model.Revision.author.like(system_author_template))
 
-        for quarter_name in quarters:
-            quarter = quarters[quarter_name]
+        for period_name in periods:
+            period = periods[period_name]
             # created
-            if quarter[0] < created_.revision_timestamp < quarter[1]:
+            if period[0] < created_.revision_timestamp < period[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
-                created[quarter_name].append(
+                created[period_name].append(
                     (created_.name, created_.title, lib.dataset_notes(pkg),
-                     'created', quarter_name,
+                     'created', period_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
 
             # modified
             # exclude the creation revision
-            period_start = max(quarter[0], created_.revision_timestamp)
+            period_start = max(period[0], created_.revision_timestamp)
             prs = pr_q.filter(model.PackageRevision.revision_timestamp > period_start)\
-                        .filter(model.PackageRevision.revision_timestamp < quarter[1])
+                        .filter(model.PackageRevision.revision_timestamp < period[1])
             rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > period_start)\
-                        .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+                        .filter(model.ResourceRevision.revision_timestamp < period[1])
             pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > period_start)\
-                        .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+                        .filter(model.PackageExtraRevision.revision_timestamp < period[1])
             authors = ' '.join(set([r[1].author for r in prs] +
                                    [r[2].author for r in rrs] +
                                    [r[2].author for r in pes]))
@@ -287,25 +364,15 @@ def publisher_activity(organization, include_sub_organizations=False):
                                         for date in sorted(dates)])
             if authors:
                 published = not asbool(pkg.extras.get('unpublished'))
-                modified[quarter_name].append(
+                modified[period_name].append(
                     (pkg.name, pkg.title, lib.dataset_notes(pkg),
-                        'modified', quarter_name,
+                        'modified', period_name,
                         dates_formatted, authors, published))
+    return created, modified
 
-    datasets = []
-    for quarter_name in quarters:
-        datasets += sorted(created[quarter_name], key=lambda x: x[1])
-        datasets += sorted(modified[quarter_name], key=lambda x: x[1])
-    columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
-
-    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
-                         for last_or_this, q_list in quarters.iteritems()])
-
-    return {'table': datasets, 'columns': columns,
-            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
-    for org in lib.all_organizations(include_none=False):
+    for org in lib.all_organizations(include_none=True):
         for include_sub_organizations in (False, True):
             yield {'organization': org,
                    'include_sub_organizations': include_sub_organizations}
@@ -313,7 +380,7 @@ def publisher_activity_combinations():
 publisher_activity_report_info = {
     'name': 'publisher-activity',
     'description': 'A quarterly list of datasets created and edited by a publisher.',
-    'option_defaults': OrderedDict((('organization', 'cabinet-office'),
+    'option_defaults': OrderedDict((('organization', None),
                                     ('include_sub_organizations', False),
                                     )),
     'option_combinations': publisher_activity_combinations,
@@ -359,16 +426,21 @@ unpublished_report_info = {
 def last_resource_deleted(pkg):
 
     resource_revisions = model.Session.query(model.ResourceRevision) \
-                              .join(model.ResourceGroup) \
-                              .join(model.Package) \
-                              .filter_by(id=pkg.id) \
-                              .order_by(model.ResourceRevision.revision_timestamp) \
-                              .all()
+        .join(model.ResourceGroup) \
+        .join(model.Package) \
+        .filter_by(id=pkg.id) \
+        .order_by(model.ResourceRevision.revision_timestamp) \
+        .all()
     previous_rr = None
     # go through the RRs in reverse chronological order and when an active
     # revision is found, return the rr in the previous loop.
     for rr in resource_revisions[::-1]:
         if rr.state == 'active':
+            if not previous_rr:
+                # this happens v.v. occasionally where a resource_revision and
+                # its resource somehow manages to have a different
+                # resource_group_id
+                return None, ''
             return previous_rr.revision_timestamp, previous_rr.url
         previous_rr = rr
     return None, ''
@@ -379,23 +451,23 @@ def datasets_without_resources():
                 .filter_by(state='active')\
                 .order_by(model.Package.title)\
                 .all()
-    for pkg in pkgs:
+    for pkg in add_progress_bar(pkgs):
         if len(pkg.resources) != 0 or \
-          pkg.extras.get('unpublished', '').lower() == 'true':
+                pkg.extras.get('unpublished', '').lower() == 'true':
             continue
         org = pkg.get_organization()
         deleted, url = last_resource_deleted(pkg)
         pkg_dict = OrderedDict((
-                ('name', pkg.name),
-                ('title', pkg.title),
-                ('organization title', org.title),
-                ('organization name', org.name),
-                ('metadata created', pkg.metadata_created.isoformat()),
-                ('metadata modified', pkg.metadata_modified.isoformat()),
-                ('last resource deleted', deleted.isoformat() if deleted else None),
-                ('last resource url', url),
-                ('dataset_notes', lib.dataset_notes(pkg)),
-                ))
+            ('name', pkg.name),
+            ('title', pkg.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('metadata created', pkg.metadata_created.isoformat()),
+            ('metadata modified', pkg.metadata_modified.isoformat()),
+            ('last resource deleted', deleted.isoformat() if deleted else None),
+            ('last resource url', url),
+            ('dataset_notes', lib.dataset_notes(pkg)),
+            ))
         pkg_dicts.append(pkg_dict)
     return {'table': pkg_dicts}
 
@@ -672,3 +744,243 @@ la_schemas_info = {
     'generate': la_schemas,
     'template': 'report/la_schemas.html',
     }
+
+
+# Licence report
+
+def licence_report(organization=None, include_sub_organizations=False):
+    '''
+    Returns a dictionary detailing licences for datasets in the
+    organisation specified, and optionally sub organizations.
+    '''
+    # Get packages
+    if organization:
+        top_org = model.Group.by_name(organization)
+        if not top_org:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
+
+        if include_sub_organizations:
+            orgs = lib.go_down_tree(top_org)
+        else:
+            orgs = [top_org]
+        pkgs = set()
+        for org in orgs:
+            org_pkgs = model.Session.query(model.Package)\
+                            .filter_by(state='active')
+            org_pkgs = lib.filter_by_organizations(
+                org_pkgs, organization,
+                include_sub_organizations=False)\
+                .all()
+            pkgs |= set(org_pkgs)
+    else:
+        pkgs = model.Session.query(model.Package)\
+                    .filter_by(state='active')\
+                    .all()
+
+    # Get their licences
+    packages_by_licence = collections.defaultdict(list)
+    rows = []
+    num_pkgs = 0
+    for pkg in pkgs:
+        if asbool(pkg.extras.get('unpublished')) is True:
+            # Ignore unpublished datasets
+            continue
+        licence_tuple = (pkg.license_id or '',
+                         pkg.license.title if pkg.license else '',
+                         pkg.extras.get('licence', ''))
+        packages_by_licence[licence_tuple].append((pkg.name, pkg.title))
+        num_pkgs += 1
+
+    for licence_tuple, dataset_tuples in sorted(packages_by_licence.items(),
+                                                key=lambda x: -len(x[1])):
+        license_id, license_title, licence = licence_tuple
+        dataset_tuples.sort(key=lambda x: x[0])
+        dataset_names, dataset_titles = zip(*dataset_tuples)
+        licence_dict = OrderedDict((
+            ('license_id', license_id),
+            ('license_title', license_title),
+            ('licence', licence),
+            ('dataset_titles', '|'.join(t for t in dataset_titles)),
+            ('dataset_names', ' '.join(dataset_names)),
+            ))
+        rows.append(licence_dict)
+
+    return {
+        'num_datasets': num_pkgs,
+        'num_licences': len(rows),
+        'table': rows,
+        }
+
+
+def licence_combinations():
+    for organization in lib.all_organizations(include_none=True):
+        for include_sub_organizations in (False, True):
+                yield {'organization': organization,
+                       'include_sub_organizations': include_sub_organizations}
+
+
+licence_report_info = {
+    'name': 'licence',
+    'title': 'Licences',
+    'description': 'Licenses for datasets.',
+    'option_defaults': OrderedDict((('organization', None),
+                                    ('include_sub_organizations', False))),
+    'option_combinations': licence_combinations,
+    'generate': licence_report,
+    'template': 'report/licence_report.html',
+    }
+
+
+# Datasets only in PDF
+
+def pdf_datasets_report():
+    '''
+    Returns datasets that have data in PDF format, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if PDF
+    num_datasets_published = 0
+    num_datasets_only_pdf = 0
+    datasets_by_publisher_only_pdf = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'pdf' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('html', '', None))
+        if data_formats == set(('pdf',)):
+            num_datasets_only_pdf += 1
+            datasets_by_publisher_only_pdf[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_pdf in sorted(
+            datasets_by_publisher_only_pdf.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only pdf', len(datasets_only_pdf)),
+            ('name datasets only pdf',
+             ' '.join(d[0] for d in datasets_only_pdf)),
+            ('title datasets only pdf',
+             '|'.join(d[1] for d in datasets_only_pdf)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_pdf': num_datasets_only_pdf,
+            }
+
+
+pdf_datasets_report_info = {
+    'name': 'pdf_datasets',
+    'title': 'PDF Datasets',
+    'description': 'Datasets with data only in PDF format.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': pdf_datasets_report,
+    'template': 'report/pdf_datasets_report.html',
+    }
+
+
+# Datasets with HTML link
+
+def html_datasets_report():
+    '''
+    Returns datasets that only have an HTML link, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if HTML
+    num_datasets_published = 0
+    num_datasets_only_html = 0
+    datasets_by_publisher_only_html = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'html' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('asp', '', None))
+        if data_formats == set(('html',)):
+            num_datasets_only_html += 1
+            datasets_by_publisher_only_html[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_html in sorted(
+            datasets_by_publisher_only_html.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only html', len(datasets_only_html)),
+            ('name datasets only html',
+             ' '.join(d[0] for d in datasets_only_html)),
+            ('title datasets only html',
+             '|'.join(d[1] for d in datasets_only_html)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_html': num_datasets_only_html,
+            }
+
+
+html_datasets_report_info = {
+    'name': 'html_datasets',
+    'title': 'HTML Datasets',
+    'description': 'Datasets with data only a link to an HTML page.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': html_datasets_report,
+    'template': 'report/html_datasets_report.html',
+    }
+
+
+def add_progress_bar(iterable, caption=None):
+    try:
+        # Add a progress bar, if it is installed
+        import progressbar
+        bar = progressbar.ProgressBar(widgets=[
+            (caption + ' ') if caption else '',
+            progressbar.Percentage(), ' ',
+            progressbar.Bar(), ' ', progressbar.ETA()])
+        return bar(iterable)
+    except ImportError:
+        return iterable

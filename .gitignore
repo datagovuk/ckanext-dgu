@@ -16,6 +16,14 @@ build/*
 tmp/*
 selenium/*
 package/DEBIAN/control
-*.swp
-*.swo
+*.sw?
 node_modules/*
+
+# products of bin scripts
+.email_extract_cache.sqlite
+data.gov.uk-ckan-meta-data-*.v2.json
+datasets_all.jsonl
+datasets_organograms.json
+organogram_legacy_datasets.csv
+organogram_legacy_datasets_corrected.csv
+apikeys.cfg

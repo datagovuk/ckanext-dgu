@@ -1,5 +1,4 @@
 ﻿from logging import getLogger
-import json
 
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
@@ -15,8 +14,8 @@ from ckanext.dgu.authorize import (
 from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user, is_plugin_enabled
-from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
+from ckanext.dgu import gemini_postprocess_tasks
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
 
@@ -35,20 +34,29 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
+def delete_routes_by_path_startswtih(map, path_startswith):
+    matches_to_delete = []
+    for match in map.matchlist:
+        if match.routepath.startswith(path_startswith):
+            matches_to_delete.append(match)
+    for match in matches_to_delete:
+        map.matchlist.remove(match)
+
+def delete_routes_by_name(map, route_names):
+    if isinstance(route_names, basestring):
+        route_names = [route_names]
+    for route_name in route_names:
+        del map._routenames[route_name]
+
+
 class DguReportPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
 
     def after_map(self, map):
         # Put reports at /data/reports instead of /reports
         # Delete routes to /report otherwise url_for links end up pointed there.
-        matches_to_delete = []
-        for match in map.matchlist:
-            if match.routepath.startswith('/report'):
-                matches_to_delete.append(match)
-        for match in matches_to_delete:
-            map.matchlist.remove(match)
-        for route_name in ('reports', 'report', 'report-org'):
-            del map._routenames[route_name]
+        delete_routes_by_path_startswtih(map, '/report')
+        delete_routes_by_name(map, ('reports', 'report', 'report-org'))
 
         # Add new routes to /data/reports
         report_ctlr = 'ckanext.report.controllers:ReportController'
@@ -161,25 +169,22 @@ class ThemePlugin(p.SingletonPlugin):
         Make "/data" the homepage.
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
-        tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
-        map.redirect('/', '/data')
         map.redirect('/data', '/data/search')
         #map.connect('/data', controller=data_controller, action='index')
 
         map.connect('/linked-data-admin', controller=data_controller, action='linked_data_admin')
-        map.connect('/data/tag', controller=tag_controller, action='index')
-        map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('dgu_search', '/data/search', controller='package', action='search')
-        map.connect('api_page', '/data/api', controller=data_controller, action='api')
+        map.connect('api_page', '/data/metadata-api-docs', controller=data_controller, action='api')
         map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
         map.connect('openspending_index', '/data/openspending-report/index', controller=data_controller, action='openspending_report')
         map.connect('openspending_read', '/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
-        map.connect('/data/viz/new-front-page', controller=data_controller, action='viz_front_page')
         map.connect('/data/viz/upload', controller=data_controller, action='viz_upload')
+        map.connect('/', controller=data_controller, action='home')
+
 
         map.connect('/data/contracts-finder-archive{relative_url:.*}', controller=data_controller, action='contracts_archive')
 
@@ -210,13 +215,10 @@ class ThemePlugin(p.SingletonPlugin):
             m.connect('/data/user/reset', action='request_reset')
             #NB not /data/user/me
             m.connect('/data/user/set_lang/{lang}', action='set_lang')
-            m.connect('/data/user/{id:.*}', action='read')
+            m.connect('user_read', '/data/user/{id:.*}', action='read')
             m.connect('/data/user', action='index')
 
         map.redirect('/dashboard', '/data/user/me')
-
-        dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
-        map.connect('all_dataset_list', '/data/_all_datasets_', controller=dgu_package_controller, action='all_packages')
 
         return map
 
@@ -224,12 +226,7 @@ class ThemePlugin(p.SingletonPlugin):
         # Delete routes to /tag since we use /data/tag and /tag is confusing to
         # have kicking around still when it uses the same template with
         # different inputs.
-        matches_to_delete = []
-        for match in map.matchlist:
-            if match.routepath.startswith('/tag'):
-                matches_to_delete.append(match)
-        for match in matches_to_delete:
-            map.matchlist.remove(match)
+        delete_routes_by_path_startswtih(map, path_startswith='/tag')
         return map
 
 
@@ -318,52 +315,46 @@ class PublisherPlugin(p.SingletonPlugin):
                     pass
 
     def before_map(self, map):
-        pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
-
         map.redirect('/organization/{url:.*}', '/publisher/{url}')
-
-        map.connect('publisher_index',
-                    '/publisher',
-                    controller=pub_ctlr, action='index')
-        map.connect('publisher_edit',
-                    '/publisher/edit/:id',
-                    controller=pub_ctlr, action='edit')
-        map.connect('publisher_apply',
-                    '/publisher/apply/:id',
-                    controller=pub_ctlr, action='apply')
-        map.connect('publisher_apply_empty',
-                    '/publisher/apply',
-                    controller=pub_ctlr, action='apply')
-        map.connect('publisher_requests',
-                    '/publisher/users/requests',
-                    controller=pub_ctlr, action='publisher_requests')
-        map.connect('publisher_request',
-                    '/publisher/users/request/:token',
-                    controller=pub_ctlr, action='publisher_request')
-        map.connect('publisher_request_decision',
-                    '/publisher/users/request/:token/:decision',
-                    controller=pub_ctlr, action='publisher_request')
-        map.connect('publisher_users',
-                    '/publisher/users/:id',
-                    controller=pub_ctlr, action='users')
-        map.connect('publisher_new',
-                    '/publisher/new',
-                    controller=pub_ctlr, action='new')
-        map.connect('/publisher/report_groups_without_admins',
-                    controller=pub_ctlr, action='report_groups_without_admins')
-        map.connect('/publisher/report_publishers_and_users',
-                    controller=pub_ctlr, action='report_publishers_and_users')
-        map.connect('/publisher/report_users',
-                    controller=pub_ctlr, action='report_users')
-        map.connect('/publisher/report_users_not_assigned_to_groups',
-                    controller=pub_ctlr, action='report_users_not_assigned_to_groups')
-        map.connect('publisher_read',
-                    '/publisher/:id',
-                    controller=pub_ctlr, action='read')
+        with SubMapper(map, controller='ckanext.dgu.controllers.publisher:PublisherController') as m:
+            m.connect('publisher_index',
+                     '/publisher', action='index')
+            m.connect('publisher_edit',
+                     '/publisher/edit/:id', action='edit')
+            m.connect('publisher_apply',
+                     '/publisher/apply/:id', action='apply')
+            m.connect('publisher_apply_empty',
+                     '/publisher/apply', action='apply')
+            m.connect('publisher_requests',
+                     '/publisher/users/requests', action='publisher_requests')
+            m.connect('publisher_request',
+                     '/publisher/users/request/:token', action='publisher_request')
+            m.connect('publisher_request_decision',
+                     '/publisher/users/request/:token/:decision',
+                     action='publisher_request')
+            m.connect('publisher_users',
+                    '/publisher/users/:id', action='users')
+            m.connect('publisher_new',
+                      '/publisher/new', action='new')
+            m.connect('/publisher/report_groups_without_admins',
+                      action='report_groups_without_admins')
+            m.connect('/publisher/report_publishers_and_users',
+                      action='report_publishers_and_users')
+            m.connect('/publisher/report_users',
+                      action='report_users')
+            m.connect('/publisher/report_users_not_assigned_to_groups',
+                      action='report_users_not_assigned_to_groups')
+            m.connect('publisher_read',
+                      '/publisher/:id',
+                      action='read')
 
         return map
 
     def after_map(self, map):
+        if is_plugin_enabled('issues'):
+            delete_routes_by_name(map, 'issues_for_organization')
+            with SubMapper(map, controller='ckanext.issues.controller:IssueController') as m:
+                m.connect('issues_for_organization', '/publisher/:org_id/issues', action='issues_for_organization')
         return map
 
     def update_config(self, config):
@@ -386,7 +377,10 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.app_dataset_theme_report_info,
                 reports.app_dataset_report_info,
                 reports.admin_editor_info,
+                reports.licence_report_info,
                 reports.la_schemas_info,
+                reports.pdf_datasets_report_info,
+                reports.html_datasets_report_info,
                 ]
 
 
@@ -403,7 +397,6 @@ class InventoryPlugin(p.SingletonPlugin):
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
-        # home page for publishers is /unpublished/{org-id}/edit
         map.connect('unpublished_edit', '/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
@@ -471,20 +464,15 @@ class SearchPlugin(p.SingletonPlugin):
         # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
-        search_params['qf'] = 'title^4 name^3 notes^2 text tags^0.3 group_titles^0.3 extras_harvest_document_content^0.2'
+        search_params['qf'] = 'title^4 name^3 notes^2 text organization_titles^0.3 extras_harvest_document_content^0.2'
+        # boost NII datasets. used trial and error to get reasonable mix of useful NII ones
+        # on and relevant non-NII ones for /data/search?q=road and /data/search?q=crime
+        search_params['bf'] = 'core_dataset^20'
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
         if search_params.get('fq'):
             search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
-
-        # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
-        # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
-        # You can avoid this escaping on the API by setting escape_q=False.
-        if 'q' in search_params and search_params.get('escape_q', True):
-            search_params['q'] = solr_escape(search_params['q'])
-        if 'escape_q' in search_params:
-            search_params.pop('escape_q')
 
         # If the user does not specify a "sort by" method manually,
         # then it defaults here (and the UI has to have the same logic)
@@ -516,24 +504,25 @@ class SearchPlugin(p.SingletonPlugin):
 
     def before_index(self, pkg_dict):
         """
-        Dynamically creates a license_id-is-ogl field to index on, and clean
-        up resource formats prior to indexing.
+        DGU-specific changes to the pkg_dict before it is indexed. The main
+        reason is so that we can add search facets.
         """
         log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
-        SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
+        SearchIndexing.add_field__organization_title_and_abbreviation(pkg_dict)
         if is_plugin_enabled('harvest'):
             SearchIndexing.add_field__harvest_document(pkg_dict)
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
-        SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_api_flag(pkg_dict)
         SearchIndexing.add_theme(pkg_dict)
         if is_plugin_enabled('dgu_schema'):
             SearchIndexing.add_schema(pkg_dict)
+        SearchIndexing.add_collections(pkg_dict)
 
         return pkg_dict
 
@@ -591,3 +580,115 @@ class SchemaPlugin(p.SingletonPlugin):
             'schema_list': schema_list,
             'codelist_list': codelist_list,
             }
+
+
+class DguSpatialPlugin(p.SingletonPlugin):
+    """
+    DGU-specific bits to do with spatial that are not in ckanext-spatial
+    """
+    p.implements(p.IDomainObjectModification, inherit=True)
+
+    # IDomainObjectModification
+
+    def notify(self, entity, operation=None):
+        from ckan import model
+        if not isinstance(entity, model.Package):
+            return
+        pkg = entity
+        if not p.toolkit.asbool(pkg.extras.get('UKLP')):
+            return
+
+        log.debug('Notified of UKLP package event: %s %s', pkg.name, operation)
+
+        # avoid infinite loop
+        run_gemini_postprocess = \
+            self._is_it_sufficient_change_to_run_gemini_postprocess(
+                entity, operation)
+        if not run_gemini_postprocess:
+            return
+
+        log.debug('Creating gemini post-process task: %s', pkg.name)
+        gemini_postprocess_tasks.create_package_task(entity, 'priority')
+
+    # similar to ckanext-archiver's _is_it_sufficient_change_to_run_archiver
+    def _is_it_sufficient_change_to_run_gemini_postprocess(self, package,
+                                                           operation):
+        ''' Returns True if it is a new dataset or there are resources that
+        have been added or URL changed in this revision.
+        '''
+        from ckan import model
+        if operation == 'new':
+            log.debug('New package - will process')
+            # even if it has no resources, QA needs to show 0 stars against it
+            return True
+        elif operation == 'deleted':
+            log.debug('Deleted package - won\'t process')
+            return False
+        # therefore operation=changed
+
+        # check to see if resources are added or URL changed
+
+        # look for the latest revision
+        rev_list = package.all_related_revisions
+        if not rev_list:
+            log.debug('No sign of previous revisions - will process')
+            return True
+        # I am not confident we can rely on the info about the current
+        # revision, because we are still in the 'before_commit' stage. So
+        # simply ignore that if it's returned.
+        if rev_list[0][0].id == model.Session.revision.id:
+            rev_list = rev_list[1:]
+        if not rev_list:
+            log.warn('No sign of previous revisions - will process')
+            return True
+        previous_revision = rev_list[0][0]
+        log.debug('Comparing with revision: %s %s',
+                  previous_revision.timestamp, previous_revision.id)
+
+        # get the package as it was at that previous revision
+        context = {'model': model, 'session': model.Session,
+                   #'user': c.user or c.author,
+                   'ignore_auth': True,
+                   'revision_id': previous_revision.id}
+        data_dict = {'id': package.id}
+        try:
+            old_pkg_dict = p.toolkit.get_action('package_show')(
+                context, data_dict)
+        except p.toolkit.NotFound:
+            log.warn('No sign of previous package - will process anyway')
+            return True
+
+        # have any resources been added?
+        old_resources = dict((res['id'], res)
+                             for res in old_pkg_dict['resources'])
+        old_res_ids = set(old_resources.keys())
+        new_res_ids = set((res.id for res in package.resources))
+        added_res_ids = new_res_ids - old_res_ids
+        if added_res_ids:
+            log.debug('Added resources - will process. res_ids=%r',
+                      added_res_ids)
+            return True
+
+        # have any resource urls changed?
+        for res in package.resources:
+            old_res_url = old_resources[res.id]['url']
+            if old_res_url != res.url:
+                log.debug('Resource url changed - will process. '
+                          'id=%s pos=%s url="%s"->"%s"',
+                          res.id[:4], res.position, old_res_url, res.url)
+                return True
+            log.debug('Resource unchanged. pos=%s id=%s',
+                      res.position, res.id[:4])
+
+        log.debug('No new or changed resources - won\'t process')
+        return False
+
+
+class DguPublisherFiles(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
+
+    def after_map(self, map):
+        data_ctlr = 'ckanext.dgu.controllers.data:DataController'
+        map.connect('publisher_files', '/publisher-files{rel_path:.*?}',
+                    controller=data_ctlr, action='publisher_files')
+        return map

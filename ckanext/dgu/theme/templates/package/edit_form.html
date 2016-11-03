@@ -139,7 +139,14 @@ Passed in:
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.list_enumerate(data.get('timeseries_resources', []) + [{}]) %}
+        {# In some cases we end up with a timeseries having individual resources.  If this is the case, then show the individual resources
+            in the table so that we fail validation (until a date is filled in).  This will avoid a validation error because of mixed types
+            We want individual resources to merge only if we are in a timeseries.
+        #}
+
+        {% set individual = data.get('individual_resources', []) if h.are_timeseries_resources(data) else  [] %}
+        {% set merged_resources = data.get('timeseries_resources', []) + individual +  [{}]%}
+        {% for num, res in h.list_enumerate(merged_resources) %}
         <tr class="timeseries_resources__{{num}} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
@@ -191,6 +198,16 @@ Passed in:
                        value="{{res.get(col, '')}}"
                        class="form-control needs-datepicker {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
                    />
+                {% elif col=='format'%}
+                  <input
+                       id="timeseries_resources__{{num}}__{{col}}"
+                       name="timeseries_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       data-provider="typeahead"
+                       data-items="8"
+                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
+                       />
                 {% else %}
                   <input id="timeseries_resources__{{num}}__{{col}}"
                          name="timeseries_resources__{{num}}__{{col}}"
@@ -227,75 +244,78 @@ Passed in:
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.list_enumerate(data.get('individual_resources', []) + [{}]) %}
-        <tr class="individual_resources__{{num}} resource">
-          <td class="resource-move-cell">
-            <div class="btn-group">
-              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
-            </div>
-            <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in resource_columns, we need
-                    to pull the others from the resource keys, strip the resource_columns and then
-                    ignore resource_type, id and resource_group_id.
+        {# If we are in timeseries mode, we do not want to add individual_resources to the table in case the list isn't actually empty. #}
+        {% with individual = [] if h.are_timeseries_resources(data) else data.get('individual_resources', []) %}
+          {% for num, res in h.list_enumerate(individual + [{}]) %}
+          <tr class="individual_resources__{{num}} resource">
+            <td class="resource-move-cell">
+              <div class="btn-group">
+                <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+                <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+              </div>
+              <div class="hidden-resource-fields">
+                <!--! Because the resource fields are explicitly set in resource_columns, we need
+                      to pull the others from the resource keys, strip the resource_columns and then
+                      ignore resource_type, id and resource_group_id.
 
-                    Code is long hand to keep the list comp understandable -->
-              {% for col in h.resource_extra_fields(res) %}
+                      Code is long hand to keep the list comp understandable -->
+                {% for col in h.resource_extra_fields(res) %}
+                  <input
+                         id="individual_resources__{{num}}__{{col}}"
+                         name="individual_resources__{{num}}__{{col}}"
+                         type="hidden"
+                         value="{{res.get(col, '')}}"/>
+                {% endfor %}
+                <span class="resource-id"><input name="individual_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
+                <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
+              </div>
+            </td>
+            {% for col in resource_columns %}
+              <td class="resource-{{col}}">
+              {% if col=='description' %}
                 <input
                        id="individual_resources__{{num}}__{{col}}"
                        name="individual_resources__{{num}}__{{col}}"
-                       type="hidden"
-                       value="{{res.get(col, '')}}"/>
-              {% endfor %}
-              <span class="resource-id"><input name="individual_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
-              <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
-            </div>
-          </td>
-          {% for col in resource_columns %}
-            <td class="resource-{{col}}">
-            {% if col=='description' %}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     class="form-control {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
-                     />
-            {% elif col=='url' %}
-              <span class="input-group {% if h.cell_has_errors(errors,'individual_resources', num, col) %}error{% endif %}">
-                <input id="individual_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="form-control {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                       />
+              {% elif col=='url' %}
+                <span class="input-group {% if h.cell_has_errors(errors,'individual_resources', num, col) %}error{% endif %}">
+                  <input id="individual_resources__{{num}}__{{col}}"
+                         name="individual_resources__{{num}}__{{col}}"
+                         type="text"
+                         value="{{res.get(col, '')}}"
+                         class="form-control"/>
+                  <span class="input-group-btn">
+                    <button id="individual_resources__{{num}}__validate-resource-button"
+                        class="validate-resource-button btn btn-default">Check</button>
+                  </span>
+                </span>
+                {% elif col=='format'%}
+                <input
+                       id="individual_resources__{{num}}__{{col}}"
                        name="individual_resources__{{num}}__{{col}}"
                        type="text"
                        value="{{res.get(col, '')}}"
-                       class="form-control"/>
-                <span class="input-group-btn">
-                  <button id="individual_resources__{{num}}__validate-resource-button"
-                      class="validate-resource-button btn btn-default">Check</button>
-                </span>
-              </span>
-              {% elif col=='format'%}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     data-provider="typeahead"
-                     data-items="8"
-                     class="form-control format-typeahead {% if h.cell_has_errors(errors,'additional_resources', num, col) %}field_error{% endif %}"
-                     />
-              {% else %}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     class="input-small {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
-                     />
-            {% endif %}
-            </td>
+                       data-provider="typeahead"
+                       data-items="8"
+                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                       />
+                {% else %}
+                <input
+                       id="individual_resources__{{num}}__{{col}}"
+                       name="individual_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="input-small {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                       />
+              {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
           {% endfor %}
-        </tr>
-        {% endfor %}
+        {% endwith %}
       </tbody>
       </table>
       <a href="javascript:;" id="individual_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
@@ -307,7 +327,7 @@ Passed in:
     <hr/>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
-    <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <p><b>Format choices:</b> CSV | XLS | XML | KML | WFS | RDF | Other as appropriate</p>
     <div class="well form-inline">
       <h3>Schema/Vocabulary</h3>
       <p class="instructions basic">Name any schema, vocabulary or ontology that describes the main data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
@@ -438,7 +458,6 @@ Passed in:
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
-  {% set licence_extra = extras.get('licence') %}
   <h3>Licence</h3>
     <div class="form-group">
     <label for="license_id">Licence:</label>
@@ -451,23 +470,23 @@ Passed in:
                user are an OGL license; a free-text non-OGL license; and the
                dataset's current license (edit form only).
 
-            2. An edit form with a license in the extra fields: this is a
-               harvested dataset.
+            2. An edit form with a "licence" in the extra fields and optionally a
+               license_id too (derived from the licence): this is a harvested dataset.
 
-            * license_extra implies an edit form with a license in the
+            * license_extra implies an edit form with a "licence" in the
               extra fields.  i.e. a harvested license.
      #}
-      {% for license_id, license_desc in h.license_choices(data) %}
-        <option value="{{license_id}}" {% if data.get('license_id', 'uk-ogl') == license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
+      {# when a form is first displayed, the licence_extra value is in the extras. If there is a validation error, then get the licence value from the 'licence_in_form' instead. #}
+      {% set licence_extra = data.get('licence_in_form', '') if 'licence_in_form' in data else extras.get('licence', '') %}
+      {% set license_id = data.get('license_id', 'uk-ogl') if not licence_extra else '__other__' %}
+      {% for option_license_id, license_desc in h.license_choices(data) %}
+        <option value="{{option_license_id}}" {% if license_id == option_license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
       {% endfor %}
 
-      {% if licence_extra %}
-        <option value="__extra__" selected="selected">Harvested license...</option>
-      {% endif %}
+      <option value="__other__" {% if licence_extra %}selected="selected"{% endif %}>
+        Specify other..
+      </option>
 
-      {% if not licence_extra %}
-      <option value="" {% if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) %}selected="selected"{% endif %}>Specify other...</option>
-      {% endif %}
     </select>
   </div>
   <p class="instructions basic">The licence under which the dataset is released.</p>
@@ -476,13 +495,13 @@ Passed in:
 
     <div class="form-group choose-other-licence">
       <label for="license_extra">Licence (other):</label>
-      {% if not licence_extra %}
-      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="access_constraints">{{data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) else '')}}</textarea>
-      {% endif %}
-      {% if licence_extra %}
-      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">{{ licence_extra }}</textarea>
-      <input class="form-control" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="{{extras.get('access_constraints','')}}"/>
-      {% endif %}
+      {#
+        We name the field "licence_in_form" instead of "licence", even though
+        it is the "licence" extra, because the validator (validate_license)
+        needs to differentiate between the value coming from the form and from
+        the API.
+      #}
+      <textarea class="form-control" rows="1" cols="60" id="licence_in_form" name="licence_in_form">{{licence_extra}}</textarea>
     </div>
     {{ m.display_error(errors, 'license_id', True) }}
 </fieldset>

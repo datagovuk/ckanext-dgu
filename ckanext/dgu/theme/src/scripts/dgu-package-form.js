@@ -172,10 +172,9 @@
     /* Hide/Show the access constraints box when selecting the license_id */
     $('#license_id').change(function(){
       var selectedLicense = $(this).val();
-      if(selectedLicense == "" || selectedLicense == "__extra__"){
+      if(selectedLicense == "" || selectedLicense == "__other__"){
         $('.choose-other-licence').show();
       } else {
-        $('#access_constraints').val('');
         $('.choose-other-licence').hide();
       }
     });
@@ -204,7 +203,9 @@
     });
 
     /* Resource format autocomplete */
-    $('.format-typeahead').autocomplete({source: DGU_RESOURCE_FORMATS, items:5});
+    $(document).on('keydown.autocomplete', function(){
+      $('.format-typeahead').autocomplete({source: DGU_RESOURCE_FORMATS, items:5});
+    });
 
     /* Additional resources scraper fields */
     CKAN.Dgu.setupAdditionalResourcesScrapers();

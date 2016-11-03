@@ -7,7 +7,8 @@ from paste.deploy.converters import asbool
 
 from ckan.model.group import Group
 from ckan import model
-from ckanext.dgu.lib.formats import Formats
+from ckan.lib import helpers
+from ckanext.dgu.lib import helpers as dgu_helpers
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
@@ -31,20 +32,39 @@ class SearchIndexing(object):
         log.debug('Popularity: %s', pkg_dict['popularity'])
 
     @classmethod
+    def add_api_flag(cls, pkg_dict):
+        pkg_dict['api'] = 'API' in [p.upper() for p in pkg_dict['res_format']]
+        log.debug('API: %s', pkg_dict['api'])
+
+    @classmethod
     def add_inventory(cls, pkg_dict):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''
         pkg_dict['unpublished'] = pkg_dict.get('unpublished', False)
-        log.debug('Unpublished: %s', pkg_dict['unpublished'])
+        #log.debug('Unpublished: %s', pkg_dict['unpublished'])
 
         pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
-        log.debug('NII: %s', pkg_dict['core_dataset'])
+        #log.debug('NII: %s', pkg_dict['core_dataset'])
 
         # We also need to mark whether it is restricted (as in it will never be
         # released).
         pkg_dict['publish_restricted'] = pkg_dict.get('publish-restricted', False)
-        log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
+        #log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
 
+    @classmethod
+    def add_collections(cls, pkg_dict):
+        pkg_dict['collection'] = []
+
+        if asbool(pkg_dict.get('core-dataset', False)):
+            pkg_dict['collection'].append('National Information Infrastructure')
+        if dgu_helpers.is_dataset_organogram(pkg_dict):
+            pkg_dict['collection'].append('Organogram')
+
+        # maybe put this in a property?
+        #if 'API' in [p.upper() for p in pkg_dict['res_format']]:  # what about wfs?
+        #    pkg_dict['collection'].append('API access')
+
+        log.debug('Collection: %s', pkg_dict['collection'])
 
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):
@@ -52,7 +72,6 @@ class SearchIndexing(object):
         if 'license_id-is-ogl' not in pkg_dict:
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
-            pkg_dict['extras_license_id-is-ogl'] = is_ogl
         try:
             if asbool(pkg_dict.get('unpublished', False)):
                 pkg_dict['license_id-is-ogl'] = 'unpublished'
@@ -65,13 +84,8 @@ class SearchIndexing(object):
         Returns true iff the represented dataset has an OGL license
 
         A dataset has an OGL license if the license_id == "uk-ogl"
-        or if it's a UKLP dataset with "Open Government License" in the
-        'licence_url_title' or 'licence' extra fields
         """
-        regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
-        return pkg_dict['license_id'] == 'uk-ogl' or \
-               bool(regex.search(pkg_dict.get('extras_licence_url_title', ''))) or \
-               bool(regex.search(pkg_dict.get('extras_licence', '')))
+        return pkg_dict['license_id'] == 'uk-ogl'
 
     @classmethod
     def clean_title_string(cls, pkg_dict):
@@ -92,27 +106,15 @@ class SearchIndexing(object):
     @classmethod
     def _clean_format(cls, format_string):
         if isinstance(format_string, basestring):
-            matched_format = Formats.match(format_string)
+            matched_format = helpers.resource_formats().get(format_string.lower().strip(' .'))
             if matched_format:
-                return matched_format['display_name']
+                return matched_format[1]
             return re.sub(cls._disallowed_characters, '', format_string).strip()
         else:
             return format_string
 
     @classmethod
-    def add_field__group_titles(cls, pkg_dict):
-        '''Adds the group titles.'''
-        groups = [Group.get(g) for g in pkg_dict['groups']]
-
-        # Group titles
-        if not pkg_dict.has_key('organization_titles'):
-            pkg_dict['organization_titles'] = [g.title for g in groups]
-        else:
-            log.warning('Unable to add "organization_titles" to index, as the datadict '
-                        'already contains a key of that name')
-
-    @classmethod
-    def add_field__group_abbreviation(cls, pkg_dict):
+    def add_field__organization_title_and_abbreviation(cls, pkg_dict):
         '''Adds any group abbreviation '''
         abbr = None
 
@@ -121,14 +123,17 @@ class SearchIndexing(object):
             log.error("Package %s does not belong to an organization" % pkg_dict['name'])
             return
 
+        pkg_dict['organization_titles'] = [g.title]
+
         try:
             abbr = g.extras.get('abbreviation')
         except:
             raise
 
         if abbr:
-            pkg_dict['group_abbreviation'] = abbr
-            log.debug('Abbreviations: %s', abbr)
+            pkg_dict['organization_titles'].append(abbr)
+
+        log.debug('Organization title: %r', pkg_dict['organization_titles'])
 
     @classmethod
     def add_field__publisher(cls, pkg_dict):
@@ -198,36 +203,24 @@ class SearchIndexing(object):
     @classmethod
     def add_field__openness(cls, pkg_dict):
         '''Add the openness score (stars) to the search index'''
-        import ckan
-        from ckanext.dgu.plugins_toolkit import get_action
-        context = {'model': ckan.model, 'session': ckan.model.Session,
-                   'ignore_auth': True}
-        data_dict = {'id': pkg_dict['id']}
-        try:
-            qa_openness = get_action('qa_package_openness_show')(context, data_dict)
-        except ObjectNotFound:
+        archival = pkg_dict.get('archiver')
+        if not archival:
+            log.warning('No Archiver info for package %s', pkg_dict['name'])
+            return
+        qa = pkg_dict.get('qa')
+        if not qa:
             log.warning('No QA info for package %s', pkg_dict['name'])
             return
-        except KeyError:
-            # occurs during tests or if you've not install ckanext-qa
-            log.warning('QA not installed - not indexing it.')
-            return
-        pkg_dict['openness_score'] = qa_openness.get('openness_score')
+        pkg_dict['openness_score'] = qa.get('openness_score')
         log.debug('Openness score: %s', pkg_dict['openness_score'])
 
-        try:
-            qa_broken = get_action('qa_package_broken_show')(context, data_dict)
-        except ObjectNotFound:
-            log.warning('No brokenness info for package %s', pkg_dict['name'])
-            return
         if not hasattr(cls, 'broken_links_map'):
             cls.broken_links_map = {
                     True: 'Broken',
-                    'some': 'Partially broken',
                     False: 'OK',
                     None: 'TBC'
                     }
-        pkg_dict['broken_links'] = cls.broken_links_map[qa_broken.get('archival_is_broken')]
+        pkg_dict['broken_links'] = cls.broken_links_map[archival.get('is_broken')]
         log.debug('Broken links: %s', pkg_dict['broken_links'])
 
     @classmethod
@@ -245,7 +238,7 @@ class SearchIndexing(object):
             log.error('Could not parse secondary themes: %s %r',
                       pkg_dict['name'], pkg_dict.get('theme-secondary'))
         pkg_dict['all_themes'] = list(all_themes)
-        log.debug('Themes: %s', ' '.join(all_themes))
+        #log.debug('Themes: %s', ' '.join(all_themes))
 
     @classmethod
     def add_schema(cls, pkg_dict):
@@ -263,7 +256,7 @@ class SearchIndexing(object):
             except AttributeError, e:
                 log.error('Invalid schema_id: %r %s', schema_id, e)
         pkg_dict['schema_multi'] = schemas
-        log.debug('Schema: %s', ' '.join(schemas))
+        #log.debug('Schema: %s', ' '.join(schemas))
 
         try:
             codelist_ids = json.loads(pkg_dict.get('codelist') or '[]')
@@ -275,4 +268,4 @@ class SearchIndexing(object):
         for codelist_id in codelist_ids:
             codelists.append(Codelist.get(codelist_id).title)
         pkg_dict['codelist_multi'] = codelists
-        log.debug('Code lists: %s', ' '.join(codelists))
+        #log.debug('Code lists: %s', ' '.join(codelists))

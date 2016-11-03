@@ -1,39 +1,39 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
+{% import "_dgu_jinja_util.html" as m with context %}
 
-  <py:def function="page_title">Publisher report</py:def>
-  <py:def function="page_heading">Publisher report</py:def>
+{% block title %}Publisher Report - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
+  <h1>Publisher Report</h1>
+
+
+{% block breadcrumb_content %}
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
     <li><a href="/publisher/report_users_not_assigned_to_groups">Users not assigned to groups</a></li>
-  </py:match>
+{% endblock %}
 
 
-  <div py:match="content">
+{% block primary_content_inner %}
+  <div>
 
-      <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
-      <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered">
+      <h3>Users not attached to a publisher ({{ c.unassigned_users_count }})</h3>
+      {% if c.unassigned_users_count > 0 %}
+      <table id="users" py:if="" width="100%" class="table table-bordered">
         <tr>
           <th>Full Name</th>
           <th>Username</th>
           <th>Email</th>
           <th>Created</th>
         </tr>
-        <py:for each="user in c.unassigned_users">
+        <py:for each="">
+        {% for user in c.unassigned_users %}
           <tr>
-            <td>${user.fullname}</td>
-            <td><a href="${h.url_for(controller='user', action='read', id=user.name)}">${"OPENID" if user.name.startswith('http') else user.name}</a></td>
-            <td><a href="mailto:${user.email}">${user.email}</a></td>
-            <td>${h.render_datetime(user.created, date_format="%d-%m-%Y")}</td>
+            <td>{{user.fullname}}</td>
+            <td><a href="{{h.url_for(controller='user', action='read', id=user.name)}}">{{"OPENID" if user.name.startswith('http') else user.name}}</a></td>
+            <td><a href="mailto:{{user.email}}">{{user.email}}</a></td>
+            <td><nobr>{{h.render_datetime(user.created, date_format="%d-%m-%Y")}}</nobr></td>
           </tr>
-        </py:for>
+        {% endfor %}
       </table>
-
+      {% endif %}
   </div>
-
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}

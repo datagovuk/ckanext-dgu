@@ -12,7 +12,6 @@ from ckanext.harvest.model import setup as harvest_setup
 # Invoke websetup with the current config file
 SetupCommand('setup-app').run([config['__file__']])
 
-
 class PackageFixturesBase:
     def create(self, **kwargs):
         CreateTestData.create_arbitrary(self.pkgs,

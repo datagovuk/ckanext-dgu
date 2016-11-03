@@ -38,7 +38,7 @@ class MergeDatasets(object):
         if options.publisher:
             org_name = common.name_stripped_of_url(options.publisher)
             if options.search:
-                results = ckan.action.package_search(q=options.search, fq='publisher:%s' % org_name, rows=100, escape_q=False)
+                results = ckan.action.package_search(q=options.search, fq='publisher:%s' % org_name, rows=100)
                 dataset_names.extend([dataset['name']
                                       for dataset in results['results']])
             else:
@@ -88,6 +88,8 @@ class MergeDatasets(object):
         resources = combined_resources.values()
 
         # find dates for resources
+        # NB This has been pulled out into timeseries_convert.py -
+        # TODO call that instead of having the code here too.
         if options.frequency:
             url_munge_re = re.compile('(%20|-|_|\.)')
 
@@ -178,7 +180,7 @@ class MergeDatasets(object):
                     pdb.set_trace()
 
         # Remove 'dataset_name' and others fields from resources
-        ignore_res_fields = set(('dataset_name', 'created', 'position', 'revision_id', 'id', 'tracking_summary'))
+        ignore_res_fields = set(('dataset_name', 'created', 'position', 'revision_id', 'id', 'tracking_summary', 'qa', 'archiver'))
         for res in resources:
             for field in ignore_res_fields & set(res.keys()):
                 del res[field]
@@ -204,6 +206,7 @@ class MergeDatasets(object):
                 'taxonomy_url',
                 'temporal_coverage-from', 'temporal_coverage-to',
                 'published_via', 'creator_user_id',
+                'qa', 'archiver',
                 ))
             first_fields = ['title', 'name', 'notes', 'theme-primary', 'theme-secondary']
             all_field_values = defaultdict(list)
