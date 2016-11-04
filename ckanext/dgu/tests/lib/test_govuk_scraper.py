@@ -23,15 +23,14 @@ class TestScrapeOnly:
     curl https://www.gov.uk/government/publications/individualised-learner-record-ilr-check-that-data-is-accurate -o ckanext/dgu/tests/lib/govuk_html/publication_page.html
     curl https://www.gov.uk/government/collections/individualised-learner-record-ilr -o ckanext/dgu/tests/lib/govuk_html/collection_page.html
     curl https://www.gov.uk/government/organisations/skills-funding-agency -o ckanext/dgu/tests/lib/govuk_html/organization_page.html
-    curl https://www.gov.uk/government/statistics/community-interest-companies-new-cics-registered-in-october-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_csv.html
-    curl https://www.gov.uk/government/consultations/pet-travel-planned-changes-to-the-eu-scheme -o ckanext/dgu/tests/lib/govuk_html/publication_external.html
+    curl https://www.gov.uk/government/publications/passport-impact-indicators-csv-version -o ckanext/dgu/tests/lib/govuk_html/publication_csv.html
     curl https://www.gov.uk/government/publications/water-and-sewerage-companies-in-england-environmental-performance-report -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
     curl https://www.gov.uk/government/statistical-data-sets/commodity-prices -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_inline.html
     curl https://www.gov.uk/government/statistical-data-sets/transport-and-disability-tsgb12 -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_unmarked.html
     curl https://www.gov.uk/government/publications/uk-guarantees-scheme-prequalified-projects -o ckanext/dgu/tests/lib/govuk_html/publication_two_organizations.html
     curl https://www.gov.uk/government/publications/nhs-trusts-and-foundation-trusts-in-special-measures-1-year-on -o ckanext/dgu/tests/lib/govuk_html/publication_three_organizations.html
+         https://www.gov.uk/government/organisations/the-scottish-government
     curl https://www.gov.uk/government/organisations/the-scottish-government -o ckanext/dgu/tests/lib/govuk_html/organization_external.html
-    curl https://www.gov.uk/government/publications/controlled-drugs-list -o ckanext/dgu/tests/lib/govuk_html/publication_from_minister.html
     '''
     @classmethod
     def setup_class(cls):
@@ -44,7 +43,7 @@ class TestScrapeOnly:
     def test_scrape_publication_index_page(self):
         html = get_html_content('publication_index.html')
         index = GovukPublicationScraper.scrape_publication_index_page(html)
-        assert_equal(index['num_results_on_this_page_str'], '56,250')
+        assert_equal(index['num_results_on_this_page_str'], '95,416')
         assert isinstance(index['publication_basics_elements'], list)
         assert_equal(len(index['publication_basics_elements']), 40)
         assert_equal(index['publication_basics_elements'][0].tag, 'li')
@@ -54,87 +53,33 @@ class TestScrapeOnly:
         index = GovukPublicationScraper.scrape_publication_index_page(html)
         element = index['publication_basics_elements'][0]
         pub = GovukPublicationScraper.scrape_publication_basics(element)
-        assert_equal(pub, {
-            'govuk_id': '369795',
-            'name': 'publications/reduced-rate-certificate-for-metal-packaging',
-            'title': 'Reduced rate certificate for metal packaging',
-            'url': 'https://www.gov.uk/government/publications/reduced-rate-certificate-for-metal-packaging'
-            })
+        pprint(pub)
+        assert_equal(pub,
+            {'govuk_id': '673835',
+             'name': 'consultations/gda-of-hitachi-ge-nuclear-energy-ltds-uk-advanced-boiling-water-reactor',
+             'title': u'GDA of Hitachi-GE Nuclear Energy Ltd\u2019s UK Advanced Boiling Water Reactor',
+             'url': 'https://www.gov.uk/government/consultations/gda-of-hitachi-ge-nuclear-energy-ltds-uk-advanced-boiling-water-reactor'}
+            )
 
     def test_scrape_publication_page(self):
         html = get_html_content('publication_page.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        # truncate some fields
+        pub['attachments'] = [pub['attachments'][0]]
+        pub['detail'] = pub['detail'][:100] + '...'
         pprint(pub)
-        assert_equal(pub,
-{'attachments': [{'filename': 'FIS_user_guide_known_issue_201415_v6_31_July_2014.xlsx',
-                  'format': 'MS Excel Spreadsheet',
-                  'govuk_id': '660711',
-                  'title': 'FIS 2014 to 2015 known issues: v6 31 July 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/340217/FIS_user_guide_known_issue_201415_v6_31_July_2014.xlsx'},
-                 {'filename': 'nat-FISUserguide-ug-fis_KnownIssues-v7_23May2014.xlsx',
-                  'format': 'MS Excel Spreadsheet',
-                  'govuk_id': '660712',
-                  'title': 'FIS Known issues guide v7.0  23 May 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/313847/nat-FISUserguide-ug-fis_KnownIssues-v7_23May2014.xlsx'},
-                 {'filename': 'nat-FIS_User_guidance-ug-fis-v1-0_20May2014.pdf',
+        assert_equal(
+{'attachments': [
+                  {'filename': 'OneDrive_For_BusinessData_returns_presentation__Dec_Draft__004_.pdf',
                   'format': 'PDF',
-                  'govuk_id': '660713',
-                  'title': 'FIS user guide: v1.0 21 May 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/313116/nat-FIS_User_guidance-ug-fis-v1-0_20May2014.pdf'},
-                 {'filename': 'FIS_installation_guidance_v1.2_July_2014.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660714',
-                  'title': 'FIS installation guide: v1.2 24 July 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/337487/FIS_installation_guidance_v1.2_July_2014.pdf'},
-                 {'filename': 'FIS_Uninstallation_guide_05_March_2014.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660715',
-                  'title': 'FIS uninstallation guide March 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/314263/FIS_Uninstallation_guide_05_March_2014.pdf'},
-                 {'filename': 'FIS_release_guide_31_July_2014_v1.3.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660716',
-                  'title': 'FIS release guide: v1.3 31 July 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/340005/FIS_release_guide_31_July_2014_v1.3.pdf'},
-                 {'filename': 'FIS_database_Guidance_v1_2_February_2014.xls',
-                  'format': 'MS Excel Spreadsheet',
-                  'govuk_id': '660717',
-                  'title': 'FIS database guide: version 1 (20 February 2014)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/285557/FIS_database_Guidance_v1_2_February_2014.xls'},
-                 {'filename': 'FISamalgamationguidancev1_019December2013.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660718',
-                  'title': 'FIS file amalgamation guide: version 1 (20 December 2013)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/284049/FISamalgamationguidancev1_019December2013.pdf'},
-                 {'filename': 'Funding_Information_System_v24_pol_process_update_ver4.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660719',
-                  'title': 'FIS providers online (POL) process update: version 24 (13 February 2014)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287697/Funding_Information_System_v24_pol_process_update_ver4.pdf'},
-                 {'filename': 'FIS_SFA_reports_guidance_FIS_27January2014_v1-0.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660720',
-                  'title': 'FIS SFA reports guide: version 1 (January 2014)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287659/FIS_SFA_reports_guidance_FIS_27January2014_v1-0.pdf'},
-                 {'filename': 'FIS_EFA_reports_guidance_FIS_27January2014_v1-0.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660721',
-                  'title': 'FIS EFA reports guide: version 1 (January 2014)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287661/FIS_EFA_reports_guidance_FIS_27January2014_v1-0.pdf'},
-                 {'filename': 'Funding_Calculation_2013_14_FM35_20140205v2.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660722',
-                  'title': 'Technical specification of the main calculation for further education funding by the Skills Funding Agency in 2013 to 2014',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/284051/Funding_Calculation_2013_14_FM35_20140205v2.pdf'},
-                 {'filename': 'EFA_2013_14_Funding_Calculation_Specification_V1_2_13_03_2014.pdf',
-                  'format': 'PDF',
-                  'govuk_id': '660723',
-                  'title': 'Technical specification of the calculation for further education funding by the Education Funding Agency (EFA) in 2013 to 2014: version 1.2 (April 2014)',
-                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/301088/EFA_2013_14_Funding_Calculation_Specification_V1_2_13_03_2014.pdf'}],
+                  'govuk_id': '1712098',
+                  'title': 'Data returns overview: December 2015.',
+                  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/484643/OneDrive_For_BusinessData_returns_presentation__Dec_Draft__004_.pdf'}
+],
  'collections': set(['https://www.gov.uk/government/collections/individualised-learner-record-ilr']),
- 'detail': 'Funding Information System (FIS)\nFIS is one of a number of software packages freely available to further education providers, to assist with preparing ILR data files prior to submission. It can be used by colleges, training organisations, local authorities and employers (FE providers) to:\nvalidate Individualised Learner Record (ILR) data\ncalculate funding and derived variables\ncreate a range of reports based on a set of ILR data\namalgamate data sets\nIt also replaces Provider Online (POL) and allows providers, with a small number of learners, to submit individual learner records by hand.\nDownload FIS from the Hub\nMore information on validation\nYou can find out more about how to check your ILR data in the following publications:\nProvider Support Manual\nILR validation rules for 2013 to 2014\nClick on the Individualised Learner Record (ILR) collections link below for more ILR topics.',
- 'govuk_id': '370367',
- 'last_updated': datetime.datetime(2014, 8, 1, 10, 24, 11),
+ 'detail': u'Funding Information System (FIS)\nFIS is one of a number of software packages freely available to fur...',
+ 'govuk_id': '659121',
+ 'last_updated': datetime.datetime(2016, 9, 9, 8, 33, 15),
  'name': 'pub_name',
  'govuk_organizations': ['https://www.gov.uk/government/organisations/skills-funding-agency'],
  'published': datetime.datetime(2014, 2, 25, 13, 50),
@@ -142,7 +87,7 @@ class TestScrapeOnly:
  'title': 'Individualised Learner Record (ILR): check that data is accurate',
  'type': 'Guidance',
  'url': '/pub_url'
-            })
+            }, pub)
         assert_equal(fields_not_found(), [])
 
     def test_scrape_collection_page(self):
@@ -163,7 +108,7 @@ class TestScrapeOnly:
         org = GovukPublicationScraper.scrape_organization_page(html, '/org_url')
         pprint(org, indent=12)
         assert_equal(org, {
-           'description': u'We fund skills training for further education (FE) in England. We support over 1,000 colleges, private training organisations, and employers with more than \xa34 billion of funding each year.',
+           'description': u'We fund skills training for further education (FE) in England. We support over 1,000 colleges, private training organisations, and employers with \xa33.2 billion of funding each year.',
            'govuk_id': '86',
            'name': 'org_url',
            'title': 'Skills Funding Agency',
@@ -178,15 +123,8 @@ class TestScrapeOnly:
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub['attachments'], indent=12)
         assert_equal(pub['attachments'][0]['format'], 'CSV')
-        assert_equal(fields_not_found(), [])
-
-    def test_publication_external(self):
-        html = get_html_content('publication_external.html')
-        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
-        pprint(pub)
-        assert_equal(pub['summary'], 'Seeking views on planned changes to the EU pet travel scheme.')
-        assert_equal(pub['attachments'], [])
-        assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
+        assert_equal(fields_not_found(),
+                     ["Updated not found - check: 1 ['pub_name']"])
 
     def test_publication_type(self):
         html = get_html_content('publication_type.html')
@@ -296,13 +234,6 @@ class TestScrapeOnly:
             'https://www.gov.uk/government/organisations/care-quality-commission'
             ])
         assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
-
-    def test_publication_from_minister(self):
-        html = get_html_content('publication_from_minister.html')
-        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
-        pprint(pub)
-        assert_equal(pub['govuk_organizations'], ['https://www.gov.uk/government/organisations/home-office'])
-        assert_equal(fields_not_found(), [])
 
     def test_organization_external(self):
         html = get_html_content('organization_external.html')
@@ -532,7 +463,12 @@ class TestScrapeAndSave:
 def get_html_content(test_filename):
     test_filepath = os.path.join(os.path.dirname(__file__), 'govuk_html', test_filename)
     with open(test_filepath) as f:
-        return f.read()
+        html = f.read()
+    # quick checks in case urls have changed
+    assert 'Page not found' not in html
+    assert 'edirect' not in html
+    assert 'Moved Permanently' not in html
+    return html
 
 def fields_not_found():
     not_found = []
