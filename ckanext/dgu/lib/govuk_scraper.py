@@ -292,20 +292,35 @@ class GovukPublicationScraper(object):
             pub['detail'] = ''
 
         try:
-            pub['published'] = pub_doc.xpath('//dt[text()="Published:"]/following-sibling::dd/abbr/@title')[0]
+            pub['published'] = pub_doc.xpath('//dt[text()="First published:"]/following-sibling::dd/time/@datetime')[0]
             cls.field_stats.add('Publish date found', pub_name)
         except IndexError:
-            cls.field_stats.add('Publish date not found - error', pub_name)
-            pub['published'] = None
+            # old text was 'Published'
+            try:
+                pub['published'] = pub_doc.xpath('//dt[text()="Published:"]/following-sibling::dd/abbr/@title')[0]
+                cls.field_stats.add('Publish date found', pub_name)
+            except IndexError:
+                cls.field_stats.add('Publish date not found - error', pub_name)
+                pub['published'] = None
+            else:
+                pub['published'] = cls.parse_date(pub['published'])
         else:
             pub['published'] = cls.parse_date(pub['published'])
 
         try:
-            pub['last_updated'] = pub_doc.xpath('//dt[text()="Updated:"]/following-sibling::dd/abbr/@title')[0] or None
+            pub['last_updated'] = pub_doc.xpath('//dt[text()="Last updated:"]/following-sibling::dd/time/@datetime')[0] or None
             cls.field_stats.add('Updated found', pub_name)
         except IndexError:
-            cls.field_stats.add('Updated not found - check', pub_name)
-            pub['last_updated'] = None
+            # old text was 'Updated'
+            try:
+                pub['last_updated'] = pub_doc.xpath('//dt[text()="Updated:"]/following-sibling::dd/abbr/@title')[0] or None
+                cls.field_stats.add('Updated found', pub_name)
+            except IndexError:
+                cls.field_stats.add('Updated not found - check', pub_name)
+                pub['last_updated'] = None
+            else:
+                if pub['last_updated']:
+                    pub['last_updated'] = cls.parse_date(pub['last_updated'])
         else:
             if pub['last_updated']:
                 pub['last_updated'] = cls.parse_date(pub['last_updated'])
@@ -673,12 +688,12 @@ class GovukPublicationScraper(object):
 
     @classmethod
     def extract_number_from_full_govuk_id(cls, full_govuk_id):
-        # e.g. publication_370126
+        # e.g. publication_370126 -> '370126'
         if '_govuk_extract_re' not in dir(cls):
             cls._govuk_extract_re = re.compile('^\w+_(\d+)$')
         match = cls._govuk_extract_re.search(full_govuk_id)
         if match.groups():
-            return int(match.groups()[0])
+            return match.groups()[0]
 
     @classmethod
     def add_gov_uk_domain(cls, path):

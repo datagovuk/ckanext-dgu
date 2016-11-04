@@ -25,7 +25,7 @@ class TestScrapeOnly:
     curl https://www.gov.uk/government/organisations/skills-funding-agency -o ckanext/dgu/tests/lib/govuk_html/organization_page.html
     curl https://www.gov.uk/government/statistics/community-interest-companies-new-cics-registered-in-october-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_csv.html
     curl https://www.gov.uk/government/consultations/pet-travel-planned-changes-to-the-eu-scheme -o ckanext/dgu/tests/lib/govuk_html/publication_external.html
-    curl https://www.gov.uk/government/publications/environmental-performance-of-the-water-and-sewerage-companies-in-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
+    curl https://www.gov.uk/government/publications/water-and-sewerage-companies-in-england-environmental-performance-report -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
     curl https://www.gov.uk/government/statistical-data-sets/commodity-prices -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_inline.html
     curl https://www.gov.uk/government/statistical-data-sets/transport-and-disability-tsgb12 -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_unmarked.html
     curl https://www.gov.uk/government/publications/uk-guarantees-scheme-prequalified-projects -o ckanext/dgu/tests/lib/govuk_html/publication_two_organizations.html
@@ -55,7 +55,7 @@ class TestScrapeOnly:
         element = index['publication_basics_elements'][0]
         pub = GovukPublicationScraper.scrape_publication_basics(element)
         assert_equal(pub, {
-            'govuk_id': 369795,
+            'govuk_id': '369795',
             'name': 'publications/reduced-rate-certificate-for-metal-packaging',
             'title': 'Reduced rate certificate for metal packaging',
             'url': 'https://www.gov.uk/government/publications/reduced-rate-certificate-for-metal-packaging'
@@ -68,72 +68,72 @@ class TestScrapeOnly:
         assert_equal(pub,
 {'attachments': [{'filename': 'FIS_user_guide_known_issue_201415_v6_31_July_2014.xlsx',
                   'format': 'MS Excel Spreadsheet',
-                  'govuk_id': 660711,
+                  'govuk_id': '660711',
                   'title': 'FIS 2014 to 2015 known issues: v6 31 July 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/340217/FIS_user_guide_known_issue_201415_v6_31_July_2014.xlsx'},
                  {'filename': 'nat-FISUserguide-ug-fis_KnownIssues-v7_23May2014.xlsx',
                   'format': 'MS Excel Spreadsheet',
-                  'govuk_id': 660712,
+                  'govuk_id': '660712',
                   'title': 'FIS Known issues guide v7.0  23 May 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/313847/nat-FISUserguide-ug-fis_KnownIssues-v7_23May2014.xlsx'},
                  {'filename': 'nat-FIS_User_guidance-ug-fis-v1-0_20May2014.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660713,
+                  'govuk_id': '660713',
                   'title': 'FIS user guide: v1.0 21 May 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/313116/nat-FIS_User_guidance-ug-fis-v1-0_20May2014.pdf'},
                  {'filename': 'FIS_installation_guidance_v1.2_July_2014.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660714,
+                  'govuk_id': '660714',
                   'title': 'FIS installation guide: v1.2 24 July 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/337487/FIS_installation_guidance_v1.2_July_2014.pdf'},
                  {'filename': 'FIS_Uninstallation_guide_05_March_2014.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660715,
+                  'govuk_id': '660715',
                   'title': 'FIS uninstallation guide March 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/314263/FIS_Uninstallation_guide_05_March_2014.pdf'},
                  {'filename': 'FIS_release_guide_31_July_2014_v1.3.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660716,
+                  'govuk_id': '660716',
                   'title': 'FIS release guide: v1.3 31 July 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/340005/FIS_release_guide_31_July_2014_v1.3.pdf'},
                  {'filename': 'FIS_database_Guidance_v1_2_February_2014.xls',
                   'format': 'MS Excel Spreadsheet',
-                  'govuk_id': 660717,
+                  'govuk_id': '660717',
                   'title': 'FIS database guide: version 1 (20 February 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/285557/FIS_database_Guidance_v1_2_February_2014.xls'},
                  {'filename': 'FISamalgamationguidancev1_019December2013.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660718,
+                  'govuk_id': '660718',
                   'title': 'FIS file amalgamation guide: version 1 (20 December 2013)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/284049/FISamalgamationguidancev1_019December2013.pdf'},
                  {'filename': 'Funding_Information_System_v24_pol_process_update_ver4.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660719,
+                  'govuk_id': '660719',
                   'title': 'FIS providers online (POL) process update: version 24 (13 February 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287697/Funding_Information_System_v24_pol_process_update_ver4.pdf'},
                  {'filename': 'FIS_SFA_reports_guidance_FIS_27January2014_v1-0.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660720,
+                  'govuk_id': '660720',
                   'title': 'FIS SFA reports guide: version 1 (January 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287659/FIS_SFA_reports_guidance_FIS_27January2014_v1-0.pdf'},
                  {'filename': 'FIS_EFA_reports_guidance_FIS_27January2014_v1-0.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660721,
+                  'govuk_id': '660721',
                   'title': 'FIS EFA reports guide: version 1 (January 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/287661/FIS_EFA_reports_guidance_FIS_27January2014_v1-0.pdf'},
                  {'filename': 'Funding_Calculation_2013_14_FM35_20140205v2.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660722,
+                  'govuk_id': '660722',
                   'title': 'Technical specification of the main calculation for further education funding by the Skills Funding Agency in 2013 to 2014',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/284051/Funding_Calculation_2013_14_FM35_20140205v2.pdf'},
                  {'filename': 'EFA_2013_14_Funding_Calculation_Specification_V1_2_13_03_2014.pdf',
                   'format': 'PDF',
-                  'govuk_id': 660723,
+                  'govuk_id': '660723',
                   'title': 'Technical specification of the calculation for further education funding by the Education Funding Agency (EFA) in 2013 to 2014: version 1.2 (April 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/301088/EFA_2013_14_Funding_Calculation_Specification_V1_2_13_03_2014.pdf'}],
  'collections': set(['https://www.gov.uk/government/collections/individualised-learner-record-ilr']),
  'detail': 'Funding Information System (FIS)\nFIS is one of a number of software packages freely available to further education providers, to assist with preparing ILR data files prior to submission. It can be used by colleges, training organisations, local authorities and employers (FE providers) to:\nvalidate Individualised Learner Record (ILR) data\ncalculate funding and derived variables\ncreate a range of reports based on a set of ILR data\namalgamate data sets\nIt also replaces Provider Online (POL) and allows providers, with a small number of learners, to submit individual learner records by hand.\nDownload FIS from the Hub\nMore information on validation\nYou can find out more about how to check your ILR data in the following publications:\nProvider Support Manual\nILR validation rules for 2013 to 2014\nClick on the Individualised Learner Record (ILR) collections link below for more ILR topics.',
- 'govuk_id': 370367,
+ 'govuk_id': '370367',
  'last_updated': datetime.datetime(2014, 8, 1, 10, 24, 11),
  'name': 'pub_name',
  'govuk_organizations': ['https://www.gov.uk/government/organisations/skills-funding-agency'],
@@ -164,7 +164,7 @@ class TestScrapeOnly:
         pprint(org, indent=12)
         assert_equal(org, {
            'description': u'We fund skills training for further education (FE) in England. We support over 1,000 colleges, private training organisations, and employers with more than \xa34 billion of funding each year.',
-           'govuk_id': 86,
+           'govuk_id': '86',
            'name': 'org_url',
            'title': 'Skills Funding Agency',
            'url': '/org_url'
@@ -193,7 +193,7 @@ class TestScrapeOnly:
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
         assert_equal(pub['type'], 'Corporate report')
-        assert_equal(fields_not_found(), ['Updated not found - check: 1 [\'pub_name\']'])
+        assert_equal(fields_not_found(), [])
 
     def test_publication_attachments_inline(self):
         html = get_html_content('publication_attachments_inline.html')
@@ -202,57 +202,57 @@ class TestScrapeOnly:
         assert_equal(pub['attachments'],
 [{'filename': 'commodityprices-straights-08may14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663276,
+  'govuk_id': '663276',
   'title': 'Animal feed (straights) - monthly',
   'url': '/government/uploads/system/uploads/attachment_data/file/308848/commodityprices-straights-08may14.xls'},
  {'filename': 'commodityprices-bananas-01aug14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663277,
+  'govuk_id': '663277',
   'title': 'Bananas (wholesale prices) - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/339879/commodityprices-bananas-01aug14.xls'},
  {'filename': 'commodityprices-tbcomp-30jun14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663278,
+  'govuk_id': '663278',
   'title': 'Cattle compensation prices - monthly',
   'url': '/government/uploads/system/uploads/attachment_data/file/325412/commodityprices-tbcomp-30jun14.xls'},
  {'filename': 'commodityprices-poultryeggs-31jul14.ods',
   'format': 'ODS',
-  'govuk_id': 663279,
+  'govuk_id': '663279',
   'title': 'Eggs and poultry (wholesale prices) - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/338690/commodityprices-poultryeggs-31jul14.ods'},
  {'filename': 'commodityprices-hay-03jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663280,
+  'govuk_id': '663280',
   'title': 'Hay and straw - monthly',
   'url': '/government/uploads/system/uploads/attachment_data/file/326380/commodityprices-hay-03jul14.xls'},
  {'filename': 'commodityprices-livestckmth-08jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663281,
+  'govuk_id': '663281',
   'title': 'Livestock (store stock, England & Wales) - monthly',
   'url': '/government/uploads/system/uploads/attachment_data/file/328333/commodityprices-livestckmth-08jul14.xls'},
  {'filename': 'commodityprices-feed-03jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663286,
+  'govuk_id': '663286',
   'title': 'Other animal feedingstuffs - monthly',
   'url': '/government/uploads/system/uploads/attachment_data/file/326385/commodityprices-feed-03jul14.xls'},
  {'filename': 'commodityprices-wpcereal-31jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663282,
+  'govuk_id': '663282',
   'title': 'Price series for cereals - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/339181/commodityprices-wpcereal-31jul14.xls'},
  {'filename': 'commodityprices-wpother-31jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663283,
+  'govuk_id': '663283',
   'title': 'Price series for poultry, eggs, butter, cheese, potatoes and sugar - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/339182/commodityprices-wpother-31jul14.xls'},
  {'filename': 'commodityprices-wplivest-31jul14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663284,
+  'govuk_id': '663284',
   'title': 'Price series for finished cattle, sheep and pigs - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/339183/commodityprices-wplivest-31jul14.xls'},
  {'filename': 'commodityprices-cereals-04aug14.xls',
   'format': 'MS Excel Spreadsheet',
-  'govuk_id': 663285,
+  'govuk_id': '663285',
   'title': 'Quantities sold and price of cereals (England & Wales) - weekly',
   'url': '/government/uploads/system/uploads/attachment_data/file/340921/commodityprices-cereals-04aug14.xls'}]
             )
@@ -342,7 +342,7 @@ class TestScrapeOnly:
 
     def test_extract_number_from_full_govuk_id(self):
         assert_equal(GovukPublicationScraper.extract_number_from_full_govuk_id('publication_370126'),
-                     370126)
+                     '370126')
 
     def test_sanitize_unicode(self):
         assert_equal(GovukPublicationScraper.sanitize_unicode(u'\u2018single\u2019 \u201cdouble\u201d'), u'\'single\' "double"')
@@ -396,12 +396,18 @@ class TestScrapeAndSave:
     def test_scrape_and_save_collection__create(self):
         # scrape and save
         url = 'https://www.gov.uk/government/collections/spend-over-25000-2013'
-        collection = GovukPublicationScraper.scrape_and_save_collection(url)
+        try:
+            collection = GovukPublicationScraper.scrape_and_save_collection(url)
+        except TypeError, e:
+            if 'CaseInsensitiveDict is not a subtype of dict' in str(e):
+                assert 0, 'Your version of requests is newer than that which '\
+                    'created the requests cache file. See this test class\'s '\
+                    'docstring to see how to delete it.'
 
         # check
         assert_equal(collection.name, 'spend-over-25000-2013')
         assert_equal(collection.url, url)
-        assert_equal(collection.title, u'Spend over \xa325,000 - 2013')
+        assert_equal(collection.title, u'MOJ spend over \xa325,000: 2013')
         assert_equal(collection.summary, u'Guidance on Ministry of Justice and its associated arms length bodies spending over \xa325,000 data 2013.')
         assert_equal(collection.govuk_organization.name, 'ministry-of-justice')
         # check stats for creation
@@ -433,11 +439,11 @@ class TestScrapeAndSave:
     def test_scrape_and_save_organization__create(self):
         url = 'https://www.gov.uk/government/organisations/cabinet-office'
         org = GovukPublicationScraper.scrape_and_save_organization(url)
-        assert_equal(org.govuk_id, 2)
+        assert_equal(org.govuk_id, '2')
         assert_equal(org.name, 'cabinet-office')
         assert_equal(org.url, url)
         assert_equal(org.title, 'Cabinet Office')
-        assert org.description.startswith('We support the Prime Minister and Deputy Prime Minister'), org.description
+        assert org.description.startswith('We support the Prime Minister'), org.description
         # check they were created
         assert_equal(dict(GovukPublicationScraper.organization_stats),
                      {'Created': ['cabinet-office']})
@@ -467,7 +473,7 @@ class TestScrapeAndSave:
         assert_equal(changes, {'attachments': 'Add first 4 attachments',
                                'publication': 'Created'})
         pub = govuk_pubs_model.Publication.by_name('publications/hmcts-spend-over-25000-2013')
-        assert_equal(pub.govuk_id, 327733)
+        assert_equal(pub.govuk_id, '327733')
         assert_equal(pub.name, 'publications/hmcts-spend-over-25000-2013')
         assert_equal(pub.url, url)
         assert_equal(pub.type, 'Transparency data')
@@ -519,7 +525,7 @@ class TestScrapeAndSave:
         assert_in('ministry-of-justice',
                 dict(GovukPublicationScraper.organization_stats)['Created'])
         pub = govuk_pubs_model.Publication.by_name('publications/hmcts-spend-over-25000-2013')
-        assert_equal(pub.govuk_id, 327733)
+        assert_equal(pub.govuk_id, '327733')
         assert govuk_pubs_model.Collection.by_name('spend-over-25000-2013')
         assert govuk_pubs_model.GovukOrganization.by_name('ministry-of-justice')
 
