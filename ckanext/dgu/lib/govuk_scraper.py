@@ -1,8 +1,9 @@
 #-*- coding: utf-8 -*-
 import re
-import dateutil
+import dateutil.parser
 import itertools
 import os.path
+import time
 
 import requests_cache
 import lxml.html
@@ -48,12 +49,23 @@ class GovukPublicationScraper(object):
         pages = itertools.count(start=start_page) if page is None else [page]
         num_pages = '?'
         publications_scraped = 0
+        start_time = time.time()
         for page_index in pages:
             # Scrape the index of publications
             url = 'https://www.gov.uk/government/publications?page=%s' % page_index
             if search_filter:
                 url += '&%s' % search_filter
-            print 'Page %s/%s: %s' % (page_index, num_pages, url)
+            if num_pages != '?':
+                fraction_complete = float(page_index) / int(num_pages)
+                time_elapsed = (time.time() - start_time)
+                remaining_time = int(time_elapsed / fraction_complete *
+                                     (1 - fraction_complete))
+                remaining_time_str = 'Time remaining: %s:%s' % (
+                    remaining_time / 60, remaining_time % 60)
+            else:
+                remaining_time_str = ''
+            print '\nPage %s/%s: %s %s\n' % (page_index, num_pages,
+                                             remaining_time_str, url)
             index_scraped = cls.scrape_publication_index_page(cls.requests.get(url).content)
             num_pages = index_scraped['num_pages']
 
