@@ -169,7 +169,7 @@ def train_standard():
     in_filename = 'standard_training.csv'
     if not os.path.exists(in_filename):
         training = {}
-        training_headers = ['name', 'standard']
+        training_headers = ['name', 'standard', 'notes']
         print 'Creating new training set'
     else:
         with open(in_filename, 'rb') as csv_read_file:
@@ -232,6 +232,7 @@ def train_standard():
         row = dict(
             name=pub['name'],
             standard=standard,
+            notes='',
             )
         training[pub['name']] = row
 
@@ -292,10 +293,12 @@ def auto_standard():
         'oscar': -5,
         'Procurement spending data for DCLG': -5,
         'Revenue spending on free schools': -5,
-        'Spending data for DCLG and government offices': -5,
+        'Spending data for DCLG and government offices': -3,
         'Communities and Local Government group: Procurement expenditure': -5,
         'DCLG\'s arm\'s length bodies\' spending data': -5,
         'Contracts between the supplier': -5,
+        'flight bookings': -5,
+        'Government Procurement Card': -5,
         'Merchant Category Code': -3,
         'hospitality': -3,
         'ministerial': -3,
@@ -314,11 +317,12 @@ def auto_standard():
         'Transaction explorer': -3,
         'budget': -3,
         'standing financial instructions': -3,
-        'Government Procurement Card': -3,
         'gpc': -2,
         'ePCS': -2,
+        'e-payments': -5,
         'corporate credit card': -2,
         'procurement card': -1,
+        'procurement': -2,
         'accounts': -1,
         'travel': -1,
         'spend(ing)?': 1,
@@ -332,6 +336,7 @@ def auto_standard():
         'financial transactions': 2,
         'transactions over': 2,
         '25,?000': 3,
+        '500': 3,
         'spending with suppliers': 2,
         '25k': 2,
         'financial transactions': 3,
@@ -412,8 +417,8 @@ def auto_standard():
     print '\nOverall:\n', stats
 
     def percentage_and_fraction(num, denom):
-        return '%.0f (%s/%s)' % (
-            float(num/denom)*100,
+        return '%.0f%% (%s/%s)' % (
+            float(num)/denom*100,
             num, denom)
     def get_report_value(key):
         if key in stats_vs_training_detail:
@@ -423,7 +428,7 @@ def auto_standard():
     if stats_vs_training:
         print '\nCheck vs training:'
         print '  Overall: %s' % percentage_and_fraction(
-        len(stats_vs_training['true']), stats_vs_training_detail.get_total())
+        len(stats_vs_training.get('true', [])), stats_vs_training_detail.get_total())
         print '  True positive: %s' % get_report_value('true positive')
         print '  False positive: %s' % get_report_value('false positive')
         print '  False negative: %s' % get_report_value('false negative')
