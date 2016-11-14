@@ -5,17 +5,17 @@ from pprint import pprint
 import unicodecsv
 import re
 import os.path
-from collections import defaultdict
+import traceback
 
 from common import add_progress_bar
 from running_stats import Stats
-
-args = None
 
 # get print to work with unicode chars
 import sys
 import codecs
 sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+args = None
 
 def scrape():
     from ckanext.dgu.lib.govuk_scraper import GovukPublicationScraper \
@@ -152,7 +152,11 @@ def export_publications():
     print 'Written', out_filename
 
 
-def train_standard():
+def train():
+    '''The 'supervised' bit of supervised learning.
+
+    Give the user a random gov.uk publication and ask how to categorize it (in a given subject).
+    '''
     if args.include_attachments:
         if args.csv_filepath == DEFAULT_EXPORT_PUBLICATION_FILEPATH:
             args.csv_filepath = \
@@ -162,27 +166,27 @@ def train_standard():
     with open(in_filename, 'rb') as csv_read_file:
         csv_reader = unicodecsv.DictReader(csv_read_file, encoding='utf8')
         publications = [row for row in csv_reader]
-        headers = csv_reader.fieldnames
         print 'Publications: %s' % len(publications)
 
-    standards = set()
-    in_filename = 'standard_training.csv'
+    training_data_filename = '%s_training.csv' % args.subject
+    in_filename = training_data_filename
     if not os.path.exists(in_filename):
         training = {}
-        training_headers = ['name', 'standard', 'notes']
-        print 'Creating new training set'
+        training_headers = ['name', args.subject, 'notes']
+        categories = set()
+        print 'Creating new %s training set (%s)' % (args.subject, in_filename)
     else:
         with open(in_filename, 'rb') as csv_read_file:
             csv_reader = unicodecsv.DictReader(csv_read_file, encoding='utf8')
             training = dict([
                 (row['name'], row)
                 for row in csv_reader])
-            standards = set([
-                row['standard'] for row in training.itervalues()])
-            standards.remove('')
+            categories = set([
+                row[args.subject] for row in training.itervalues()])
+            categories.remove('')
             training_headers = csv_reader.fieldnames
-        print 'Training set: %s' % len(training)
-    standards = list(standards)
+        print 'Training set (%s): %s' % (in_filename, len(training))
+    categories = list(categories)
 
     import random
     previous_pubs = []
@@ -199,9 +203,9 @@ def train_standard():
         print '\n\n\n\n\n\nCategorize: %s\n' % pub['url']
         pub_str = '\n'.join((pub['name'].replace('-', ' '), pub['title'], pub['summary'], pub['detail'], pub['collections'].replace('-', ' '), pub.get('a_filename', ''), pub.get('a_title', '')))
         print pub_str.rstrip('\n ')
-        print '\nStandards:'
-        standards_numbered = dict(enumerate(sorted(standards)))
-        for i, cat in standards_numbered.iteritems():
+        print '\n%s:' % args.subject.capitalize()
+        categories_numbered = dict(enumerate(sorted(categories)))
+        for i, cat in categories_numbered.iteritems():
             print '  %s %s' % (i, cat)
         print 'n none'
         if previous_pubs:
@@ -212,43 +216,44 @@ def train_standard():
             user_input = raw_input('> ')
             if (user_input in 'nqb' or
                     (is_number(user_input) and
-                     int(user_input) < len(standards)) or
+                     int(user_input) < len(categories)) or
                     len(user_input) > 1):
                 break
             print 'Invalid input'
         if user_input == 'q':
             break
         elif user_input == 'n':
-            standard = ''
+            category = ''
         elif user_input == 'b':
             pub = previous_pubs.pop()
             continue
-        elif is_number(user_input) and int(user_input) < len(standards):
-            standard = standards_numbered[int(user_input)]
+        elif is_number(user_input) and int(user_input) < len(categories):
+            category = categories_numbered[int(user_input)]
         else:
-            standard = user_input.strip()
-            if standard not in standards:
-                standards.append(standard)
+            category = user_input.strip()
+            if category not in categories:
+                categories.append(category)
         row = dict(
             name=pub['name'],
-            standard=standard,
             notes='',
             )
+        row[args.subject] = category
         training[pub['name']] = row
 
-        out_filename = 'standard_training.csv'
+        out_filename = training_data_filename
         with open(out_filename, 'wb') as csv_write_file:
             csv_writer = unicodecsv.DictWriter(csv_write_file,
                                                fieldnames=training_headers,
                                                encoding='utf-8')
             csv_writer.writeheader()
             for row in sorted(training.itervalues(),
-                              key=lambda x: x['standard']):
+                              key=lambda x: x[args.subject]):
                 csv_writer.writerow(row)
         print 'Written', out_filename
 
         previous_pubs.append(pub)
         pub = get_random_pub()
+
 
 def is_number(string):
     try:
@@ -258,9 +263,9 @@ def is_number(string):
         return False
 
 
+def categorize():
+    subject = args.subject
 
-
-def auto_standard():
     if args.include_attachments:
         if args.csv_filepath == DEFAULT_EXPORT_PUBLICATION_FILEPATH:
             args.csv_filepath = \
@@ -271,8 +276,9 @@ def auto_standard():
         csv_reader = unicodecsv.DictReader(csv_read_file, encoding='utf8')
         publications = [row for row in csv_reader]
         headers = csv_reader.fieldnames
+    assert publications, 'No publications in %s' % in_filename
 
-    in_filename = 'standard_training.csv'
+    in_filename = '%s_training.csv' % subject
     if not os.path.exists(in_filename):
         training = {}
     else:
@@ -283,117 +289,25 @@ def auto_standard():
                 for row in csv_reader])
     print 'Training set: %s' % len(training)
 
-    spend_words = {
-        'Cost of maintaining': -5,
-        'spending with SMEs': -5,
-        'household expenditure': -5,
-        'International Aid Transparency Initiative': -5,
-        'benchmarking tables': -5,
-        'Local spending reports': -5,
-        'oscar': -5,
-        'Procurement spending data for DCLG': -5,
-        'Revenue spending on free schools': -5,
-        'Spending data for DCLG and government offices': -3,
-        'Communities and Local Government group: Procurement expenditure': -5,
-        'DCLG\'s arm\'s length bodies\' spending data': -5,
-        'Contracts between the supplier': -5,
-        'flight bookings': -5,
-        'Government Procurement Card': -5,
-        'Merchant Category Code': -3,
-        'hospitality': -3,
-        'ministerial': -3,
-        'gifts': -3,
-        'major projects': -3,
-        'spending controls': -3,
-        'spending moratori(a|um)': -3,
-        'moratori(a|um) exceptions': -3,
-        'expenditure limit': -3,
-        'quarterly data summary': -3,
-        'public sector moratori(a|um)': -3,
-        'government moratori(a|um)': -3,
-        'inquiry': -3,
-        'grants': -3,
-        'review of ': -3,
-        'Transaction explorer': -3,
-        'budget': -3,
-        'standing financial instructions': -3,
-        'gpc': -2,
-        'ePCS': -2,
-        'e-payments': -5,
-        'corporate credit card': -2,
-        'procurement card': -1,
-        'procurement': -2,
-        'accounts': -1,
-        'travel': -1,
-        'spend(ing)?': 1,
-        'expenditure': 1,
-        'transactions': 1,
-        'spend(ing)? over': 1,
-        'spending data': 1,
-        'departmental spend(ing)?': 1,
-        'month by month expenditure': 1,
-        'transaction number': 2,
-        'financial transactions': 2,
-        'transactions over': 2,
-        '25,?000': 3,
-        '500': 3,
-        'spending with suppliers': 2,
-        '25k': 2,
-        'financial transactions': 3,
-        'transaction spend data': 3,
-        'spend transaction data': 3,
-        #u'£25,?000': 3, doesn't match with leading £
-        #u'£25k': 3, doesn't match with leading £
-        'expenditure for the financial year': 3,
-        'data on all payments': 3,
-        'fire service expenditure': 5,
-        u'(expenditure|spend|spending) (over|exceeding) £250': 5,
-        u'(expenditure|spend|spending) (over|exceeding) £500': 5,
-        u'(expenditure|spend|spending) (over|exceeding) £25k': 5,
-        u'(expenditure|spend|spending) (over|exceeding) £25,?000': 5,
-        u'spends exceeding £25,?000': 5,
-        'dclg spending data': 5,
-    }
-    stats_detail = Stats()
     stats = Stats()
+    stats_detail = Stats()
     stats_vs_training = Stats()
     stats_vs_training_detail = Stats()
     for pub in add_progress_bar(publications):
         if args.name and pub['name'] != args.name:
             continue
-        pub_str = '. '.join((pub['name'].replace('-', ' '), pub['title'], pub['summary'], pub['detail'], pub['collections'].replace('-', ' '), pub.get('a_filename', ''), pub.get('a_title', '')))
-        if args.name:
-            print pub_str #.encode('latin7', 'ignore')
-        score = 0
-        for word, word_score in spend_words.iteritems():
-            matches = re.findall(r'\b%s\b' % word, pub_str, re.I)
-            weight = 1.0
-            for match in matches:
-                score += word_score * weight
-                if weight == 1.0:
-                    word_score_str = str(word_score)
-                elif word_score > 0:
-                    word_score_str += '+'
-                else:
-                    word_score_str += '-'
-                weight /= 2.0  # words repeated have decreasing weight
-            if matches and args.name:
-                print '    score %s - %s' % (word_score_str, word)
-        score = round(score, 1)
-        if args.name:
-            print '    Total score: %s' % score
-        if score > 5:
-            score = 5
-        if score < 0:
-            score = 0
-        pub['is_spend_score'] = score
-        stats_detail.add(u'Score %s' % int(score), pub['name'])
-        if score >= 3:
-            pub['is_spend'] = 'y'
-            stats.add('Spend data', (score, pub['name']))
+
+        categorize_func = SUBJECTS[subject]
+        category, detail = categorize_func(pub)
+        stats_detail.add(detail, pub['name'])
+
+        if subject == 'standard':
+            pub['is_spend'] = category
+            pub['is_spend_detail'] = detail
         else:
-            pub['is_spend'] = ''
-            stats.add('Not spend data', (score, pub['name']))
+            pub[subject] = category
+            pub[subject + '_detail'] = detail
+        stats.add('%s %s' % (subject, category), (detail, pub['name']))
 
         if pub['name'] in training:
             training_is_spend = 'spend' in \
@@ -418,8 +332,9 @@ def auto_standard():
 
     def percentage_and_fraction(num, denom):
         return '%.0f%% (%s/%s)' % (
-            float(num)/denom*100,
+            float(num) / denom * 100,
             num, denom)
+
     def get_report_value(key):
         if key in stats_vs_training_detail:
             return stats_vs_training_detail.report_value(key)[0]
@@ -428,15 +343,20 @@ def auto_standard():
     if stats_vs_training:
         print '\nCheck vs training:'
         print '  Overall: %s' % percentage_and_fraction(
-        len(stats_vs_training.get('true', [])), stats_vs_training_detail.get_total())
+            len(stats_vs_training.get('true', [])),
+            stats_vs_training_detail.get_total())
         print '  True positive: %s' % get_report_value('true positive')
         print '  False positive: %s' % get_report_value('false positive')
         print '  False negative: %s' % get_report_value('false negative')
 
-    if 'is_spend' not in headers:
-        headers.append('is_spend')
-    if 'is_spend_score' not in headers:
-        headers.append('is_spend_score')
+    if subject == 'standard':
+        if 'is_spend' not in headers:
+            headers.append('is_spend')
+        if 'is_spend_score' not in headers:
+            headers.append('is_spend_detail')
+    else:
+        headers.append(subject)
+        headers.append(subject + '_detail')
 
     if not args.name:
         out_filename = args.csv_filepath
@@ -445,11 +365,132 @@ def auto_standard():
                                                fieldnames=headers,
                                                encoding='utf-8')
             csv_writer.writeheader()
-            for row in publications:
-                csv_writer.writerow(row)
+            try:
+                for row in publications:
+                    csv_writer.writerow(row)
+            except:
+                traceback.print_exc()
+                import pdb; pdb.set_trace()
         print 'Written', out_filename
     else:
-        print 'Not written - filter is applied'
+        print 'Not written publications - filter is applied'
+
+spend_words = None
+
+def categorize_standard(pub):
+    global spend_words
+    if not spend_words:
+        spend_words = {
+            'Cost of maintaining': -5,
+            'spending with SMEs': -5,
+            'household expenditure': -5,
+            'International Aid Transparency Initiative': -5,
+            'benchmarking tables': -5,
+            'Local spending reports': -5,
+            'oscar': -5,
+            'Procurement spending data for DCLG': -5,
+            'Revenue spending on free schools': -5,
+            'Spending data for DCLG and government offices': -3,
+            'Communities and Local Government group: Procurement expenditure': -5,
+            'DCLG\'s arm\'s length bodies\' spending data': -5,
+            'Contracts between the supplier': -5,
+            'flight bookings': -5,
+            'Government Procurement Card': -5,
+            'Merchant Category Code': -3,
+            'hospitality': -3,
+            'ministerial': -3,
+            'gifts': -3,
+            'major projects': -3,
+            'spending controls': -3,
+            'spending moratori(a|um)': -3,
+            'moratori(a|um) exceptions': -3,
+            'expenditure limit': -3,
+            'quarterly data summary': -3,
+            'public sector moratori(a|um)': -3,
+            'government moratori(a|um)': -3,
+            'inquiry': -3,
+            'grants': -3,
+            'review of ': -3,
+            'Transaction explorer': -3,
+            'budget': -3,
+            'standing financial instructions': -3,
+            'gpc': -2,
+            'ePCS': -2,
+            'e-payments': -5,
+            'corporate credit card': -2,
+            'procurement card': -1,
+            'procurement': -2,
+            'accounts': -1,
+            'travel': -1,
+            'spend(ing)?': 1,
+            'expenditure': 1,
+            'transactions': 1,
+            'spend(ing)? over': 1,
+            'spending data': 1,
+            'departmental spend(ing)?': 1,
+            'month by month expenditure': 1,
+            'transaction number': 2,
+            'financial transactions': 2,
+            'transactions over': 2,
+            '25,?000': 3,
+            '500': 3,
+            'spending with suppliers': 2,
+            '25k': 2,
+            'financial transactions': 3,
+            'transaction spend data': 3,
+            'spend transaction data': 3,
+            #u'£25,?000': 3, doesn't match with leading £
+            #u'£25k': 3, doesn't match with leading £
+            'expenditure for the financial year': 3,
+            'data on all payments': 3,
+            'fire service expenditure': 5,
+            u'(expenditure|spend|spending) (over|exceeding) £250': 5,
+            u'(expenditure|spend|spending) (over|exceeding) £500': 5,
+            u'(expenditure|spend|spending) (over|exceeding) £25k': 5,
+            u'(expenditure|spend|spending) (over|exceeding) £25,?000': 5,
+            u'spends exceeding £25,?000': 5,
+            'dclg spending data': 5,
+        }
+
+    score_details = []
+    pub_str = '. '.join((pub['name'].replace('-', ' '), pub['title'], pub['summary'], pub['detail'], pub['collections'].replace('-', ' '), pub.get('a_filename', ''), pub.get('a_title', '')))
+    if args.name:
+        print pub_str #.encode('latin7', 'ignore')
+    score = 0
+    for word, word_score in spend_words.iteritems():
+        matches = re.findall(r'\b%s\b' % word, pub_str, re.I)
+        weight = 1.0
+        for match in matches:
+            score += word_score * weight
+            if weight == 1.0:
+                word_score_str = str(word_score)
+            elif word_score > 0:
+                word_score_str += '+'
+            else:
+                word_score_str += '-'
+            weight /= 2.0  # words repeated have decreasing weight
+        if matches and args.name:
+            print '    score %s - %s' % (word_score_str, word)
+    score = round(score, 1)
+    if args.name:
+        print '    Total score: %s' % score
+    bounded_score = score
+    if score > 5:
+        bounded_score = 5
+    if score <= 0:
+        bounded_score = 0
+
+    if score >= 3:
+        category = 'y'
+    else:
+        category = ''
+    return category, bounded_score
+
+
+SUBJECTS = dict(
+    standard=categorize_standard,
+    )
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
@@ -475,18 +516,20 @@ if __name__ == '__main__':
     parser_export_publications.add_argument('--include-attachments', action='store_true')
     parser_export_publications.set_defaults(func=export_publications)
 
-    subparser = subparsers.add_parser('train-standard')
+    subparser = subparsers.add_parser('train')
+    subparser.add_argument('subject', choices=SUBJECTS)
     subparser.add_argument('--csv-filepath', default=DEFAULT_EXPORT_PUBLICATION_FILEPATH)
     subparser.add_argument('--include-attachments', action='store_true')
-    subparser.set_defaults(func=train_standard)
+    subparser.set_defaults(func=train)
 
-    subparser = subparsers.add_parser('auto-standard')
+    subparser = subparsers.add_parser('categorize')
+    subparser.add_argument('subject', choices=SUBJECTS)
     subparser.add_argument('ckan_ini', help='CKAN config path')
     subparser.add_argument('--name', help='Filter to a particular name')
     subparser.add_argument('--csv-filepath', default=DEFAULT_EXPORT_PUBLICATION_FILEPATH)
     subparser.add_argument('-v', '--verbose', action='store_true')
     subparser.add_argument('--include-attachments', action='store_true')
-    subparser.set_defaults(func=auto_standard)
+    subparser.set_defaults(func=categorize)
 
     args = parser.parse_args()
     args.func()
