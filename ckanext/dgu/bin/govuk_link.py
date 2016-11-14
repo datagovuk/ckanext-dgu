@@ -152,7 +152,7 @@ def export_publications():
     print 'Written', out_filename
 
 
-def train_categorize():
+def train_standard():
     if args.include_attachments:
         if args.csv_filepath == DEFAULT_EXPORT_PUBLICATION_FILEPATH:
             args.csv_filepath = \
@@ -165,11 +165,11 @@ def train_categorize():
         headers = csv_reader.fieldnames
         print 'Publications: %s' % len(publications)
 
-    categories = set()
-    in_filename = 'categorize_training.csv'
+    standards = set()
+    in_filename = 'standard_training.csv'
     if not os.path.exists(in_filename):
         training = {}
-        training_headers = ['govuk_id', 'name', 'category']
+        training_headers = ['govuk_id', 'name', 'standard']
         print 'Creating new training set'
     else:
         with open(in_filename, 'rb') as csv_read_file:
@@ -177,12 +177,12 @@ def train_categorize():
             training = dict([
                 (row['name'], row)
                 for row in csv_reader])
-            categories = set([
-                row['category'] for row in training.itervalues()])
-            categories.remove('')
+            standards = set([
+                row['standard'] for row in training.itervalues()])
+            standards.remove('')
             training_headers = csv_reader.fieldnames
         print 'Training set: %s' % len(training)
-    categories = list(categories)
+    standards = list(standards)
 
     import random
     previous_pubs = []
@@ -199,9 +199,9 @@ def train_categorize():
         print '\n\n\n\n\n\nCategorize: %s\n' % pub['url']
         pub_str = '\n'.join((pub['name'].replace('-', ' '), pub['title'], pub['summary'], pub['detail'], pub['collections'].replace('-', ' '), pub.get('a_filename', ''), pub.get('a_title', '')))
         print pub_str.rstrip('\n ')
-        print '\nCategories:'
-        categories_numbered = dict(enumerate(sorted(categories)))
-        for i, cat in categories_numbered.iteritems():
+        print '\nStandards:'
+        standards_numbered = dict(enumerate(sorted(standards)))
+        for i, cat in standards_numbered.iteritems():
             print '  %s %s' % (i, cat)
         print 'n none'
         if previous_pubs:
@@ -212,38 +212,38 @@ def train_categorize():
             user_input = raw_input('> ')
             if (user_input in 'nqb' or
                     (is_number(user_input) and
-                     int(user_input) < len(categories)) or
+                     int(user_input) < len(standards)) or
                     len(user_input) > 1):
                 break
             print 'Invalid input'
         if user_input == 'q':
             break
         elif user_input == 'n':
-            category = ''
+            standard = ''
         elif user_input == 'b':
             pub = previous_pubs.pop()
             continue
-        elif is_number(user_input) and int(user_input) < len(categories):
-            category = categories_numbered[int(user_input)]
+        elif is_number(user_input) and int(user_input) < len(standards):
+            standard = standards_numbered[int(user_input)]
         else:
-            category = user_input.strip()
-            if category not in categories:
-                categories.append(category)
+            standard = user_input.strip()
+            if standard not in standards:
+                standards.append(standard)
         row = dict(
             govuk_id=pub['govuk_id'],
             name=pub['name'],
-            category=category,
+            standard=standard,
             )
         training[pub['name']] = row
 
-        out_filename = 'categorize_training.csv'
+        out_filename = 'standard_training.csv'
         with open(out_filename, 'wb') as csv_write_file:
             csv_writer = unicodecsv.DictWriter(csv_write_file,
                                                fieldnames=training_headers,
                                                encoding='utf-8')
             csv_writer.writeheader()
             for row in sorted(training.itervalues(),
-                              key=lambda x: x['category']):
+                              key=lambda x: x['standard']):
                 csv_writer.writerow(row)
         print 'Written', out_filename
 
@@ -260,7 +260,7 @@ def is_number(string):
 
 
 
-def auto_categorize():
+def auto_standard():
     if args.include_attachments:
         if args.csv_filepath == DEFAULT_EXPORT_PUBLICATION_FILEPATH:
             args.csv_filepath = \
@@ -272,7 +272,7 @@ def auto_categorize():
         publications = [row for row in csv_reader]
         headers = csv_reader.fieldnames
 
-    in_filename = 'categorize_training.csv'
+    in_filename = 'standard_training.csv'
     if not os.path.exists(in_filename):
         training = {}
     else:
@@ -393,7 +393,7 @@ def auto_categorize():
 
         if pub['name'] in training:
             training_is_spend = 'spend' in \
-                training[pub['name']]['category']
+                training[pub['name']]['standard']
             if training_is_spend == bool(pub['is_spend']):
                 stats_vs_training.add('true', pub['name'])
                 if pub['is_spend']:
@@ -471,18 +471,18 @@ if __name__ == '__main__':
     parser_export_publications.add_argument('--include-attachments', action='store_true')
     parser_export_publications.set_defaults(func=export_publications)
 
-    subparser = subparsers.add_parser('train-categorize')
+    subparser = subparsers.add_parser('train-standard')
     subparser.add_argument('--csv-filepath', default=DEFAULT_EXPORT_PUBLICATION_FILEPATH)
     subparser.add_argument('--include-attachments', action='store_true')
-    subparser.set_defaults(func=train_categorize)
+    subparser.set_defaults(func=train_standard)
 
-    subparser = subparsers.add_parser('auto-categorize')
+    subparser = subparsers.add_parser('auto-standard')
     subparser.add_argument('ckan_ini', help='CKAN config path')
     subparser.add_argument('--name', help='Filter to a particular name')
     subparser.add_argument('--csv-filepath', default=DEFAULT_EXPORT_PUBLICATION_FILEPATH)
     subparser.add_argument('-v', '--verbose', action='store_true')
     subparser.add_argument('--include-attachments', action='store_true')
-    subparser.set_defaults(func=auto_categorize)
+    subparser.set_defaults(func=auto_standard)
 
     args = parser.parse_args()
     args.func()
