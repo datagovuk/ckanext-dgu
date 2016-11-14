@@ -19,6 +19,7 @@ print stats
 
 import copy
 import datetime
+import itertools
 
 
 class Stats(dict):
@@ -36,6 +37,8 @@ class Stats(dict):
 
     def add(self, category, value):
         self._init_category(category)
+        if isinstance(value, list) or isinstance(value, tuple):
+            value = ' '.join([str(val) for val in value])
         self[category].append(value)
         # return the thing too, so that it is easily printed
         printable = '%s: %s' % (category, value)
@@ -49,7 +52,7 @@ class Stats(dict):
             value_str = value_str[:self.report_value_limit] + '...'
         return (value_str, number_of_values)
 
-    def report(self, indent=1, order_by_title=False, show_time_taken=True):
+    def report(self, indent=1, order_by_title=False, show_time_taken=True, show_total=True):
         lines = []
         indent_str = '\t' * indent
         report_dict = dict()
@@ -68,6 +71,10 @@ class Stats(dict):
         if not self:
             lines = [indent_str + 'None']
 
+        if show_total:
+            total = self.get_total()
+            lines.append(indent_str + 'Total: %s' % total)
+
         if show_time_taken:
             time_taken = str(datetime.datetime.now() -
                              self._start_time).split('.')[0]
@@ -77,6 +84,9 @@ class Stats(dict):
     def show_time_taken(self):
         time_taken = datetime.datetime.now() - self._start_time
         print 'Time taken (h:m:s): %s' % time_taken
+
+    def get_total(self):
+        return sum([len(self[key]) for key in self])
 
     def __repr__(self):
         return self.report()
