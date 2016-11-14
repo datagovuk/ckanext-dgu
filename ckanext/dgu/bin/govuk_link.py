@@ -169,7 +169,7 @@ def train_standard():
     in_filename = 'standard_training.csv'
     if not os.path.exists(in_filename):
         training = {}
-        training_headers = ['govuk_id', 'name', 'standard']
+        training_headers = ['name', 'standard']
         print 'Creating new training set'
     else:
         with open(in_filename, 'rb') as csv_read_file:
@@ -230,7 +230,6 @@ def train_standard():
             if standard not in standards:
                 standards.append(standard)
         row = dict(
-            govuk_id=pub['govuk_id'],
             name=pub['name'],
             standard=standard,
             )
@@ -393,7 +392,7 @@ def auto_standard():
 
         if pub['name'] in training:
             training_is_spend = 'spend' in \
-                training[pub['name']]['standard']
+                training[pub['name']]['standard'].split()
             if training_is_spend == bool(pub['is_spend']):
                 stats_vs_training.add('true', pub['name'])
                 if pub['is_spend']:
