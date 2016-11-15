@@ -2057,6 +2057,16 @@ def is_core_dataset(package):
 
     return False
 
+def is_its_dataset(package):
+    from paste.deploy.converters import asbool
+    v = get_from_flat_dict(package['extras'], 'its-dataset')
+    try:
+        return asbool(v)
+    except:
+        pass
+
+    return False
+
 def report_generated_at(reportname, object_id='__all__', withsub=False):
     from ckan import model
     from ckanext.report.model import DataCache
