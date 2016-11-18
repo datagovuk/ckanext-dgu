@@ -744,6 +744,24 @@ Passed in:
       <p class="instructions further">NII datasets are determined by their publishers to be nationally important, and publishers agree to the higher level of publishing quality described in the NII literature.</p>
     </div>
 
+    <div class="well">
+      <h3>Intelligent Transport Systems</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
+                <input id="its-dataset-hidden" name="its-dataset" type="hidden" value=""/>
+                <input id="its-dataset" name="its-dataset" type="checkbox" value="true"
+                {% if data.get('its-dataset', '').lower() == 'true' %} checked="checked"{% endif %} />
+                An Intelligent Transport Systems dataset
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">You should check this box if the dataset is a part of the Intelligent Transport Systems EU Directive (2010/40/EU)</p>
+    </div>
+
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-temporal-field">
@@ -1043,6 +1061,9 @@ $(function() {
     }
     if ($("#core-dataset").prop("checked")) {
       $("#core-dataset-hidden").prop("disabled", true);
+    }
+    if ($("#its-dataset").prop("checked")) {
+      $("#its-dataset-hidden").prop("disabled", true);
     }
   });
 });

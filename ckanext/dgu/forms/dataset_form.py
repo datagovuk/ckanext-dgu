@@ -285,6 +285,7 @@ class DatasetForm(p.SingletonPlugin):
 
             'unpublished': [ignore_missing, bool_, convert_to_extras],
             'core-dataset': [ignore_missing, bool_, convert_to_extras],
+            'its-dataset': [ignore_missing, bool_, convert_to_extras],
             'release-notes': [ignore_missing, unicode, convert_to_extras],
             'publish-date': [ignore_missing, date_to_db, convert_to_extras],
             'publish-restricted': [ignore_missing, bool_, convert_to_extras],
@@ -346,6 +347,7 @@ class DatasetForm(p.SingletonPlugin):
 
             'unpublished': [convert_from_extras, ignore_missing],
             'core-dataset': [convert_from_extras, ignore_missing],
+            'its-dataset': [convert_from_extras, ignore_missing],
             'release-notes': [convert_from_extras, ignore_missing],
             'publish-date': [convert_from_extras, ignore_missing, date_to_form],
             'publish-restricted': [convert_from_extras, ignore_missing],

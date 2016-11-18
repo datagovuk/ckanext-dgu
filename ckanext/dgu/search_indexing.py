@@ -37,6 +37,11 @@ class SearchIndexing(object):
         log.debug('API: %s', pkg_dict['api'])
 
     @classmethod
+    def add_its(cls, pkg_dict):
+        pkg_dict['its_dataset'] = pkg_dict.get('its-dataset', False)
+        log.debug('ITS: %s', pkg_dict['its_dataset'])
+
+    @classmethod
     def add_inventory(cls, pkg_dict):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''
@@ -44,7 +49,7 @@ class SearchIndexing(object):
         #log.debug('Unpublished: %s', pkg_dict['unpublished'])
 
         pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
-        #log.debug('NII: %s', pkg_dict['core_dataset'])
+        log.debug('NII: %s', pkg_dict['core_dataset'])
 
         # We also need to mark whether it is restricted (as in it will never be
         # released).
@@ -57,6 +62,8 @@ class SearchIndexing(object):
 
         if asbool(pkg_dict.get('core-dataset', False)):
             pkg_dict['collection'].append('National Information Infrastructure')
+        if asbool(pkg_dict.get('its-dataset', False)):
+            pkg_dict['collection'].append('Intelligent Transport Systems')
         if dgu_helpers.is_dataset_organogram(pkg_dict):
             pkg_dict['collection'].append('Organogram')
 
