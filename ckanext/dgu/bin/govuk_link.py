@@ -108,7 +108,8 @@ def export_publications():
         model.Session.query(govuk_pubs_model.Publication)\
         .order_by(govuk_pubs_model.Publication.title)
     print 'Publications: %s' % publications.count()
-    for pub in publications.yield_per(200):
+    for pub in add_progress_bar(publications.yield_per(200),
+                                maxval=publications.count()):
         pub_row = {}
         pub_row['collections'] = ' '.join([c.name for c in pub.collections])
         pub_row['govuk_organizations'] = ' '.join(
@@ -136,6 +137,7 @@ def export_publications():
                 num_publications_without_attachments += 1
         else:
             out_rows.append(pub_row)
+
     if args.include_attachments:
         print 'Attachments: %s' % num_attachments
         print 'Publications without attachments: %s' % \
@@ -304,15 +306,22 @@ def categorize():
         if subject == 'standard':
             pub['is_spend'] = category
             pub['is_spend_detail'] = detail
+            category_to_compare_with_training = bool(category)
         else:
             pub[subject] = category
             pub[subject + '_detail'] = detail
+            category_to_compare_with_training = category
         stats.add('%s %s' % (subject, category), (detail, pub['name']))
 
         if pub['name'] in training:
-            training_is_spend = 'spend' in \
-                training[pub['name']]['standard'].split()
-            if training_is_spend == bool(pub['is_spend']):
+            if subject == 'standard':
+                training_category = 'spend' in \
+                    training[pub['name']]['standard'].split()
+            elif subject == 'link':
+                training_row = training[pub['name']]
+                training_category = (training_row['govuk_table'],
+                                     training_row['dataset_name'])
+            if training_category == category_to_compare_with_training:
                 stats_vs_training.add('true', pub['name'])
                 if pub['is_spend']:
                     stats_vs_training_detail.add('true positive', pub['name'])
@@ -475,7 +484,7 @@ def categorize_standard(pub):
     if args.name:
         print '    Total score: %s' % score
     bounded_score = score
-    if score > 5:
+    if score >= 5:
         bounded_score = 5
     if score <= 0:
         bounded_score = 0
@@ -487,8 +496,21 @@ def categorize_standard(pub):
     return category, bounded_score
 
 
+def categorize_link(pub):
+    category = None
+    detail = ''
+
+    # hack
+    if pub['name'] == 'bis-spending-over-500':
+        category = ('collection', 'financial-transactions-spend-data-bis')
+
+    if category is None:
+        category = ('', '')
+    return category, detail
+
 SUBJECTS = dict(
     standard=categorize_standard,
+    link=categorize_link,
     )
 
 
