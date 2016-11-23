@@ -300,7 +300,34 @@ def command(config_file):
         arguments['--get-request'] = True
         dump_datasets(
             'v2.jsonl', ckanapi.cli.dump.dump_things, 2,
-            ckan, 'datasets', arguments,
+            ckan, 'organizations', arguments,
+            worker_pool=None, stdout=devnull, stderr=devnull)
+        report_time_taken(log)
+
+    if run_task('dump-orgs'):
+        # since gov_daily.py is run with sudo, and a path to python in the venv
+        # rather than in an activated environment, and ckanapi creates
+        # subprocesses, we need to activate the environment. The same one as
+        # our current python interpreter.
+        bin_dir = os.path.dirname(sys.executable)
+        activate_this = os.path.join(bin_dir, 'activate_this.py')
+        execfile(activate_this, dict(__file__=activate_this))
+        import ckanapi.cli.dump
+        log.info('Creating database dumps - organization json')
+        create_dump_dir_if_necessary()
+        # HACK port
+        ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
+                                  get_only=True)
+        devnull = open(os.devnull, 'w')
+        arguments = ConfigObject()
+        arguments['--all'] = True
+        #arguments['ID_OR_NAME'] = ['mot-active-vts', 'road-accidents-safety-data']
+        arguments['--processes'] = 4
+        arguments['--remote'] = config['ckan.site_url']
+        arguments['--get-request'] = True
+        dump_datasets(
+            'organizations.jsonl', ckanapi.cli.dump.dump_things, 2,
+            ckan, 'organizations', arguments,
             worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
 
@@ -404,7 +431,7 @@ class ConfigObject(dict):
 
 TASKS_TO_RUN = ['analytics', 'openspending',
                 'dump-csv', 'dump-csv-unpublished', 'dump-json', 'dump-json2',
-                'dump_analysis', 'backup']
+                'dump-orgs', 'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
