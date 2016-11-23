@@ -315,13 +315,11 @@ def command(config_file):
         import ckanapi.cli.dump
         log.info('Creating database dumps - organization json')
         create_dump_dir_if_necessary()
-        # HACK port
         ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
                                   get_only=True)
         devnull = open(os.devnull, 'w')
         arguments = ConfigObject()
         arguments['--all'] = True
-        #arguments['ID_OR_NAME'] = ['mot-active-vts', 'road-accidents-safety-data']
         arguments['--processes'] = 4
         arguments['--remote'] = config['ckan.site_url']
         arguments['--get-request'] = True
