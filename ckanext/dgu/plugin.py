@@ -518,6 +518,7 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_its(pkg_dict)
         SearchIndexing.add_api_flag(pkg_dict)
         SearchIndexing.add_theme(pkg_dict)
         if is_plugin_enabled('dgu_schema'):
