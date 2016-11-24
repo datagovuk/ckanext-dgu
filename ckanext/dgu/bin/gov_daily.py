@@ -234,10 +234,14 @@ def command(config_file):
          1: (file object, Package query)
          2: ckanapi.cli.dump.dump_things
         '''
+        import gzip
+        import shutil
         dump_file_base = start_time.strftime(dump_filebase)
         dump_filename = '%s.%s' % (dump_file_base, file_type)
-        dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
-        log.info('Creating %s file: %s' % (file_type, dump_filepath))
+        zip_filepath = os.path.join(dump_dir, dump_filename + '.zip')
+        gz_filepath = os.path.join(dump_dir, dump_filename + '.gz')
+        log.info('Creating %s dump: %s', file_type, tmp_filepath)
+        # Dump the data to a temporary file
         if dumper_type == 1:
             tmp_file = open(tmp_filepath, 'w+b')
             query = model.Session.query(model.Package) \
@@ -248,19 +252,29 @@ def command(config_file):
             dumper_args[2]['--output'] = tmp_filepath
             dumper_func(*dumper_args, **dumper_kwargs)
         log.info('Dumped data file is %dMb in size' %
-                 (os.path.getsize(tmp_filepath) / (1024*1024)))
-        dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
-        dump_file.write(tmp_filepath, dump_filename)
-        dump_file.close()
+                 (os.path.getsize(tmp_filepath) / (1024 * 1024)))
+        # Create zip and gz versions
+        log.info('Zipping dump to: %s & %s' % (zip_filepath, gz_filepath))
+        zip_file = zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED)
+        zip_file.write(tmp_filepath, dump_filename)
+        zip_file.close()
+        with open(tmp_filepath, 'rb') as f_in, \
+                gzip.open(gz_filepath, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
-        # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
-        # so that it is up-to-date with the latest version for both JSON and CSV.
-        link_filepath = os.path.join(dump_dir,
-            "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
+        # Setup a symbolic link to dumps from
+        # data.gov.uk-ckan-meta-data-latest.{0}.zip so that it is up-to-date
+        # with the latest version for both JSON and CSV.
+        for dump_filepath, extension in ((zip_filepath, 'zip'),
+                                         (gz_filepath, 'gz')):
+            link_filepath = os.path.join(
+                dump_dir,
+                'data.gov.uk-ckan-meta-data-latest.{0}.{1}'.format(
+                    file_type, extension))
 
-        if os.path.lexists(link_filepath):
-            os.unlink(link_filepath)
-        os.symlink(dump_filepath, link_filepath)
+            if os.path.lexists(link_filepath):
+                os.unlink(link_filepath)
+            os.symlink(dump_filepath, link_filepath)
 
         os.remove(tmp_filepath)
 
