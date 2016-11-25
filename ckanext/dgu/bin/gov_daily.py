@@ -314,7 +314,7 @@ def command(config_file):
         arguments['--get-request'] = True
         dump_datasets(
             'v2.jsonl', ckanapi.cli.dump.dump_things, 2,
-            ckan, 'organizations', arguments,
+            ckan, 'datasets', arguments,
             worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
 
