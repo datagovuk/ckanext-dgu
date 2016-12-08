@@ -52,6 +52,8 @@ def command(config_file):
         default_openspending_reports_dir = '~/openspending_reports'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
+    private_dump_dir = os.path.expanduser(config.get('ckan.private_dump_dir',
+                                                     ''))
     analysis_dir = os.path.expanduser(config.get('ckan.dump_analysis_dir',
                                              default_analysis_dir))
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
@@ -184,13 +186,13 @@ def command(config_file):
                         log.info('Wrote openspending report %s', filepath)
 
     # Create dumps for users
-    def create_dump_dir_if_necessary():
+    def create_dump_dir_if_necessary(dump_dir):
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
             os.makedirs(dump_dir)
     if run_task('dump-csv'):
         log.info('Creating database dumps - CSV')
-        create_dump_dir_if_necessary()
+        create_dump_dir_if_necessary(dump_dir)
         dump_file_base = start_time.strftime(dump_filebase)
 
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
@@ -224,7 +226,7 @@ def command(config_file):
         os.remove(dataset_file)
         os.remove(resource_file)
 
-    def dump_datasets(file_type, dumper_func, dumper_type,
+    def dump_datasets(file_type, dumper_func, dumper_type, dump_dir,
                       *dumper_args, **dumper_kwargs):
         '''
         Runs the dump, outputing to a tempfile, zips it in correct place,
@@ -251,45 +253,46 @@ def command(config_file):
         elif dumper_type == 2:
             dumper_args[2]['--output'] = tmp_filepath
             dumper_func(*dumper_args, **dumper_kwargs)
-        log.info('Dumped data file is %dMb in size' %
-                 (os.path.getsize(tmp_filepath) / (1024 * 1024)))
-        # Create zip and gz versions
-        log.info('Zipping dump to: %s & %s' % (zip_filepath, gz_filepath))
-        zip_file = zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED)
-        zip_file.write(tmp_filepath, dump_filename)
-        zip_file.close()
-        with open(tmp_filepath, 'rb') as f_in, \
-                gzip.open(gz_filepath, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+        try:
+            log.info('Dumped data file is %dMB in size' %
+                     (os.path.getsize(tmp_filepath) / (1024 * 1024)))
+            # Create zip and gz versions
+            log.info('Zipping dump to: %s & %s' % (zip_filepath, gz_filepath))
+            zip_file = zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED)
+            zip_file.write(tmp_filepath, dump_filename)
+            zip_file.close()
+            with open(tmp_filepath, 'rb') as f_in, \
+                    gzip.open(gz_filepath, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
 
-        # Setup a symbolic link to dumps from
-        # data.gov.uk-ckan-meta-data-latest.{0}.zip so that it is up-to-date
-        # with the latest version for both JSON and CSV.
-        for dump_filepath, extension in ((zip_filepath, 'zip'),
-                                         (gz_filepath, 'gz')):
-            link_filepath = os.path.join(
-                dump_dir,
-                'data.gov.uk-ckan-meta-data-latest.{0}.{1}'.format(
-                    file_type, extension))
+            # Setup a symbolic link to dumps from
+            # data.gov.uk-ckan-meta-data-latest.{0}.zip so that it is up-to-date
+            # with the latest version for both JSON and CSV.
+            for dump_filepath, extension in ((zip_filepath, 'zip'),
+                                             (gz_filepath, 'gz')):
+                link_filepath = os.path.join(
+                    dump_dir,
+                    'data.gov.uk-ckan-meta-data-latest.{0}.{1}'.format(
+                        file_type, extension))
 
-            if os.path.lexists(link_filepath):
-                os.unlink(link_filepath)
-            os.symlink(dump_filepath, link_filepath)
-
-        os.remove(tmp_filepath)
+                if os.path.lexists(link_filepath):
+                    os.unlink(link_filepath)
+                os.symlink(dump_filepath, link_filepath)
+        finally:
+            os.remove(tmp_filepath)
 
     if run_task('dump-csv-unpublished'):
         log.info('Creating database dumps - CSV unpublished')
-        create_dump_dir_if_necessary()
+        create_dump_dir_if_necessary(dump_dir)
 
-        dump_datasets('unpublished.csv', unpublished_dumper, 1)
+        dump_datasets('unpublished.csv', unpublished_dumper, 1, dump_dir)
         report_time_taken(log)
 
     if run_task('dump-json'):
         log.info('Creating database dumps - JSON')
         create_dump_dir_if_necessary()
 
-        dump_datasets('json', dumper.SimpleDumper().dump_json, 1)
+        dump_datasets('json', dumper.SimpleDumper().dump_json, 1, dump_dir)
         report_time_taken(log)
 
     if run_task('dump-json2'):
@@ -302,7 +305,7 @@ def command(config_file):
         execfile(activate_this, dict(__file__=activate_this))
         import ckanapi.cli.dump
         log.info('Creating database dumps - JSON 2')
-        create_dump_dir_if_necessary()
+        create_dump_dir_if_necessary(dump_dir)
         ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
                                   get_only=True)
         devnull = open(os.devnull, 'w')
@@ -313,7 +316,7 @@ def command(config_file):
         arguments['--remote'] = config['ckan.site_url']
         arguments['--get-request'] = True
         dump_datasets(
-            'v2.jsonl', ckanapi.cli.dump.dump_things, 2,
+            'v2.jsonl', ckanapi.cli.dump.dump_things, 2, dump_dir,
             ckan, 'datasets', arguments,
             worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
@@ -328,7 +331,7 @@ def command(config_file):
         execfile(activate_this, dict(__file__=activate_this))
         import ckanapi.cli.dump
         log.info('Creating database dumps - organization json')
-        create_dump_dir_if_necessary()
+        create_dump_dir_if_necessary(dump_dir)
         ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
                                   get_only=True)
         devnull = open(os.devnull, 'w')
@@ -338,7 +341,38 @@ def command(config_file):
         arguments['--remote'] = config['ckan.site_url']
         arguments['--get-request'] = True
         dump_datasets(
+            'organizations.jsonl', ckanapi.cli.dump.dump_things, 2, dump_dir,
+            ckan, 'organizations', arguments,
+            worker_pool=None, stdout=devnull, stderr=devnull)
+        report_time_taken(log)
+
+    if run_task('dump-orgs-private'):
+        # since gov_daily.py is run with sudo, and a path to python in the venv
+        # rather than in an activated environment, and ckanapi creates
+        # subprocesses, we need to activate the environment. The same one as
+        # our current python interpreter.
+        bin_dir = os.path.dirname(sys.executable)
+        activate_this = os.path.join(bin_dir, 'activate_this.py')
+        execfile(activate_this, dict(__file__=activate_this))
+        import ckanapi.cli.dump
+        from ckan import logic
+        log.info('Creating database dumps - organization json')
+        create_dump_dir_if_necessary(dump_dir)
+        ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
+                                  get_only=True)
+        devnull = open(os.devnull, 'w')
+        arguments = ConfigObject()
+        arguments['--all'] = True
+        arguments['--processes'] = 4
+        arguments['--remote'] = config['ckan.site_url']
+        arguments['--get-request'] = True
+        # apikey is needed to get the (private) user information
+        site_user = logic.get_action('get_site_user')({'ignore_auth': True},
+            None)
+        arguments['--apikey'] = site_user['apikey']
+        dump_datasets(
             'organizations.jsonl', ckanapi.cli.dump.dump_things, 2,
+            private_dump_dir,
             ckan, 'organizations', arguments,
             worker_pool=None, stdout=devnull, stderr=devnull)
         report_time_taken(log)
@@ -443,7 +477,8 @@ class ConfigObject(dict):
 
 TASKS_TO_RUN = ['analytics', 'openspending',
                 'dump-csv', 'dump-csv-unpublished', 'dump-json', 'dump-json2',
-                'dump-orgs', 'dump_analysis', 'backup']
+                'dump-orgs', 'dump-orgs-private',
+                'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
