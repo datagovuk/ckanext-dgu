@@ -356,7 +356,7 @@ def command(config_file):
         execfile(activate_this, dict(__file__=activate_this))
         import ckanapi.cli.dump
         from ckan import logic
-        log.info('Creating database dumps - organization json')
+        log.info('Creating database dumps - organizations with private data')
         create_dump_dir_if_necessary(dump_dir)
         ckan = ckanapi.RemoteCKAN('http://localhost', user_agent='daily dump',
                                   get_only=True)
