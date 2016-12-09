@@ -43,6 +43,10 @@ def is_resource_broken(resource):
     archival = resource.get('archiver')
     if not archival:
         return None # don't know
+    if not isinstance(archival, dict):
+        # some old versions of datasets are incorrectly stored as strings
+        # eg /dataset/financial-transactions-data-defra%402016-10-24T14%3A43%3A49.461399
+        return None
     return archival.get('is_broken')
 
 def _is_additional_resource(resource):
@@ -547,13 +551,19 @@ def ga_package_zip_resource(pkg, pkg_dict):
 
 
 def ga_download_tracking_data(resource, pkg_dict, publisher_name, action='download'):
+    qa = resource.get('qa') or {}
+    if not isinstance(qa, dict):
+        qa = {}
+    archiver = (resource.get('archiver') or {})
+    if not isinstance(archiver, dict):
+        archiver = {}
     resource_dimensions = dict(
         dimension4=publisher_name,
         dimension5=resource.get('format'),
         dimension6=resource.get('date') or '',
-        dimension7=(resource.get('qa') or {}).get('openness_score', ''),
-        dimension8=(pkg_dict.get('qa') or {}).get('openness_score', ''),
-        dimension9=(resource.get('archiver') or {}).get('is_broken', ''),
+        dimension7=qa.get('openness_score', ''),
+        dimension8=qa.get('openness_score', ''),
+        dimension9=archiver.get('is_broken', ''),
     )
     return resource_dimensions, action, resource.get('url')
 
