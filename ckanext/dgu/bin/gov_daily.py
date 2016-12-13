@@ -290,7 +290,7 @@ def command(config_file):
 
     if run_task('dump-json'):
         log.info('Creating database dumps - JSON')
-        create_dump_dir_if_necessary()
+        create_dump_dir_if_necessary(dump_dir)
 
         dump_datasets('json', dumper.SimpleDumper().dump_json, 1, dump_dir)
         report_time_taken(log)
