@@ -61,6 +61,17 @@ def load_config(config_filepath):
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
+def get_config_value_without_loading_ckan_environment(config_filepath, key):
+    '''May raise exception ValueError'''
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
+    try:
+        config.read(os.path.expanduser(config_filepath))
+        return config.get('app:main', key)
+    except ConfigParser.Error, e:
+        err = 'Error reading CKAN config file %s to get key %s: %s' % (
+            config_filepath, key, e)
+        raise ValueError(err)
 
 def register_translator():
     # Register a translator in this thread so that
