@@ -101,6 +101,7 @@
     <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="false"/>
     <field name="its_dataset" type="boolean" indexed="true" stored="true" multiValued="false"/>
+    <field name="register" type="boolean" indexed="true" stored="true" multiValued="false"/>
     <field name="api" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="all_themes" type="string" indexed="true" stored="true" multiValued="true"/>

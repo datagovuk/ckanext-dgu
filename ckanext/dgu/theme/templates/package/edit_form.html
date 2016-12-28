@@ -745,6 +745,24 @@ Passed in:
     </div>
 
     <div class="well">
+      <h3>Register</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
+                <input id="register-hidden" name="register" type="hidden" value=""/>
+                <input id="register" name="register" type="checkbox" value="true"
+                {% if data.get('register', '').lower() == 'true' %} checked="checked"{% endif %} />
+                Government Register
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">You should check this box if this dataset is describing a <a href="https://www.gov.uk/government/collections/registers-guidance">Government Register</a></p>
+    </div>
+
+    <div class="well">
       <h3>Intelligent Transport Systems</h3>
       <div class="form-group">
           <label class="control-label" style="font-weight: normal;">
@@ -1064,6 +1082,9 @@ $(function() {
     }
     if ($("#its-dataset").prop("checked")) {
       $("#its-dataset-hidden").prop("disabled", true);
+    }
+    if ($("#register").prop("checked")) {
+      $("#register-hidden").prop("disabled", true);
     }
   });
 });
