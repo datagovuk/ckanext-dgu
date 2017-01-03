@@ -52,6 +52,8 @@ class PackageController(ckan.controllers.package.PackageController):
             pkg_dict = get_action('package_show')(context, {'id':id}) # has side-effect of populating context.get('package')
         except NotAuthorized:
             abort(401, 'Not authorized to delete package')
+        except ObjectNotFound:
+            abort(404, 'Dataset not found')
 
         if request.params: # POST
             if 'cancel' in request.params:
