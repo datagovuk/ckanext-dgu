@@ -25,20 +25,39 @@ def users():
 
     # TODO get a full list of users
 
-    # Get just users CKAN knows about (for now)
-    ckan_users = parse_jsonl(args.ckan_users)
-    user_id_list = [
-        u['name'].replace('user_d', '')
-        for u in ckan_users
-        if u['name'].startswith('user_d')
-        ]
+    if args.user:
+        user_id_list = [args.user]
+    elif args.ckan_users:
+        # Get just users CKAN knows about
+        ckan_users = parse_jsonl(args.ckan_users)
+        user_id_list = [
+            u['name'].replace('user_d', '')
+            for u in ckan_users
+            if u['name'].startswith('user_d')
+            ]
+    else:
+        # Try ids sequentially
+        user_id_list = [str(i) for i in range(1, 100000)]
 
-    for user_id in user_id_list:
+    for i, user_id in enumerate(user_id_list):
+        if i > 0 and i%100 == 0:
+            print stats
         if args.user and str(user_id) != str(args.user):
             continue
-        print user_id
-        user = drupal.get_user_properties(user_id)
-        pprint(user)
+        try:
+            user = drupal.get_user_properties(user_id)
+        except DrupalRequestError, e:
+            if 'There is no user with ID' in str(e):
+                print stats.add('User ID unknown', int(user_id))
+                continue
+            elif 'Access denied for user anonymous' in str(e):
+                print stats.add('User blocked', int(user_id))
+                continue
+            print stats.add('Error: %s' % e, int(user_id))
+            continue
+        print stats.add('User ok', int(user_id))
+        if args.user:
+            pprint(user)
 
     print '\nUsers:', stats
 
