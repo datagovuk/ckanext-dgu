@@ -207,3 +207,17 @@ def is_id(id_string):
     import re
     reg_ex = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     return bool(re.match(reg_ex, id_string))
+
+
+def add_progress_bar(iterable, caption=None, **kwargs):
+    try:
+        # Add a progress bar, if it is installed
+        import progressbar
+        bar = progressbar.ProgressBar(widgets=[
+            (caption + ' ') if caption else '',
+            progressbar.Percentage(), ' ',
+            progressbar.Bar(), ' ', progressbar.ETA()],
+            **kwargs)
+        return bar(iterable)
+    except ImportError:
+        return iterable
