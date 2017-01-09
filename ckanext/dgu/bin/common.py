@@ -207,3 +207,24 @@ def is_id(id_string):
     import re
     reg_ex = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     return bool(re.match(reg_ex, id_string))
+
+def add_progress_bar(iterable, maxval=None, caption=None):
+    '''Add a progress bar, to the thing you are doing a "for" loop over, if
+    "progressbar" is installed.
+
+    Note: if you see this:
+              File "/home/co/ckan/local/lib/python2.7/site-packages/progressbar/__init__.py", line 208, in percentage
+                return self.currval * 100.0 / self.maxval
+            TypeError: unsupported operand type(s) for /: 'float' and 'classobj'
+        then you need to specify the maxval parameter.
+    '''
+    try:
+        import progressbar
+        bar = progressbar.ProgressBar(widgets=[
+            (caption + ' ') if caption else '',
+            progressbar.Percentage(), ' ',
+            progressbar.Bar(), ' ', progressbar.ETA()],
+            maxval=maxval)
+        return bar(iterable)
+    except ImportError:
+        return iterable

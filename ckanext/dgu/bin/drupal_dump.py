@@ -7,6 +7,7 @@ import traceback
 import json
 import sys
 import gzip
+import unicodecsv
 
 from ckanext.dgu.drupalclient import (
     DrupalClient,
@@ -22,26 +23,41 @@ stats = Stats()
 def users():
     drupal = get_drupal_client()
 
-    # TODO get a full list of users
+    # Get a list of users to try (the api doesn't tell us)
 
     if args.user:
         user_id_list = [args.user]
-    elif args.ckan_users:
-        # Get just users CKAN knows about
-        ckan_users = parse_jsonl(args.ckan_users)
+    elif args.users_from_drupal_user_table_dump:
+        with gzip.open(args.users_from_drupal_user_table_dump, 'rb') as f:
+            csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+            user_id_list = [
+                int(user_dict['uid'])
+                for user_dict in csv_reader
+                if user_dict['status'] != '0'  # i.e. not blocked
+                ]
+    elif args.users_from_ckan_dump:
+        # Get users Drupal knows about
+        ckan_users = parse_jsonl(args.users_from_ckan_dump)
         user_id_list = [
-            u['name'].replace('user_d', '')
+            int(u['name'].replace('user_d', ''))
             for u in ckan_users
             if u['name'].startswith('user_d')
             ]
-    else:
+    elif args.users_tried_sequentially:
         # Try ids sequentially
-        user_id_list = [str(i) for i in range(1, 100000)]
+        user_id_list = [str(i) for i in range(1, 500000)]
 
+    user_id_list.sort()
+    print 'Users to try: %s (up to %s)' % (len(user_id_list), user_id_list[-1])
+
+    i = 0
     with gzip.open(args.output_fpath, 'wb') as output_f:
-        for i, user_id in enumerate(user_id_list):
+        for user_id in common.add_progress_bar(
+                user_id_list, maxval=len(user_id_list)):
             if i > 0 and i % 100 == 0:
                 print stats
+            i += 1
+
             if args.user and str(user_id) != str(args.user):
                 continue
             try:
@@ -116,8 +132,14 @@ if __name__ == '__main__':
                            default='drupal_users.jsonl.gz',
                            help='Location of the output '
                                 'drupal_users.jsonl.gz file')
-    subparser.add_argument('--ckan-users',
+    subparser.add_argument('--users-from-ckan-dump',
                            help='Filepath of ckan users.jsonl.gz')
+    subparser.add_argument('--users-from-drupal-user-table-dump',
+                           help='Filepath of drupal_users_table.csv.gz')
+    subparser.add_argument('--users-tried-sequentially',
+                           action='store_true',
+                           help='Rather than try a given list of user ids, '
+                                'just try all ids in order from 1 to 500000.')
     subparser.add_argument('-u', '--user',
                            help='Only do it for a single user (eg 845)')
 
