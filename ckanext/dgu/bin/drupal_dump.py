@@ -85,6 +85,53 @@ def users():
         print '\nNot written due to filter'
 
 
+def organograms():
+    drupal = get_drupal_client()
+
+    organogram_files = drupal.get_organogram_files()
+
+    # e.g.
+    # {u'fid': u'16449',
+    #  u'name': u'cabinet-office',
+    #  u'publish_date': u'1482088184',
+    #  u'signoff_date': u'1482088160'}
+    #  u'deadline_date': u'1475190000',
+
+    print 'Organogram files to try: %s' % len(organogram_files)
+
+    i = 0
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for organogram_file in common.add_progress_bar(organogram_files):
+            if i > 0 and i % 100 == 0:
+                print stats
+            i += 1
+
+            fid = organogram_file['fid']
+            if args.publisher and organogram_file['name'] != args.publisher:
+                continue
+            try:
+                organogram = drupal.get_organogram_file_properties(fid)
+            except DrupalRequestError, e:
+                if 'There is no organogram file with fid' in str(e):
+                    print stats.add('Organogram fid unknown',
+                                    int(fid))
+                    continue
+                print stats.add('Error: %s' % e, int(fid))
+                continue
+            if not args.publisher:
+                output_f.write(json.dumps(organogram) + '\n')
+            stats.add('User dumped ok', int(fid))
+
+            if args.publisher:
+                pprint(organogram)
+
+    print '\nOrganograms:', stats
+    if not args.publisher:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
+
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
         while True:
@@ -142,6 +189,16 @@ if __name__ == '__main__':
                                 'just try all ids in order from 1 to 500000.')
     subparser.add_argument('-u', '--user',
                            help='Only do it for a single user (eg 845)')
+
+    subparser = subparsers.add_parser('organograms')
+    subparser.set_defaults(func=organograms)
+    subparser.add_argument('--output_fpath',
+                           default='organograms.jsonl.gz',
+                           help='Location of the output '
+                                'organograms.jsonl.gz file')
+    subparser.add_argument('-p', '--publisher',
+                           help='Only do it for a single publisher '
+                                '(eg cabinet-office)')
 
     args = parser.parse_args()
 

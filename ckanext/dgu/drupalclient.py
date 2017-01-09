@@ -1,9 +1,10 @@
-import re
 import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
 from xml.parsers.expat import ExpatError
 from httplib import BadStatusLine
+
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -14,50 +15,53 @@ class DrupalKeyError(Exception): pass
 class DrupalClient(object):
     def __init__(self, xmlrpc_settings=None):
         '''If you do not supply xmlrpc settings then it looks them
-        up in the pylons config.'''
-        self.xmlrpc_url, self.xmlrpc_url_log_safe = DrupalClient.get_xmlrpc_url(xmlrpc_settings)
-        self.drupal = ServerProxy(self.xmlrpc_url)
+        up in the pylons config.
+
+        NB The Rest API was added more recently thatn the xmlrpc one,
+        and the scheme/domain/user/password are shared with xmlrpc, but
+        we still call them the xmlrpc settings for legacy reasons.
+        '''
+        self.xmlrpc_url, self.xmlrpc_url_log_safe, self.rest_url, \
+            self.requests_auth = DrupalClient.get_xmlrpc_url(xmlrpc_settings)
+        self.drupal_xmlrpc = ServerProxy(self.xmlrpc_url)
 
     @staticmethod
     def get_xmlrpc_url(xmlrpc_settings=None):
         '''
-        xmlrpc_settings is a dict. Either specify xmlrpc_url or
-        xmlrpc_domain (and optionally xmlrpc_username and xmlrpc_password).
+        xmlrpc_settings is a dict. Specify xmlrpc_domain (and optionally
+        xmlrpc_username and xmlrpc_password).
         If you do not supply xmlrpc settings then it looks them
         up in the pylons config.'''
-        if xmlrpc_settings and xmlrpc_settings.get('xmlrpc_url'):
-            xmlrpc_url = xmlrpc_settings['xmlrpc_url']
-            xmlrpc_url_log_safe = re.sub(':([^@])[^@]*@', r':\1xxx@',
-                                         xmlrpc_url)
-
+        if xmlrpc_settings:
+            scheme = xmlrpc_settings.get('xmlrpc_scheme', 'http')
+            domain = xmlrpc_settings.get('xmlrpc_domain')
+            username = xmlrpc_settings.get('xmlrpc_username')
+            password = xmlrpc_settings.get('xmlrpc_password')
         else:
-            if xmlrpc_settings:
-                scheme = xmlrpc_settings.get('xmlrpc_scheme', 'http')
-                domain = xmlrpc_settings.get('xmlrpc_domain')
-                username = xmlrpc_settings.get('xmlrpc_username')
-                password = xmlrpc_settings.get('xmlrpc_password')
-            else:
-                try:
-                    from pylons import config
-                except ImportError:
-                    assert 0, 'Either supply XML RPC parameters or install pylons to try the Pylons config for it.'
-                scheme = config.get('dgu.xmlrpc_scheme', 'http')
-                domain = config.get('dgu.xmlrpc_domain')
-                username = config.get('dgu.xmlrpc_username')
-                password = config.get('dgu.xmlrpc_password')
-            if not domain:
-                raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
-            if username or password:
-                server = '%s:%s@%s' % (username, password, domain)
-                server_log_safe = '%s:%s%s@%s' % (username, password[:1], 'x' * (len(password)-1), domain)
-            else:
-                server = '%s' % domain
-                server_log_safe = server
-            xmlrpc_url_template = '%s://%s/services/xmlrpc'
-            xmlrpc_url = xmlrpc_url_template % (scheme, server)
-            xmlrpc_url_log_safe = xmlrpc_url_template % (scheme, server_log_safe)
+            try:
+                from pylons import config
+            except ImportError:
+                assert 0, 'Either supply XML RPC parameters or install pylons to try the Pylons config for it.'
+            scheme = config.get('dgu.xmlrpc_scheme', 'http')
+            domain = config.get('dgu.xmlrpc_domain')
+            username = config.get('dgu.xmlrpc_username')
+            password = config.get('dgu.xmlrpc_password')
+        if not domain:
+            raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
+        if username or password:
+            server = '%s:%s@%s' % (username, password, domain)
+            server_log_safe = '%s:%s%s@%s' % (username, password[:1], 'x' * (len(password)-1), domain)
+        else:
+            server = '%s' % domain
+            server_log_safe = server
+        xmlrpc_url_template = '%s://%s/services/xmlrpc'
+        xmlrpc_url = xmlrpc_url_template % (scheme, server)
+        xmlrpc_url_log_safe = xmlrpc_url_template % (scheme, server_log_safe)
+        rest_url_template = '%s://%s/services/rest'
+        rest_url = rest_url_template % (scheme, domain)
+        requests_auth = (username, password)
         log.info('XMLRPC connection to %s', xmlrpc_url_log_safe)
-        return xmlrpc_url, xmlrpc_url_log_safe
+        return xmlrpc_url, xmlrpc_url_log_safe, rest_url, requests_auth
 
     def get_user_properties(self, user_id):
         '''Requests dict of properties of the Drupal user in the request.
@@ -68,7 +72,7 @@ class DrupalClient(object):
         except ValueError, e:
             cls._abort_bad_request('user_id parameter must be an integer')
         try:
-            user = self.drupal.user.retrieve(str(user_id))
+            user = self.drupal_xmlrpc.user.retrieve(str(user_id))
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -80,7 +84,7 @@ class DrupalClient(object):
 
     def get_user_id_from_session_id(self, session_id):
         try:
-            user_id = self.drupal.session.retrieve(session_id)
+            user_id = self.drupal_xmlrpc.session.retrieve(session_id)
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -101,7 +105,7 @@ class DrupalClient(object):
         try:
             # Example response:
             #   {'11419': 'Department for Culture, Media and Sport'}
-            dept_dict = self.drupal.organisation.department(str(id))
+            dept_dict = self.drupal_xmlrpc.organisation.department(str(id))
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -121,7 +125,7 @@ class DrupalClient(object):
 
     def get_organisation_name(self, id):
         try:
-            organisation_name = self.drupal.organisation.one(str(id))
+            organisation_name = self.drupal_xmlrpc.organisation.one(str(id))
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -139,7 +143,7 @@ class DrupalClient(object):
 
     def match_organisation(self, organisation_name):
         try:
-            organisation_id = self.drupal.organisation.match(organisation_name or u'')
+            organisation_id = self.drupal_xmlrpc.organisation.match(organisation_name or u'')
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -157,7 +161,7 @@ class DrupalClient(object):
 
     def get_organisation_list(self):
         try:
-            organisations = self.drupal.publisher.list()
+            organisations = self.drupal_xmlrpc.publisher.list()
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -169,7 +173,7 @@ class DrupalClient(object):
 
     def get_organisation_details(self, organisation_id):
         try:
-            organisation = self.drupal.publisher.details(organisation_id or u'')
+            organisation = self.drupal_xmlrpc.publisher.details(organisation_id or u'')
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -184,3 +188,31 @@ class DrupalClient(object):
                 raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (organisation_id, e))
         log.info('Obtained organisation details %r from name %r', organisation, organisation_id)
         return organisation
+
+    def get_organogram_files(self):
+        url = self.rest_url + '/organogram'
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        organogram_files = response.json()
+        log.info('Obtained organogram files %r', organogram_files)
+        return organogram_files
+
+    def get_organogram_file_properties(self, fid):
+        url = self.rest_url + '/organogram/%s' % fid
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        organogram = response.json()
+        log.info('Obtained organogram file properties %r', organogram)
+        return organogram
