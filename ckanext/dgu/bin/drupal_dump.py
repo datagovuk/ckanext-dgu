@@ -11,7 +11,6 @@ import gzip
 from ckanext.dgu.drupalclient import (
     DrupalClient,
     DrupalRequestError,
-    log as drupal_client_log
     )
 from running_stats import Stats
 import common
@@ -39,27 +38,36 @@ def users():
         # Try ids sequentially
         user_id_list = [str(i) for i in range(1, 100000)]
 
-    for i, user_id in enumerate(user_id_list):
-        if i > 0 and i%100 == 0:
-            print stats
-        if args.user and str(user_id) != str(args.user):
-            continue
-        try:
-            user = drupal.get_user_properties(user_id)
-        except DrupalRequestError, e:
-            if 'There is no user with ID' in str(e):
-                print stats.add('User ID unknown', int(user_id))
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for i, user_id in enumerate(user_id_list):
+            if i > 0 and i % 100 == 0:
+                print stats
+            if args.user and str(user_id) != str(args.user):
                 continue
-            elif 'Access denied for user anonymous' in str(e):
-                print stats.add('User blocked', int(user_id))
+            try:
+                user = drupal.get_user_properties(user_id)
+            except DrupalRequestError, e:
+                if 'There is no user with ID' in str(e):
+                    print stats.add('User ID unknown', int(user_id))
+                    continue
+                elif 'Access denied for user anonymous' in str(e):
+                    print stats.add('User blocked', int(user_id))
+                    continue
+                print stats.add('Error: %s' % e, int(user_id))
                 continue
-            print stats.add('Error: %s' % e, int(user_id))
-            continue
-        print stats.add('User ok', int(user_id))
-        if args.user:
-            pprint(user)
+            if not args.user:
+                output_f.write(json.dumps(user) + '\n')
+            stats.add('User dumped ok', int(user_id))
+
+            if args.user:
+                pprint(user)
 
     print '\nUsers:', stats
+    if not args.user:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
 
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
@@ -104,10 +112,14 @@ if __name__ == '__main__':
 
     subparser = subparsers.add_parser('users')
     subparser.set_defaults(func=users)
+    subparser.add_argument('--output_fpath',
+                           default='drupal_users.jsonl.gz',
+                           help='Location of the output '
+                                'drupal_users.jsonl.gz file')
     subparser.add_argument('--ckan-users',
                            help='Filepath of ckan users.jsonl.gz')
     subparser.add_argument('-u', '--user',
-                           help='Only do it for a single user name')
+                           help='Only do it for a single user (eg 845)')
 
     args = parser.parse_args()
 
