@@ -8,6 +8,7 @@ import json
 import sys
 import gzip
 import unicodecsv
+from collections import defaultdict
 
 from ckanext.dgu.drupalclient import (
     DrupalClient,
@@ -120,7 +121,7 @@ def organograms():
                 continue
             if not args.publisher:
                 output_f.write(json.dumps(organogram) + '\n')
-            stats.add('User dumped ok', int(fid))
+            stats.add('Organogram dumped ok', int(fid))
 
             if args.publisher:
                 pprint(organogram)
@@ -131,6 +132,103 @@ def organograms():
     else:
         print '\nNot written due to filter'
 
+
+def apps():
+    drupal = get_drupal_client()
+
+    # dataset_referrers help us link up the apps and the ckan dataset id
+    referrers = drupal.get_dataset_referrers()
+    app_datasets = defaultdict(list)  # app nid: [ckan_dataset_id, ... ]
+    for referrer in referrers:
+        if referrer['type'] != 'App':
+            continue
+        app = referrer
+
+        # {u'ckan_id': u'13dbf974-6646-4eef-878d-c1ba2039ead5',
+        #  u'nid': u'4461',
+        #  u'path': u'/apps/sound-buy',
+        #  u'title': u'Sound Buy',
+        #  u'type': u'App'}
+
+        app_datasets[app['nid']].append(app['ckan_id'])
+
+        #thumb = app.get('thumbnail', '').replace('://', '/')
+        #if thumb:
+        #    thumb_url = urljoin(root_url,
+        #                        '/sites/default/files/styles/medium/')
+        #    thumb_url = urljoin(thumb_url, thumb)
+        #else:
+        #    thumb_url = ''
+
+    nodes = drupal.get_nodes()
+
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for node in common.add_progress_bar(nodes):
+            # ignore Forum topics and blog posts that refer
+            # Eventually we might handle other types.
+            if node['type'] != 'app':
+                continue
+            app = node
+            if args.app and args.app not in (app['nid'], app['title']):
+                continue
+
+            # Get main details from the node
+            try:
+                app_node = drupal.get_node(node['nid'])
+            except DrupalRequestError, e:
+                if 'There is no app file with nid' in str(e):
+                    print stats.add('Node id unknown',
+                                    int(node['nid']))
+                    continue
+                print stats.add('Error: %s' % e, int(fid))
+                continue
+            # app_node is a superset of app
+            app = app_node
+
+            # NB contains personal data in:
+            # field_submitter_email
+            # field_submitter_name
+            # name
+
+            # screenshot:           "filename": "data.gov_.uk_.3_10.jpg"
+            # is:           /sites/default/files/data.gov_.uk_.1_10.jpg
+            # found: /var/www/files/drupal/dgud7/data.gov_.uk_.1_10.jpg
+
+            # Get the linked datasets
+            # u'field_uses_dataset': {u'und': [{u'target_id': u'13231'},
+            try:
+                dataset_nids = [
+                    d['target_id']
+                    for d in app.get('field_uses_dataset', {})['und']] \
+                    if app.get('field_uses_dataset') else []
+            except TypeError:
+                import pdb; pdb.set_trace()
+            try:
+                dataset_ids = app_datasets[app['nid']]
+            except KeyError:
+                dataset_ids = []
+                stats.add('App with no datasets',
+                          '%s %s' % (dataset_nid, node['title']))
+            if len(dataset_nids) != len(dataset_ids):
+                # this occurs occasionally eg commutable-careers
+                # where perhaps a dataset is deleted. it's fine.
+                stats.add('Error - app with wrong number of datasets',
+                          '%s %s %s' % (len(dataset_nids), len(dataset_ids),
+                                        node['title']))
+            app['field_uses_dataset_ckan_ids'] = dataset_ids
+
+            if not args.app:
+                output_f.write(json.dumps(app) + '\n')
+            stats.add('%s dumped ok' % node['type'], node['title'])
+
+            if args.app:
+                pprint(app)
+
+    print '\nApps:', stats
+    if not args.app:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
 
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
@@ -199,6 +297,16 @@ if __name__ == '__main__':
     subparser.add_argument('-p', '--publisher',
                            help='Only do it for a single publisher '
                                 '(eg cabinet-office)')
+
+    subparser = subparsers.add_parser('apps')
+    subparser.set_defaults(func=apps)
+    subparser.add_argument('--output_fpath',
+                           default='apps.jsonl.gz',
+                           help='Location of the output '
+                                'apps.jsonl.gz file')
+    subparser.add_argument('--app',
+                           help='Only do it for a single app '
+                                '(eg Illustreets)')
 
     args = parser.parse_args()
 

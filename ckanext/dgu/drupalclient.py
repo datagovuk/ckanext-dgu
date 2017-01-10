@@ -200,7 +200,7 @@ class DrupalClient(object):
         except ProtocolError, e:
             raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
         organogram_files = response.json()
-        log.info('Obtained organogram files %r', organogram_files)
+        log.info('Obtained %s organogram files', len(organogram_files))
         return organogram_files
 
     def get_organogram_file_properties(self, fid):
@@ -216,3 +216,49 @@ class DrupalClient(object):
         organogram = response.json()
         log.info('Obtained organogram file properties %r', organogram)
         return organogram
+
+    def get_dataset_referrers(self):
+        '''Includes apps'''
+        url = self.rest_url + '/views/dataset_referrers'
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        referrers = response.json()
+        log.info('Obtained %s referrers/apps e.g. %r',
+                 (len(referrers), referrers[0]))
+        return referrers
+
+    def get_node(self, nid):
+        '''Includes apps'''
+        url = self.rest_url + '/node/{nid}'.format(nid=nid)
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        node = response.json()
+        log.info('Obtained node %r', node)
+        return node
+
+    def get_nodes(self):
+        '''Types: blog, app, forum, dataset_request'''
+        url = self.rest_url + '/node'
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        nodes = response.json()
+        log.info('Obtained %s nodes e.g. %r', len(nodes), nodes[0])
+        return nodes
