@@ -119,6 +119,23 @@ def organograms():
                     continue
                 print stats.add('Error: %s' % e, int(fid))
                 continue
+
+            if isinstance(organogram, bool):
+                print stats.add('Error: returned bool %s' % organogram,
+                                int(fid))
+                continue
+
+            # NB private information:
+            #  uid - user id of uploader
+            #  not-yet-published organograms (publish_date=0)
+
+            organogram.update(organogram_file)
+            # timestamp here is an upload date, uid is an id of a user who uploaded it (user object can be retrieved from /services/rest/user/{uid})
+            organogram['upload_date'] = organogram['timestamp']
+            del organogram['timestamp']
+
+            # Published and sign off dates are returned in original call as 'publish_date' and 'signoff_date', they can be timestamps or have value of 0 if not published or not signed off yet.
+
             if not args.publisher:
                 output_f.write(json.dumps(organogram) + '\n')
             stats.add('Organogram dumped ok', int(fid))
@@ -160,7 +177,7 @@ def apps():
         #else:
         #    thumb_url = ''
 
-    nodes = drupal.get_nodes()
+    nodes = drupal.get_nodes(type_filter='app')
 
     with gzip.open(args.output_fpath, 'wb') as output_f:
         for node in common.add_progress_bar(nodes):
@@ -229,6 +246,84 @@ def apps():
         print '\nWritten to: %s' % args.output_fpath
     else:
         print '\nNot written due to filter'
+
+
+def forum():
+    drupal = get_drupal_client()
+
+    topics = drupal.get_nodes(type_filter='forum')
+
+    # e.g.
+    # {u'changed': u'1457965356',
+    #  u'comment': u'0',
+    #  u'created': u'1457965350',
+    #  u'language': u'und',
+    #  u'nid': u'4490',
+    #  u'promote': u'0',
+    #  u'status': u'1',      - all have the same value
+    #  u'sticky': u'0',      - ie stays at the top of the screen
+    #  u'title': u'How to remove a dataset?',
+    #  u'tnid': u'0',        - translation source
+    #  u'translate': u'0',
+    #  u'type': u'forum',
+    #  u'uid': u'411731',    - user who created it (public)
+    #  u'uri': u'https://test.data.gov.uk/services/rest/node/4490',
+    #  u'vid': u'10900'}     - version
+
+    print 'Topics to try: %s' % len(topics)
+
+    i = 0
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for topic in common.add_progress_bar(topics):
+            if i > 0 and i % 100 == 0:
+                print stats
+            i += 1
+
+            if args.topic and args.topic not in (topic['nid'], topic['title']):
+                continue
+
+            # Get main details from the node
+            try:
+                topic_node = drupal.get_node(topic['nid'])
+            except DrupalRequestError, e:
+                if 'There is no node with nid' in str(e):
+                    print stats.add('Node id unknown',
+                                    int(node['nid']))
+                    continue
+                print stats.add('Error: %s' % e, int(fid))
+                continue
+
+            # topic_node is a superset of topic
+            topic = topic_node
+
+            # interesting added fields:
+            # {u'body': {u'und': [{
+            #         u'format': u'filtered_html',
+            #         u'safe_summary': u'',
+            #         u'safe_value': u'<p>Once a dataset has been added to data.gov.uk it seems that I cannot remove it? The contact page is also ineffective as I have been waiting for a response for a very long time now.</p>\n<p>Does anyone know how to remove a dataset?\xa0</p>\n',
+            #         u'summary': u'',
+            #         u'value': u'<p>Once a dataset has been added to data.gov.uk it seems that I cannot remove it? The contact page is also ineffective as I have been waiting for a response for a very long time now.</p>\r\n\r\n<p>Does anyone know how to remove a dataset?&nbsp;</p>\r\n'}]},
+            #  "path": "https://test.data.gov.uk/forum/general-discussion/how-remove-dataset",
+
+            if topic_node['status'] != '1':
+                print stats.add('Unknown status: %s' % topic_node['status'],
+                                topic_node['nid'])
+
+            # TODO add in comments
+
+            if not args.topic:
+                output_f.write(json.dumps(topic) + '\n')
+            stats.add('Topic dumped ok', int(topic['nid']))
+
+            if args.topic:
+                pprint(organogram)
+
+    print '\nForum:', stats
+    if not args.topic:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
 
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
@@ -307,6 +402,16 @@ if __name__ == '__main__':
     subparser.add_argument('--app',
                            help='Only do it for a single app '
                                 '(eg Illustreets)')
+
+    subparser = subparsers.add_parser('forum')
+    subparser.set_defaults(func=forum)
+    subparser.add_argument('--output_fpath',
+                           default='forum.jsonl.gz',
+                           help='Location of the output '
+                                'forum.jsonl.gz file')
+    subparser.add_argument('--topic',
+                           help='Only do it for a single forum topic'
+                                '(eg "How to remove a dataset?")')
 
     args = parser.parse_args()
 

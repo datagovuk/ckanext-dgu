@@ -248,9 +248,14 @@ class DrupalClient(object):
         log.info('Obtained node %r', node)
         return node
 
-    def get_nodes(self):
-        '''Types: blog, app, forum, dataset_request'''
+    def get_nodes(self, type_filter=None):
+        '''Types: app article blog book dataset_request forum idea
+                  mass_contact page resource suggested_definition
+                  suggested_term
+        '''
         url = self.rest_url + '/node'
+        if type_filter:
+            url += '?parameters[type]=%s' % type_filter
         try:
             response = requests.get(url, auth=self.requests_auth)
         except socket.error, e:
