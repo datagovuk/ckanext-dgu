@@ -325,6 +325,172 @@ def forum():
         print '\nNot written due to filter'
 
 
+def library():
+    drupal = get_drupal_client()
+
+    items = drupal.get_nodes(type_filter='resource')
+
+    # e.g.
+    # {
+    # "nid": "3341",
+    # "vid": "6194",
+    # "type": "resource",
+    # "language": "und",
+    # "title": "UK Location Metadata Editor 2 - User Guide",
+    # "uid": "845",              - user that added it
+    # "status": "1",
+    # "created": "1406568348",
+    # "changed": "1447195725",
+    # "comment": "0",
+    # "promote": "1",
+    # "sticky": "0",
+    # "tnid": "0",
+    # "translate": "0",
+    # "uri": "https://test.data.gov.uk/services/rest/node/3341"
+    # },
+
+    print 'Library items to try: %s' % len(items)
+
+    i = 0
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for item in common.add_progress_bar(items):
+            if i > 0 and i % 100 == 0:
+                print stats
+            i += 1
+
+            if args.item and args.item not in (item['nid'], item['title']):
+                continue
+
+            # Get main details from the node
+            try:
+                item_node = drupal.get_node(item['nid'])
+            except DrupalRequestError, e:
+                if 'There is no node with nid' in str(e):
+                    print stats.add('Node id unknown',
+                                    int(item['nid']))
+                    continue
+                print stats.add('Error: %s' % e, int(item['nid']))
+                continue
+
+            # item_node is a superset of item apart from 'uri'
+            item.update(item_node)
+
+            # interesting added fields:
+            # u'field_resource_file': {u'und': [
+            #   {u'alt': u'',
+            #    u'description': u'',
+            #    u'display': u'1',
+            #    u'fid': u'5294',
+            #    u'filemime': u'application/vnd.oasis.opendocument.text',
+            #    u'filename': u'20150415 ODUG Minutes.odt',
+            #    u'filesize': u'37128',
+            #    u'metadata': [],
+            #    u'rdf_mapping': [],
+            #    u'status': u'1',
+            #    u'timestamp': u'1432825729',
+            #    u'title': u'',
+            #    u'type': u'document',
+            #    u'uid': u'395502',
+            #    u'uri': u'public://library/20150415 ODUG Minutes.odt'}]},
+            # which relates to:
+            # https://data.gov.uk/sites/default/files/20150415 ODUG Minutes.odt
+            # "field_document_type": {
+            # "und": [
+            #   {
+            #     "tid": "85"
+            #   }
+            # ]
+            # "field_category": {
+            #  "und": [
+            #   {
+            #     "tid": "83"
+            #   },
+            #   {
+            #     "tid": "84"
+            #   }
+            #  ]
+            # },
+
+            # NB Some private fields:
+            # 'name' (of uploader)
+            # 'revision_uid'
+            # 'uid' (including in 'field_resource_file')
+
+            # document types found by inspecting the facets urls at:
+            # https://data.gov.uk/library
+            document_type_map = {
+                85: 'Case study',
+                90: 'ODUG Minutes',
+                87: 'Guidance',
+                86: 'Data strategy',
+                88: 'Transparency policy',
+                89: 'Minutes Transparency Board',
+                91: 'ODUG Papers',
+                }
+            try:
+                type_ids = [
+                    item_['tid']
+                    for item_ in item.get('field_document_type', {})['und']] \
+                    if item.get('field_document_type') else []
+            except TypeError:
+                import pdb; pdb.set_trace()
+            try:
+                item['document_type'] = document_type_map[int(type_ids[0])] \
+                    if type_ids else ''
+            except KeyError:
+                print stats.add('Unknown document_type id %s' % type_ids[0],
+                                item['nid'])
+            if len(type_ids) > 1:
+                print stats.add('Multiple tids: %s' % len(type_ids),
+                                item['nid'])
+
+            # categories found by inspecting the facets urls at:
+            # https://data.gov.uk/library
+            category_map = {
+                83: 'Government',
+                84: 'Policy',
+                79: 'Location',
+                76: 'Society',
+                81: 'Administration',
+                80: 'Linked data',
+                78: 'Transportation',
+                74: 'Education',
+                73: 'Environment',
+                }
+            try:
+                category_ids = [
+                    item_['tid']
+                    for item_ in item.get('field_category', {})['und']] \
+                    if item.get('field_category') else []
+            except TypeError:
+                import pdb; pdb.set_trace()
+            try:
+                item['categories'] = [
+                    category_map[int(tid)] for tid in category_ids]
+            except KeyError:
+                print stats.add('Unknown category id %s' % type_ids[0],
+                                item['nid'])
+
+            if item['status'] != '1':
+                print stats.add('Unknown status: %s' % item['status'],
+                                item['nid'])
+
+            # TODO add in comments
+
+            if not args.item:
+                output_f.write(json.dumps(item) + '\n')
+            stats.add('Library item dumped ok', int(item['nid']))
+
+            if args.item:
+                pprint(item)
+
+    print '\nLibrary:', stats
+    if not args.item:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
+
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
         while True:
@@ -412,6 +578,16 @@ if __name__ == '__main__':
     subparser.add_argument('--topic',
                            help='Only do it for a single forum topic'
                                 '(eg "How to remove a dataset?")')
+
+    subparser = subparsers.add_parser('library')
+    subparser.set_defaults(func=library)
+    subparser.add_argument('--output_fpath',
+                           default='library.jsonl.gz',
+                           help='Location of the output '
+                                'library.jsonl.gz file')
+    subparser.add_argument('--item',
+                           help='Only do it for a single library item'
+                                '(eg "Blossom Bristol")')
 
     args = parser.parse_args()
 

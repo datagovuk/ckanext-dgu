@@ -250,7 +250,7 @@ class DrupalClient(object):
 
     def get_nodes(self, type_filter=None):
         '''Types: app article blog book dataset_request forum idea
-                  mass_contact page resource suggested_definition
+                  mass_contact page resource (=library) suggested_definition
                   suggested_term
         '''
         url = self.rest_url + '/node'
