@@ -418,6 +418,8 @@ def library():
 
             # document types found by inspecting the facets urls at:
             # https://data.gov.uk/library
+            # Also from the drupal db:
+            # select * from taxonomy_term_data where vid=2;
             document_type_map = {
                 85: 'Case study',
                 90: 'ODUG Minutes',
@@ -446,6 +448,8 @@ def library():
 
             # categories found by inspecting the facets urls at:
             # https://data.gov.uk/library
+            # or drupal db:
+            # select tid, name from taxonomy_term_data where vid=1 order by tid;
             category_map = {
                 83: 'Government',
                 84: 'Policy',
@@ -486,6 +490,217 @@ def library():
 
     print '\nLibrary:', stats
     if not args.item:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
+
+def dataset_requests():
+    drupal = get_drupal_client()
+
+    requests = drupal.get_nodes(type_filter='dataset_request')
+
+    # e.g.
+    # {u'changed': u'1470914906',
+    #  u'comment': u'0',
+    #  u'created': u'1470905244',
+    #  u'language': u'und',
+    #  u'nid': u'4994',
+    #  u'promote': u'0',
+    #  u'status': u'1',
+    #  u'sticky': u'0',
+    #  u'title': u'Daily Average temperature UK 2014 to 2016 ',
+    #  u'tnid': u'0',
+    #  u'translate': u'0',
+    #  u'type': u'dataset_request',
+    #  u'uid': u'425562',
+    #  u'uri': u'https://data.gov.uk/services/rest/node/4994',
+    #  u'vid': u'11564'}
+
+    print 'Dataset requests to try: %s' % len(requests)
+
+    i = 0
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for request in common.add_progress_bar(requests):
+            if i > 0 and i % 100 == 0:
+                print stats
+            i += 1
+
+            if args.request and args.request not in (request['nid'],
+                                                     request['title']):
+                continue
+
+            # Get main details from the node
+            try:
+                request_node = drupal.get_node(request['nid'])
+            except DrupalRequestError, e:
+                if 'There is no node with nid' in str(e):
+                    print stats.add('Node id unknown',
+                                    int(request['nid']))
+                    continue
+                print stats.add('Error: %s' % e, int(request['nid']))
+                continue
+
+            # request_node is a superset of request apart from 'uri'
+            request.update(request_node)
+
+            # interesting added fields:
+            #  u'field_data_set_description': {u'und': [
+            #     {u'format': None,
+            #      u'safe_value': u'Hi there, I am doing a masters dissertation and require a data set that shows the average daily temperature for the UK from 1 March 2014 to 31 July 2016. For example with the following columns: Date, Average Temperature. E.g. 01032014, 12. The data doesn&#039;t need to broken down any further than that. The basic date and average temperature as a number will do. ',
+            #      u'value': u"Hi there, I am doing a masters dissertation and require a data set that shows the average daily temperature for the UK from 1 March 2014 to 31 July 2016. For example with the following columns: Date, Average Temperature. E.g. 01032014, 12. The data doesn't need to broken down any further than that. The basic date and average temperature as a number will do. "}]},
+            #   u'field_data_use_detail': {u'und': [
+            #      {u'format': None,
+            #       u'safe_value': u'This would help me complete my dissertation as I am trying to show the correlation between temperature and revenue. ',
+            #       u'value': u'This would help me complete my dissertation as I am trying to show the correlation between temperature and revenue. '}]},
+            #  u'field_benefits_overview': {u'und': [
+            #      {u'format': None,
+            #       u'safe_value': u'The benefits of the data would mean I could show there is a correlation between temperature and revenue. Basically that when its warmer, revenue increases. ',
+            #       u'value': u'The benefits of the data would mean I could show there is a correlation between temperature and revenue. Basically that when its warmer, revenue increases. '}]},
+            #  u'field_data_themes': {u'und': [{u'tid': u'73'}, {u'tid': u'74'}]},
+            #  u'field_data_use': {u'und': [{u'value': u'2'}, {u'value': u'4'}]},
+            #  u'name': u'Tal',  (public)
+            #   "field_review_outcome": {
+            #    "und": [
+            #      {
+            #        "value": "4"
+            #      }
+            #    ]
+            #  },
+            # 'requested on behalf of organization':
+            #   "field_organisation_name": {
+            #   "und": [
+            #     {
+            #       "format": "",
+            #       "value": "Metcentral Ltd",
+            #       "safe_value": "Metcentral Ltd"
+            #     }
+            #   ]
+            # },
+
+            # # private fields:
+            #  u'field_data_holder': {u'und': [{u'format': None,
+            #                       u'safe_value': u'Met office? ',
+            #                       u'value': u'Met office? '}]},
+            #  u'field_review_notes': [],
+            #  u'field_review_outcome': [],
+            #  u'field_review_status': {u'und': [{u'value': u'0'}]},
+            #  u'field_submitter_type': {u'und': [{u'value': u'1'}]},
+            #  "log"
+
+            # Categories
+            # ids found by inspecting the facets urls at:
+            # https://data.gov.uk/search/everything/?f[0]=bundle%3Adataset_request
+            organization_type_map = {
+                7: 'Academic or Research',
+                3: 'Small to Medium Business',
+                2: 'Start up',
+                4: 'Large Company (Over 250 employees)',
+                6: 'Public Sector Organisation',
+                5: 'Voluntary sector or not-for-profit organisation',
+                }
+            status_map = {
+                0: 'New',
+                1: 'Escalated to data holder',
+                2: 'Queried by data holder',
+                3: 'ODUG developing business case',
+                4: 'Scheduled for release',
+                5: 'Postponed',
+                6: 'Closed',
+                }
+            outcome_map = {
+                3: 'Not a data request or a data issue',
+                2: 'Data already available',
+                4: 'Technical issue resolved',
+                1: 'Data cannot be released',
+                0: 'New dataset released',
+                }
+            reason_map = {
+                9: 'Other',
+                6: 'The data is published but not in a format I can download and use (e.g. only displayed onscreen or only downloadable as a PDF rather than CVS)',
+                7: 'The data is not up-to-date',
+                1: 'The data is supposed to be published but the download links don\'t work',
+                8: 'A version of the data is published but I need it in a different version',
+                3: 'There are financial charges for the data',
+                2: 'The data is available but the licensing terms are too restrictive',
+                5: 'The data is subject to restrictions because of personal confidentiality',
+                4: 'The data is subject to restrictions because of commercial confidentiality',
+                }
+            #
+            # select tid, name from taxonomy_term_data where vid=1 order by tid;
+            data_themes_map = {
+                72: 'Health',
+                73: 'Environment',
+                74: 'Education',
+                75: 'Finance',
+                76: 'Society',
+                77: 'Defence',
+                78: 'Transportation',
+                79: 'Location',
+                80: 'Linked data',
+                81: 'Administration',
+                82: 'Spending data',
+                83: 'Government',
+                84: 'Policy',
+            }
+
+            def explain_id_meaning(id_type, id_map,
+                                   field_name, field_dict_key,
+                                   should_be_one_value=True):
+                try:
+                    ids = [
+                        request_[field_dict_key]
+                        for request_ in request.get(field_name, {})['und']] \
+                        if request.get(field_name) else []
+                except TypeError:
+                    import pdb; pdb.set_trace()
+                ids_mapped = [id_map[int(id)] for id in ids]
+                if should_be_one_value:
+                    if len(ids) == 0:
+                        value = None
+                    elif len(ids) > 1:
+                        print stats.add(
+                            'Warning - multiple values for %s' % field_name,
+                            request['nid'])
+                        value = ids_mapped[0]
+                    else:
+                        value = ids_mapped[0]
+                else:
+                    value = ids_mapped
+                try:
+                    request[id_type] = value
+                except KeyError:
+                    print stats.add('Unknown %s id %s' %
+                                    (id_type, type_ids[0]),
+                                    request['nid'])
+            explain_id_meaning('organization_type', organization_type_map,
+                               'field_organisation_type', 'value')
+            explain_id_meaning('review_status', status_map,
+                               'field_review_status', 'value')
+            explain_id_meaning('review_outcome', outcome_map,
+                               'field_review_outcome', 'value')
+            explain_id_meaning('barriers_reason', reason_map,
+                               'field_barriers_reason', 'value')
+            explain_id_meaning('data_theme', data_themes_map,
+                               'field_data_themes', 'tid',
+                               should_be_one_value=False)
+
+            if request['status'] != '1':
+                print stats.add('Unknown status: %s' % request['status'],
+                                request['nid'])
+
+            # TODO add in comments
+            # NB confidential requests are excluded (would need Drupal changes as I get "Access denied for user anonymous" eg for /services/rest/node/3137)
+
+            if not args.request:
+                output_f.write(json.dumps(request) + '\n')
+            stats.add('Data Request dumped ok', int(request['nid']))
+
+            if args.request:
+                pprint(request)
+
+    print '\nData requests:', stats
+    if not args.request:
         print '\nWritten to: %s' % args.output_fpath
     else:
         print '\nNot written due to filter'
@@ -589,6 +804,15 @@ if __name__ == '__main__':
                            help='Only do it for a single library item'
                                 '(eg "Blossom Bristol")')
 
+    subparser = subparsers.add_parser('dataset_requests')
+    subparser.set_defaults(func=dataset_requests)
+    subparser.add_argument('--output_fpath',
+                           default='dataset_requests.jsonl.gz',
+                           help='Location of the output '
+                                'dataset_requests.jsonl.gz file')
+    subparser.add_argument('--request',
+                           help='Only do it for a single dataset request'
+                                '(eg "Daily Average temperature UK 2014 to 2016 ")')
     args = parser.parse_args()
 
     # call the function
