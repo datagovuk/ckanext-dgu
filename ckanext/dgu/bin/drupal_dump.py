@@ -9,6 +9,7 @@ import sys
 import gzip
 import unicodecsv
 from collections import defaultdict
+import copy
 
 from ckanext.dgu.drupalclient import (
     DrupalClient,
@@ -153,6 +154,14 @@ def organograms():
 def apps():
     drupal = get_drupal_client()
 
+    if args.tags:
+        # get tags using:
+        # rsync -L --progress co@co-prod3.dh.bytemark.co.uk:/var/lib/ckan/ckan/dumps_with_private_data/tags.csv.gz tags.csv.gz
+        with gzip.open(args.tags, 'rb') as f:
+            csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+            tag_map = dict((tag['tid'], tag['name'])
+                           for tag in csv_reader)
+
     # dataset_referrers help us link up the apps and the ckan dataset id
     referrers = drupal.get_dataset_referrers()
     app_datasets = defaultdict(list)  # app nid: [ckan_dataset_id, ... ]
@@ -179,7 +188,8 @@ def apps():
 
     nodes = drupal.get_nodes(type_filter='app')
 
-    with gzip.open(args.output_fpath, 'wb') as output_f:
+    with gzip.open(args.output_fpath, 'wb') as output_f, \
+            gzip.open(args.public_output_fpath, 'wb') as public_output_f:
         for node in common.add_progress_bar(nodes):
             # ignore Forum topics and blog posts that refer
             # Eventually we might handle other types.
@@ -197,15 +207,14 @@ def apps():
                     print stats.add('Node id unknown',
                                     int(node['nid']))
                     continue
-                print stats.add('Error: %s' % e, int(fid))
+                print stats.add('Error: %s' % e, int(node['nid']))
                 continue
             # app_node is a superset of app
             app = app_node
 
-            # NB contains personal data in:
+            # NB contains non-public data in:
             # field_submitter_email
             # field_submitter_name
-            # name
 
             # screenshot:           "filename": "data.gov_.uk_.3_10.jpg"
             # is:           /sites/default/files/data.gov_.uk_.1_10.jpg
@@ -225,7 +234,7 @@ def apps():
             except KeyError:
                 dataset_ids = []
                 stats.add('App with no datasets',
-                          '%s %s' % (dataset_nid, node['title']))
+                          '%s %s' % (app['nid'], node['title']))
             if len(dataset_nids) != len(dataset_ids):
                 # this occurs occasionally eg commutable-careers
                 # where perhaps a dataset is deleted. it's fine.
@@ -234,8 +243,23 @@ def apps():
                                         node['title']))
             app['field_uses_dataset_ckan_ids'] = dataset_ids
 
+            # tags
+            if args.tags:
+                try:
+                    tag_ids = [
+                        d['tid']
+                        for d in app.get('field_tags', {})['und']] \
+                        if app.get('field_tags') else []
+                except TypeError:
+                    import pdb; pdb.set_trace()
+                app['tags'] = [tag_map[tid] for tid in tag_ids]
+
+            app_public = remove_fields(
+                app, 'field_submitter_email', 'field_submitter_name')
+
             if not args.app:
                 output_f.write(json.dumps(app) + '\n')
+                public_output_f.write(json.dumps(app_public) + '\n')
             stats.add('%s dumped ok' % node['type'], node['title'])
 
             if args.app:
@@ -243,7 +267,8 @@ def apps():
 
     print '\nApps:', stats
     if not args.app:
-        print '\nWritten to: %s' % args.output_fpath
+        print '\nWritten to: %s %s' % (
+            args.output_fpath, args.public_output_fpath)
     else:
         print '\nNot written due to filter'
 
@@ -706,6 +731,40 @@ def dataset_requests():
         print '\nNot written due to filter'
 
 
+def remove_fields(data, *json_paths_to_remove):
+    data_ = copy.deepcopy(data)
+    for json_path in json_paths_to_remove:
+        # no paths for now
+        assert '/' not in json_path
+        del data_[json_path]
+
+        # Todo paths
+        #path_split = json_path.split('/')
+        #parent_path, key = '\\'.join(path_split[:-1]), path_split[-1]
+        #parent = get_json_path(data_, parent_path)
+        #del parent[key]
+    return data_
+
+# def get_json_path(data, json_path):
+#     path_split = json_path.split('/')
+#     top_dir = path_split[0]
+#     if isinstance(data, dict):
+#         return get_json_path(key
+
+def walk_data_removing_keys(data, current_json_path, keys_to_remove):
+    this_
+    if isinstance(data, dict):
+        for key in set(data.keys()) & keys_to_remove:
+            del data[key]
+        for key in data:
+            walk_data_removing_keys(data[key], json_path + '/' + key,
+                                    keys_to_remove)
+    elif isinstance(data, list) or isinstance(data, tuple):
+        for value in data:
+            walk_data_removing_keys(value, keys_to_remove)
+    elif isinstance(data, basestring):
+        return
+
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
         while True:
@@ -780,6 +839,13 @@ if __name__ == '__main__':
                            default='apps.jsonl.gz',
                            help='Location of the output '
                                 'apps.jsonl.gz file')
+    subparser.add_argument('--public_output_fpath',
+                           default='apps_public.jsonl.gz',
+                           help='Location of the output '
+                                'apps_public.jsonl.gz file')
+    subparser.add_argument('--tags',
+                           help='Supply filepath of Drupal tags.csv.gz to '
+                                'convert tag IDs to names')
     subparser.add_argument('--app',
                            help='Only do it for a single app '
                                 '(eg Illustreets)')
