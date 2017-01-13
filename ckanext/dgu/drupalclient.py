@@ -265,7 +265,8 @@ class DrupalClient(object):
         except ProtocolError, e:
             raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
         nodes = response.json()
-        log.info('Obtained %s nodes e.g. %r', len(nodes), nodes[0])
+        log.info('Obtained %s nodes e.g. %r', len(nodes),
+                 nodes[0] if nodes else None)
         return nodes
 
     def get_comments(self, node_id):

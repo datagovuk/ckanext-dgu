@@ -163,9 +163,16 @@ def organograms():
             # https://data.gov.uk/organogram/cabinet-office/2016-09-30
             yyyy, mm, dd = organogram['data_date_converted'].split('-')
             params = dict(dd=dd, mm=mm, yyyy=yyyy)
-            if not organogram['filename'].endswith('.xls'):
-                print stats.add('Non-standard filename ending - not sure how to convert to url: %s' % organogram['filename'], int(fid))
-            params['filename_base'] = urllib.quote(organogram['filename'].split('.xls')[0])
+            if organogram['filename'].lower().endswith('.xls'):
+                filename_base = organogram['filename'][:-4]
+            elif organogram['filename'].lower().endswith('.xlsx'):
+                filename_base = organogram['filename'][:-5]
+            else:
+                print stats.add(
+                    'Non-standard filename ending - not sure how to '
+                    'convert to url: %s' % organogram['filename'], int(fid))
+                filename_base = organogram['filename'].split('.')[0]
+            params['filename_base'] = urllib.quote(filename_base)
             params['publisher'] = organogram['publisher_name']
             organogram['junior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-junior.csv'.format(**params)
             organogram['senior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-senior.csv'.format(**params)
@@ -840,6 +847,105 @@ def dataset_requests():
         print '\nNot written due to filter'
 
 
+def dataset_comments():
+    drupal = get_drupal_client()
+
+    # Get list of drupal dataset ids
+    with gzip.open(args.drupal_dataset_ids, 'rb') as f:
+        csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+        drupal_datasets = {}
+        drupal_datasets_by_ckan_id = {}
+        for dataset in csv_reader:
+            drupal_datasets[dataset['drupal_id']] = dataset['ckan_id']
+            drupal_datasets_by_ckan_id[dataset['ckan_id']] = \
+                dataset['drupal_id']
+
+    ckan_datasets_by_id = {}
+    ckan_datasets_by_name = {}
+    print 'Converting ckan name...'
+    with gzip.open(args.ckan_datasets, 'rb') as f:
+        while True:
+            line = f.readline()
+            if line == '':
+                break
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            dataset = json.loads(line,
+                                 encoding='utf8')
+            mini_dataset = dict(
+                id=dataset['id'],
+                name=dataset['name'])
+            ckan_datasets_by_id[dataset['id']] = mini_dataset
+            ckan_datasets_by_name[dataset['name']] = mini_dataset
+    print '...done'
+
+    if args.dataset:
+        # ckan_name to ckan_id
+        if args.dataset in ckan_datasets_by_name:
+            args.dataset = ckan_datasets_by_name[args.dataset]['id']
+        # ckan_id to drupal_id
+        if args.dataset in drupal_datasets_by_ckan_id:
+            args.dataset = drupal_datasets_by_ckan_id[args.dataset]
+
+    print 'Drupal datasets: %s' % len(drupal_datasets)
+    print 'CKAN datasets: %s' % len(ckan_datasets_by_id)
+
+    i = 0
+    with gzip.open(args.output_fpath, 'wb') as output_f:
+        for drupal_dataset_id in \
+                common.add_progress_bar(drupal_datasets.keys()):
+            if i > 0 and i % 100 == 0:
+                print stats
+            i += 1
+
+            if args.dataset and args.dataset != drupal_dataset_id:
+                continue
+
+            # Comments
+            try:
+                comments = drupal.get_comments(drupal_dataset_id)
+            except DrupalRequestError, e:
+                print stats.add('Error: %s' % e, drupal_dataset_id)
+                continue
+            # e.g.
+            # {u'changed': u'Saturday, 9 April, 2016 - 03:08',
+            #  u'comment': u"<p>\n\tI'm not...</p>\n",
+            #  u'created': u'Saturday, 9 April, 2016 - 03:08',
+            #  u'depth': u'0',
+            #  u'entity_id': u'4,490',
+            #  u'position': u'6',
+            #  u'reply id': u'7,377',
+            #  u'subject': u'Hello :)',
+            #  u'uid': u'419,564'}
+            for comment in comments:
+                remove_fields_with_unchanging_value(comment, {
+                    u'bundle': u'comment',
+                    u'entity_type': u'node',
+                    u'instance_id': u'55',
+                    u'note': None,
+                    u'status': u'1',
+                    u'entity_id': topic['nid'],
+                    }, topic['title'])
+            ckan_id = drupal_datasets[drupal_dataset_id]
+            exists_in_ckan = ckan_id in ckan_datasets_by_id
+            if not exists_in_ckan and not comments:
+                continue
+            dataset = dict(
+                dataset_ckan_id=ckan_id,
+                dataset_drupal_id=drupal_dataset_id,
+                dataset_name=ckan_datasets_by_id[ckan_id]['name']
+                    if exists_in_ckan else None,
+                comments=comments)
+
+            if not args.dataset:
+                output_f.write(json.dumps(dataset) + '\n')
+            stats.add('Data Request dumped ok', int(drupal_dataset_id))
+
+            if args.dataset:
+                pprint(dataset)
+
+
 def rename_key(data, key, new_key):
     data[new_key] = data[key]
     del data[key]
@@ -1054,6 +1160,23 @@ if __name__ == '__main__':
     subparser.add_argument('--request',
                            help='Only do it for a single dataset request'
                                 '(eg "Daily Average temperature UK 2014 to 2016 ")')
+
+    subparser = subparsers.add_parser('dataset_comments')
+    subparser.set_defaults(func=dataset_comments)
+    subparser.add_argument('--drupal_dataset_ids',
+                           default='drupal_dataset_ids.csv.gz',
+                           help='Location of drupal_dataset_ids.csv.gz')
+    subparser.add_argument('--ckan_datasets',
+                           default='data.gov.uk-ckan-meta-data-latest.v2.jsonl.gz',
+                           help='Location of datasets.jsonl.gz')
+    subparser.add_argument('--output_fpath',
+                           default='dataset_comments.jsonl.gz',
+                           help='Location of the output '
+                                'dataset_comments.jsonl.gz file')
+    subparser.add_argument('--dataset',
+                           help='Only do it for a single dataset '
+                                '(eg "road-accidents-safety-data")')
+
     args = parser.parse_args()
 
     # call the function
