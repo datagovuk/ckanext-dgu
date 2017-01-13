@@ -847,6 +847,30 @@ def dataset_requests():
         print '\nNot written due to filter'
 
 
+def ckan_dataset_names():
+    with gzip.open(args.ckan_datasets_jsonl, 'rb') as f, \
+            gzip.open(args.output_fpath, 'wb') as output_f:
+        headers =['id', 'name']
+        csv_writer = unicodecsv.DictWriter(output_f,
+                                           fieldnames=headers,
+                                           encoding='utf-8')
+        csv_writer.writeheader()
+        while True:
+            line = f.readline()
+            if line == '':
+                break
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            dataset = json.loads(line,
+                                 encoding='utf8')
+            ckan_dataset_mini = dict(
+                id=dataset['id'],
+                name=dataset['name'])
+            csv_writer.writerow(ckan_dataset_mini)
+    print '\nWritten to: %s' % args.output_fpath
+
+
 def dataset_comments():
     drupal = get_drupal_client()
 
@@ -860,25 +884,13 @@ def dataset_comments():
             drupal_datasets_by_ckan_id[dataset['ckan_id']] = \
                 dataset['drupal_id']
 
-    ckan_datasets_by_id = {}
-    ckan_datasets_by_name = {}
-    print 'Converting ckan name...'
-    with gzip.open(args.ckan_datasets, 'rb') as f:
-        while True:
-            line = f.readline()
-            if line == '':
-                break
-            line = line.rstrip('\n')
-            if not line:
-                continue
-            dataset = json.loads(line,
-                                 encoding='utf8')
-            mini_dataset = dict(
-                id=dataset['id'],
-                name=dataset['name'])
-            ckan_datasets_by_id[dataset['id']] = mini_dataset
-            ckan_datasets_by_name[dataset['name']] = mini_dataset
-    print '...done'
+    with gzip.open(args.ckan_dataset_names, 'rb') as f:
+        csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+        ckan_datasets_by_id = {}
+        ckan_datasets_by_name = {}
+        for mini_dataset in csv_reader:
+            ckan_datasets_by_id[mini_dataset['id']] = mini_dataset
+            ckan_datasets_by_name[mini_dataset['name']] = mini_dataset
 
     if args.dataset:
         # ckan_name to ckan_id
@@ -891,10 +903,15 @@ def dataset_comments():
     print 'Drupal datasets: %s' % len(drupal_datasets)
     print 'CKAN datasets: %s' % len(ckan_datasets_by_id)
 
+    if args.dataset:
+        drupal_dataset_ids = [args.dataset]
+    else:
+        drupal_dataset_ids = drupal_datasets.keys()
+
     i = 0
     with gzip.open(args.output_fpath, 'wb') as output_f:
         for drupal_dataset_id in \
-                common.add_progress_bar(drupal_datasets.keys()):
+                common.add_progress_bar(drupal_dataset_ids):
             if i > 0 and i % 100 == 0:
                 print stats
             i += 1
@@ -940,7 +957,7 @@ def dataset_comments():
 
             if not args.dataset:
                 output_f.write(json.dumps(dataset) + '\n')
-            stats.add('Data Request dumped ok', int(drupal_dataset_id))
+            stats.add('Dataset comments dumped ok', int(drupal_dataset_id))
 
             if args.dataset:
                 pprint(dataset)
@@ -1161,14 +1178,24 @@ if __name__ == '__main__':
                            help='Only do it for a single dataset request'
                                 '(eg "Daily Average temperature UK 2014 to 2016 ")')
 
+    subparser = subparsers.add_parser('ckan_dataset_names')
+    subparser.set_defaults(func=ckan_dataset_names)
+    subparser.add_argument('--ckan_datasets_jsonl',
+                           default='data.gov.uk-ckan-meta-data-latest.v2.jsonl.gz',
+                           help='Location of datasets.jsonl.gz')
+    subparser.add_argument('--output_fpath',
+                           default='ckan_dataset_names.csv.gz',
+                           help='Location of the output '
+                                'ckan_dataset_names.csv.gz file')
+
     subparser = subparsers.add_parser('dataset_comments')
     subparser.set_defaults(func=dataset_comments)
     subparser.add_argument('--drupal_dataset_ids',
                            default='drupal_dataset_ids.csv.gz',
                            help='Location of drupal_dataset_ids.csv.gz')
-    subparser.add_argument('--ckan_datasets',
-                           default='data.gov.uk-ckan-meta-data-latest.v2.jsonl.gz',
-                           help='Location of datasets.jsonl.gz')
+    subparser.add_argument('--ckan_dataset_names',
+                           default='ckan_dataset_names.csv.gz',
+                           help='Location of ckan_dataset_names.csv.gz')
     subparser.add_argument('--output_fpath',
                            default='dataset_comments.jsonl.gz',
                            help='Location of the output '
