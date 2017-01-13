@@ -10,6 +10,9 @@ import gzip
 import unicodecsv
 from collections import defaultdict
 import copy
+import datetime
+import requests_cache
+import urllib
 
 from ckanext.dgu.drupalclient import (
     DrupalClient,
@@ -20,6 +23,8 @@ import common
 
 args = None
 stats = Stats()
+
+requests_cache.install_cache('.drupal_dump')  # doesn't expire
 
 
 def users():
@@ -102,7 +107,8 @@ def organograms():
     print 'Organogram files to try: %s' % len(organogram_files)
 
     i = 0
-    with gzip.open(args.output_fpath, 'wb') as output_f:
+    with gzip.open(args.output_fpath, 'wb') as output_f, \
+            gzip.open(args.public_output_fpath, 'wb') as public_output_f:
         for organogram_file in common.add_progress_bar(organogram_files):
             if i > 0 and i % 100 == 0:
                 print stats
@@ -132,21 +138,65 @@ def organograms():
 
             organogram.update(organogram_file)
             # timestamp here is an upload date, uid is an id of a user who uploaded it (user object can be retrieved from /services/rest/user/{uid})
-            organogram['upload_date'] = organogram['timestamp']
-            del organogram['timestamp']
+            rename_key(organogram, 'timestamp', 'upload_date')
+            rename_key(organogram, 'name', 'publisher_name')
+
+            convert_dates(organogram, [
+                          'signoff_date', 'publish_date', 'upload_date'])
 
             # Published and sign off dates are returned in original call as 'publish_date' and 'signoff_date', they can be timestamps or have value of 0 if not published or not signed off yet.
 
+            # Deadline date appears to be 23:00 on the day before the date the data is a snapshot of, so move it forward one hour (=60*60s). Also rename it 'Data date'.
+            rename_key(organogram, 'deadline_date', 'data_date')
+            organogram['data_date'] = \
+                str(float(organogram['data_date']) + 60 * 60)
+            convert_dates(organogram, ['data_date'],
+                          date_format='%Y-%m-%d')
+            if organogram['data_date_converted'][-5:] not in (
+                    '03-31', '09-30'):
+                print stats.add('Non-standard data date %s'
+                                % organogram['data_date_converted'], int(fid))
+
+            # Auto-generated links are like:
+            # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-senior.csv
+            # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-junior.csv
+            # https://data.gov.uk/organogram/cabinet-office/2016-09-30
+            yyyy, mm, dd = organogram['data_date_converted'].split('-')
+            params = dict(dd=dd, mm=mm, yyyy=yyyy)
+            if not organogram['filename'].endswith('.xls'):
+                print stats.add('Non-standard filename ending - not sure how to convert to url: %s' % organogram['filename'], int(fid))
+            params['filename_base'] = urllib.quote(organogram['filename'].split('.xls')[0])
+            params['publisher'] = organogram['publisher_name']
+            organogram['junior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-junior.csv'.format(**params)
+            organogram['senior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-senior.csv'.format(**params)
+            organogram['vizualization_url'] = 'https://data.gov.uk/organogram/{publisher}/{yyyy}-{mm}-{dd}'.format(**params)
+
+            remove_fields(organogram, 'alt', 'metadata', 'rdf_mapping', 'status', 'title', 'type')
+
+            organogram_public = copy.deepcopy(organogram)
+            remove_fields(organogram_public, 'uid', 'filename',
+                          'filemime', 'filesize', 'uri')
+            is_published = organogram['publish_date'] != '0'
+            if not is_published:
+                organogram_public = None  # wont be written, but just in case
+                stats.add('Unpublished organogram', int(fid))
+
+            expand_filename(organogram, 'uri')  # private data
+
             if not args.publisher:
                 output_f.write(json.dumps(organogram) + '\n')
+                if is_published:
+                    public_output_f.write(json.dumps(organogram_public) + '\n')
+
             stats.add('Organogram dumped ok', int(fid))
 
             if args.publisher:
-                pprint(organogram)
+                pprint(organogram_public)
 
     print '\nOrganograms:', stats
     if not args.publisher:
-        print '\nWritten to: %s' % args.output_fpath
+        print '\nWritten to: %s %s' % (
+            args.output_fpath, args.public_output_fpath)
     else:
         print '\nNot written due to filter'
 
@@ -156,7 +206,7 @@ def apps():
 
     if args.tags:
         # get tags using:
-        # rsync -L --progress co@co-prod3.dh.bytemark.co.uk:/var/lib/ckan/ckan/dumps_with_private_data/tags.csv.gz tags.csv.gz
+        # rsync -L --progress co@co-prod3.dh.bytemark.co.uk:/var/lib/ckan/ckan/dumps_with_private_data/drupal_tags.csv.gz drupal_tags.csv.gz
         with gzip.open(args.tags, 'rb') as f:
             csv_reader = unicodecsv.DictReader(f, encoding='utf8')
             tag_map = dict((tag['tid'], tag['name'])
@@ -254,8 +304,9 @@ def apps():
                     import pdb; pdb.set_trace()
                 app['tags'] = [tag_map[tid] for tid in tag_ids]
 
-            app_public = remove_fields(
-                app, 'field_submitter_email', 'field_submitter_name')
+            app_public = copy.deepcopy(app)
+            remove_fields(app_public, 'field_submitter_email',
+                          'field_submitter_name')
 
             if not args.app:
                 output_f.write(json.dumps(app) + '\n')
@@ -275,6 +326,14 @@ def apps():
 
 def forum():
     drupal = get_drupal_client()
+
+    # dataset_referrers help us link up the forums and the ckan dataset id
+    referrers = drupal.get_dataset_referrers()
+    forum_datasets = defaultdict(list)  # app nid: [ckan_dataset_id, ... ]
+    for referrer in referrers:
+        if referrer['type'] != 'Forum topic':
+            continue
+        forum_datasets[referrer['nid']].append(referrer['ckan_id'])
 
     topics = drupal.get_nodes(type_filter='forum')
 
@@ -304,7 +363,8 @@ def forum():
                 print stats
             i += 1
 
-            if args.topic and args.topic not in (topic['nid'], topic['title']):
+            if args.topic and args.topic not in (
+                    topic['nid'], topic['title']):
                 continue
 
             # Get main details from the node
@@ -330,18 +390,93 @@ def forum():
             #         u'value': u'<p>Once a dataset has been added to data.gov.uk it seems that I cannot remove it? The contact page is also ineffective as I have been waiting for a response for a very long time now.</p>\r\n\r\n<p>Does anyone know how to remove a dataset?&nbsp;</p>\r\n'}]},
             #  "path": "https://test.data.gov.uk/forum/general-discussion/how-remove-dataset",
 
-            if topic_node['status'] != '1':
-                print stats.add('Unknown status: %s' % topic_node['status'],
-                                topic_node['nid'])
+            convert_dates(topic, ('created', 'changed'))
+            convert_field_category(topic)
+            remove_fields(topic, 'rdf_mapping', 'workbench_moderation',
+                          'vid', # version
+                          )
+            remove_fields_with_unchanging_value(topic, {
+                u'sticky': u'0',
+                u'status': u'1',
+                u'tnid': u'0',
+                u'translate': u'0',
+                u'type': u'forum',
+                u'promote': u'0',
+                u'print_pdf_size': u'',
+                u'picture': u'0',
+                u'print_html_display': 0,
+                u'print_html_display_comment': 0,
+                u'print_html_display_urllist': 0,
+                u'print_pdf_display': 0,
+                u'print_pdf_display_comment': 0,
+                u'print_pdf_display_urllist': 0,
+                u'print_pdf_orientation': u'',
+                u'log': u'',
+                u'field_comment': [],
+                u'field_sector': [],
+                u'language': u'und',
+                u'comment': u'0',
+                })
 
-            # TODO add in comments
+            # Get the linked datasets
+            # e.g. u'nid': u'4647'
+            # u'field_uses_dataset': {u'und': [{u'target_id': u'33938'},
+            try:
+                dataset_nids = [
+                    d['target_id']
+                    for d in topic.get('field_uses_dataset', {})['und']] \
+                    if topic.get('field_uses_dataset') else []
+            except TypeError:
+                import pdb; pdb.set_trace()
+            try:
+                dataset_ids = forum_datasets[topic['nid']]
+            except KeyError:
+                dataset_ids = []
+                stats.add('Could not find related dataset',
+                          '%s %s' % (topic['nid'], topic['title']))
+            if len(dataset_nids) != len(dataset_ids):
+                # this occurs occasionally eg commutable-careers
+                # where perhaps a dataset is deleted. it's fine.
+                stats.add('Error - topic with wrong number of datasets',
+                          '%s %s %s' % (len(dataset_nids), len(dataset_ids),
+                                        topic['title']))
+            topic['field_uses_dataset_ckan_ids'] = dataset_ids
+
+
+            # Comments
+            try:
+                comments = drupal.get_comments(topic['nid'])
+            except DrupalRequestError, e:
+                print stats.add('Error: %s' % e, topic['nid'])
+                continue
+            # e.g.
+            # {u'changed': u'Saturday, 9 April, 2016 - 03:08',
+            #  u'comment': u"<p>\n\tI'm not...</p>\n",
+            #  u'created': u'Saturday, 9 April, 2016 - 03:08',
+            #  u'depth': u'0',
+            #  u'entity_id': u'4,490',
+            #  u'position': u'6',
+            #  u'reply id': u'7,377',
+            #  u'subject': u'Hello :)',
+            #  u'uid': u'419,564'}
+            topic['comments'] = comments
+            for comment in comments:
+                remove_fields_with_unchanging_value(comment, {
+                    u'bundle': u'comment',
+                    u'deleted': u'0',
+                    u'entity_type': u'node',
+                    u'instance_id': u'55',
+                    u'note': None,
+                    u'status': u'1',
+                    u'entity_id': topic['nid'],
+                    })
 
             if not args.topic:
                 output_f.write(json.dumps(topic) + '\n')
             stats.add('Topic dumped ok', int(topic['nid']))
 
             if args.topic:
-                pprint(organogram)
+                pprint(topic)
 
     print '\nForum:', stats
     if not args.topic:
@@ -471,34 +606,9 @@ def library():
                 print stats.add('Multiple tids: %s' % len(type_ids),
                                 item['nid'])
 
-            # categories found by inspecting the facets urls at:
-            # https://data.gov.uk/library
-            # or drupal db:
-            # select tid, name from taxonomy_term_data where vid=1 order by tid;
-            category_map = {
-                83: 'Government',
-                84: 'Policy',
-                79: 'Location',
-                76: 'Society',
-                81: 'Administration',
-                80: 'Linked data',
-                78: 'Transportation',
-                74: 'Education',
-                73: 'Environment',
-                }
-            try:
-                category_ids = [
-                    item_['tid']
-                    for item_ in item.get('field_category', {})['und']] \
-                    if item.get('field_category') else []
-            except TypeError:
-                import pdb; pdb.set_trace()
-            try:
-                item['categories'] = [
-                    category_map[int(tid)] for tid in category_ids]
-            except KeyError:
-                print stats.add('Unknown category id %s' % type_ids[0],
-                                item['nid'])
+            convert_field_category(item)
+
+            expand_filename(item, 'uri')
 
             if item['status'] != '1':
                 print stats.add('Unknown status: %s' % item['status'],
@@ -698,7 +808,7 @@ def dataset_requests():
                     print stats.add('Unknown %s id %s' %
                                     (id_type, type_ids[0]),
                                     request['nid'])
-            explain_id_meaning('organization_type', organization_type_map,
+            explain_id_meaning('organisation_type', organization_type_map,
                                'field_organisation_type', 'value')
             explain_id_meaning('review_status', status_map,
                                'field_review_status', 'value')
@@ -706,9 +816,10 @@ def dataset_requests():
                                'field_review_outcome', 'value')
             explain_id_meaning('barriers_reason', reason_map,
                                'field_barriers_reason', 'value')
-            explain_id_meaning('data_theme', data_themes_map,
-                               'field_data_themes', 'tid',
-                               should_be_one_value=False)
+            convert_field_category(request, 'field_data_themes')
+            #explain_id_meaning('data_theme', data_themes_map,
+            #                   'field_data_themes', 'tid',
+            #                   should_be_one_value=False)
 
             if request['status'] != '1':
                 print stats.add('Unknown status: %s' % request['status'],
@@ -731,39 +842,101 @@ def dataset_requests():
         print '\nNot written due to filter'
 
 
-def remove_fields(data, *json_paths_to_remove):
-    data_ = copy.deepcopy(data)
-    for json_path in json_paths_to_remove:
-        # no paths for now
-        assert '/' not in json_path
-        del data_[json_path]
+def rename_key(data, key, new_key):
+    data[new_key] = data[key]
+    del data[key]
 
-        # Todo paths
-        #path_split = json_path.split('/')
-        #parent_path, key = '\\'.join(path_split[:-1]), path_split[-1]
-        #parent = get_json_path(data_, parent_path)
-        #del parent[key]
-    return data_
 
-# def get_json_path(data, json_path):
-#     path_split = json_path.split('/')
-#     top_dir = path_split[0]
-#     if isinstance(data, dict):
-#         return get_json_path(key
-
-def walk_data_removing_keys(data, current_json_path, keys_to_remove):
-    this_
-    if isinstance(data, dict):
-        for key in set(data.keys()) & keys_to_remove:
-            del data[key]
-        for key in data:
-            walk_data_removing_keys(data[key], json_path + '/' + key,
-                                    keys_to_remove)
-    elif isinstance(data, list) or isinstance(data, tuple):
-        for value in data:
-            walk_data_removing_keys(value, keys_to_remove)
-    elif isinstance(data, basestring):
+def expand_filename(data, key):
+    # e.g.
+    # "uri": "public://organogram/uploads/300916 DFT Organogram ver 1.xls",
+    # ->
+    # "uri": "https://data.gov.uk/sites/default/files/organogram/uploads/300916%20DFT%20Organogram%20ver%201.xls
+    # public://library/20150415 ODUG Minutes.odt
+    # ->
+    # https://data.gov.uk/sites/default/files/20150415 ODUG Minutes.odt
+    value = data[key]
+    if not value:
         return
+    if value.startswith('public://organogram/'):
+        value = value.replace('public://organogram/',
+                              'https://data.gov.uk/sites/default/files/organogram/')
+    elif value.startswith('public://library/'):
+        value = value.replace('public://library/',
+                              'https://data.gov.uk/sites/default/files/')
+    else:
+        print stats.add('Cannot expand filename - type not recognized: %s'
+                        % value, '')
+        return
+    data[key + '_expanded'] = value
+
+
+def convert_dates(data, date_fields, date_format='%Y-%m-%d %H:%M:%S'):
+    for key in date_fields:
+        value = data[key]
+        if value == '0':
+            # In organograms this means null. But more widely, it doesn't mean
+            # 1970-01-01 00:00:00
+            converted_date = '0'
+        else:
+            try:
+                converted_date = datetime.datetime.fromtimestamp(
+                    float(value)).strftime(date_format)
+            except ValueError:
+                converted_date = ''
+        data[key + '_converted'] = converted_date
+
+
+def remove_fields_with_unchanging_value(data, field_dict):
+    for key, value in field_dict.iteritems():
+        value_ = data[key]
+        if value_ != value:
+            print stats.add(
+                'Error: was asked to remove field but surprised to see the '
+                'value is "%s" not "%s" - key "%s"' % (value_, value, key),
+                '')
+            continue
+        del data[key]
+
+
+def convert_field_category(data, key='field_category'):
+    # categories found by inspecting the facets urls at:
+    # https://data.gov.uk/library
+    # or drupal db:
+    # select tid, name from taxonomy_term_data where vid=1 order by tid;
+    category_map = {
+        72: 'Health',
+        73: 'Environment',
+        74: 'Education',
+        75: 'Finance',
+        76: 'Society',
+        77: 'Defence',
+        78: 'Transportation',
+        79: 'Location',
+        80: 'Linked data',
+        81: 'Administration',
+        82: 'Spending data',
+        83: 'Government',
+        84: 'Policy',
+    }
+    try:
+        category_ids = [
+            item['tid']
+            for item in data.get(key, {})['und']] \
+            if data.get(key) else []
+    except TypeError:
+        import pdb; pdb.set_trace()
+    try:
+        data[key.replace('field_', '')] = [
+            category_map[int(tid)] for tid in category_ids]
+    except KeyError, e:
+        print stats.add('Unknown category id %s' % e, data['nid'])
+
+
+def remove_fields(data, *keys_to_remove):
+    for key in keys_to_remove:
+        del data[key]
+
 
 def parse_jsonl(filepath):
     with gzip.open(filepath, 'rb') as f:
@@ -829,6 +1002,10 @@ if __name__ == '__main__':
                            default='organograms.jsonl.gz',
                            help='Location of the output '
                                 'organograms.jsonl.gz file')
+    subparser.add_argument('--public_output_fpath',
+                           default='organograms_public.jsonl.gz',
+                           help='Location of the public output '
+                                'organograms_public.jsonl.gz file')
     subparser.add_argument('-p', '--publisher',
                            help='Only do it for a single publisher '
                                 '(eg cabinet-office)')
@@ -841,7 +1018,7 @@ if __name__ == '__main__':
                                 'apps.jsonl.gz file')
     subparser.add_argument('--public_output_fpath',
                            default='apps_public.jsonl.gz',
-                           help='Location of the output '
+                           help='Location of the public output '
                                 'apps_public.jsonl.gz file')
     subparser.add_argument('--tags',
                            help='Supply filepath of Drupal tags.csv.gz to '

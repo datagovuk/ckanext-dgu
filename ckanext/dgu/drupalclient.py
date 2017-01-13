@@ -267,3 +267,35 @@ class DrupalClient(object):
         nodes = response.json()
         log.info('Obtained %s nodes e.g. %r', len(nodes), nodes[0])
         return nodes
+
+    def get_comments(self, node_id):
+        '''Comments/replies
+
+        PR: There are 3 different types of comments: normal, field comment for
+        consultation paragraphs and review note for data requests.
+        'bundle' fields indicates what kind of comment it is.
+        They are almost the same, I think that the only difference is that
+        review notes have 'note' field instead of 'comment'.
+        '''
+        # https://data.gov.uk/services/rest/views/replies?entity_type=node&entity_id={nid}
+
+        url = self.rest_url + '/views/replies' \
+            '?entity_type=node&entity_id={nid}'.format(nid=node_id)
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        replies = response.json()
+        log.info('Obtained %s replies', len(replies))
+        # Fix commas appearing in some fields!
+        # u'entity_id': u'4,490',
+        # u'reply id': u'7,255',
+        # u'uid': u'7,974'},
+        for key in ('entity_id', 'reply id', 'uid'):
+            for reply in replies:
+                reply[key] = reply[key].replace(',', '')
+        return replies
