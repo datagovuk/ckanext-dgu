@@ -394,16 +394,19 @@ def forum():
             convert_field_category(topic)
             remove_fields(topic, 'rdf_mapping', 'workbench_moderation',
                           'vid', # version
+                          'log', # e.g. "Edited by Daniel King82."
+                          'promote', # not used
+                          'language', # not used
+                          'comment', # no idea what the number is for
+                          u'picture', # no idea what the number is for
+                          u'status', # no idea
                           )
             remove_fields_with_unchanging_value(topic, {
                 u'sticky': u'0',
-                u'status': u'1',
                 u'tnid': u'0',
                 u'translate': u'0',
                 u'type': u'forum',
-                u'promote': u'0',
                 u'print_pdf_size': u'',
-                u'picture': u'0',
                 u'print_html_display': 0,
                 u'print_html_display_comment': 0,
                 u'print_html_display_urllist': 0,
@@ -411,12 +414,8 @@ def forum():
                 u'print_pdf_display_comment': 0,
                 u'print_pdf_display_urllist': 0,
                 u'print_pdf_orientation': u'',
-                u'log': u'',
                 u'field_comment': [],
-                u'field_sector': [],
-                u'language': u'und',
-                u'comment': u'0',
-                })
+                }, topic['title'])
 
             # Get the linked datasets
             # e.g. u'nid': u'4647'
@@ -463,13 +462,12 @@ def forum():
             for comment in comments:
                 remove_fields_with_unchanging_value(comment, {
                     u'bundle': u'comment',
-                    u'deleted': u'0',
                     u'entity_type': u'node',
                     u'instance_id': u'55',
                     u'note': None,
                     u'status': u'1',
                     u'entity_id': topic['nid'],
-                    })
+                    }, topic['title'])
 
             if not args.topic:
                 output_f.write(json.dumps(topic) + '\n')
@@ -887,14 +885,14 @@ def convert_dates(data, date_fields, date_format='%Y-%m-%d %H:%M:%S'):
         data[key + '_converted'] = converted_date
 
 
-def remove_fields_with_unchanging_value(data, field_dict):
+def remove_fields_with_unchanging_value(data, field_dict, identifier=''):
     for key, value in field_dict.iteritems():
         value_ = data[key]
         if value_ != value:
             print stats.add(
-                'Error: was asked to remove field but surprised to see the '
-                'value is "%s" not "%s" - key "%s"' % (value_, value, key),
-                '')
+                'Error: was asked to remove field but surprised to see '
+                'changed value for "%s"' % key,
+                'is %s not %s "%s"' % (value_, value, identifier))
             continue
         del data[key]
 

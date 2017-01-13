@@ -276,6 +276,10 @@ class DrupalClient(object):
         'bundle' fields indicates what kind of comment it is.
         They are almost the same, I think that the only difference is that
         review notes have 'note' field instead of 'comment'.
+
+        A few comments are:
+        u'deleted': u'1'
+        which means they are left as (public) placeholders to allow replies to be kept.
         '''
         # https://data.gov.uk/services/rest/views/replies?entity_type=node&entity_id={nid}
 
