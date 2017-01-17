@@ -184,8 +184,8 @@ def organograms():
         remove_fields(organogram_public, 'uid', 'filename',
                       'filemime', 'filesize', 'uri')
         # raw fields
-        remove_fields(organogram_public, 'signoff_date_iso',
-                      'publish_date_iso', 'upload_date_iso',)
+        remove_fields(organogram_public, 'signoff_date_unix',
+                      'publish_date_unix', 'upload_date_unix',)
         is_published = organogram['publish_date'] != '0'
         if not is_published:
             organogram_public = None  # wont be written, but just in case
@@ -207,18 +207,18 @@ def organograms():
     if not args.publisher:
         headers = ('fid', 'uri', 'uri_expanded',
                    'publisher_name',
-                   'data_date', 'data_date_iso', 'uid',
+                   'data_date', 'data_date_unix', 'uid',
                    'vizualization_url',
                    'junior_csv_url', 'senior_csv_url',
-                   'upload_date', 'upload_date_iso',
-                   'signoff_date', 'signoff_date_iso',
-                   'publish_date', 'publish_date_iso',
+                   'upload_date', 'upload_date_unix',
+                   'signoff_date', 'signoff_date_unix',
+                   'publish_date', 'publish_date_unix',
                    'filemime', 'filesize', 'filename',
                    )
         headers_public = [
             h for h in headers if h not in (
-                'uid', 'uri', 'uri_expanded', 'upload_date_iso', #'data_date_iso',
-                'signoff_date_iso', 'publish_date_iso', 'filemime', 'filesize',
+                'uid', 'uri', 'uri_expanded', 'upload_date_unix', #'data_date_unix',
+                'signoff_date_unix', 'publish_date_unix', 'filemime', 'filesize',
                 'filename',
                 )
         ]
@@ -234,7 +234,7 @@ def organograms():
             public_csv_writer.writeheader()
 
             sort_key = lambda o: (o['publisher_name'],
-                                  float(o['data_date_iso']))
+                                  float(o['data_date_unix']))
             for organogram in sorted(organograms_, key=sort_key):
                 csv_writer.writerow(organogram)
             for organogram_public in sorted(organograms_public, key=sort_key):
@@ -1109,7 +1109,7 @@ def convert_dates(data, date_fields, date_format='%Y-%m-%d %H:%M:%S'):
                     float(value)).strftime(date_format)
             except ValueError:
                 converted_date = ''
-        data[key + '_iso'] = value
+        data[key + '_unix'] = value
         data[key] = converted_date
 
 
