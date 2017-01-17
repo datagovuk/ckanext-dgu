@@ -353,9 +353,8 @@ def apps():
                         tag_names.append(tag_map[tid])
                     except KeyError:
                         print stats.add('Unknown tag id',
-                                        '% %' % (tid, node['title'])
-
-                app['tags'] = [tag_map[tid] for tid in tag_ids]
+                                        '% %' % (tid, node['title']))
+                app['tags'] = tag_names
 
             app_public = copy.deepcopy(app)
             remove_fields(app_public, 'field_submitter_email',
