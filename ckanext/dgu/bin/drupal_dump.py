@@ -24,8 +24,6 @@ import common
 args = None
 stats = Stats()
 
-requests_cache.install_cache('.drupal_dump')  # doesn't expire
-
 
 def users():
     drupal = get_drupal_client()
@@ -1138,6 +1136,8 @@ if __name__ == '__main__':
     parser.add_argument('ckan_ini', help='Filepath of the ckan.ini')
     parser.add_argument('-d', '--domain', default='data.gov.uk',
                         help='Remote domain to query')
+    parser.add_argument('--cache-requests', action='store_true',
+                        help='Use cache for requests (.drupal_dump.sqlite)')
 
     subparsers = parser.add_subparsers()
 
@@ -1246,6 +1246,9 @@ if __name__ == '__main__':
                                 '(eg "road-accidents-safety-data")')
 
     args = parser.parse_args()
+
+    if args.cache_requests:
+        requests_cache.install_cache('.drupal_dump')  # doesn't expire
 
     # call the function
     args.func()
