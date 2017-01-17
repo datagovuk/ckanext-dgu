@@ -660,6 +660,10 @@ def library():
 
             if item.get('field_resource_file'):
                 for resource in item['field_resource_file']['und']:
+                    if resource is None:
+                        print stats.add('field_resource_file was None',
+                                        item['nid'])
+                        continue
                     expand_filename(resource, 'uri')
 
             if item['status'] != '1':
