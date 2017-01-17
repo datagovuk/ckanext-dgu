@@ -353,7 +353,7 @@ def apps():
                         tag_names.append(tag_map[tid])
                     except KeyError:
                         print stats.add('Unknown tag id',
-                                        '% %' % (tid, node['title']))
+                                        '%s %s' % (tid, node['title']))
                 app['tags'] = tag_names
 
             app_public = copy.deepcopy(app)
