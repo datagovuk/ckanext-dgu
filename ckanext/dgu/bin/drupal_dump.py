@@ -104,104 +104,144 @@ def organograms():
     #  u'signoff_date': u'1482088160'}
     #  u'deadline_date': u'1475190000',
 
-    print 'Organogram files to try: %s' % len(organogram_files)
-
+    organograms_ = []
+    organograms_public = []
     i = 0
-    with gzip.open(args.output_fpath, 'wb') as output_f, \
-            gzip.open(args.public_output_fpath, 'wb') as public_output_f:
-        for organogram_file in common.add_progress_bar(organogram_files):
-            if i > 0 and i % 100 == 0:
-                print stats
-            i += 1
+    print 'Organogram files to try: %s' % len(organogram_files)
+    for organogram_file in common.add_progress_bar(organogram_files):
+        if i > 0 and i % 100 == 0:
+            print stats
+        i += 1
 
-            fid = organogram_file['fid']
-            if args.publisher and organogram_file['name'] != args.publisher:
-                continue
-            try:
-                organogram = drupal.get_organogram_file_properties(fid)
-            except DrupalRequestError, e:
-                if 'There is no organogram file with fid' in str(e):
-                    print stats.add('Organogram fid unknown',
-                                    int(fid))
-                    continue
-                print stats.add('Error: %s' % e, int(fid))
-                continue
-
-            if isinstance(organogram, bool):
-                print stats.add('Error: returned bool %s' % organogram,
+        fid = organogram_file['fid']
+        if args.publisher and organogram_file['name'] != args.publisher:
+            continue
+        try:
+            organogram = drupal.get_organogram_file_properties(fid)
+        except DrupalRequestError, e:
+            if 'There is no organogram file with fid' in str(e):
+                print stats.add('Organogram fid unknown',
                                 int(fid))
                 continue
+            print stats.add('Error: %s' % e, int(fid))
+            continue
 
-            # NB private information:
-            #  uid - user id of uploader
-            #  not-yet-published organograms (publish_date=0)
+        if isinstance(organogram, bool):
+            print stats.add('Error: returned bool %s' % organogram,
+                            int(fid))
+            continue
 
-            organogram.update(organogram_file)
-            # timestamp here is an upload date, uid is an id of a user who uploaded it (user object can be retrieved from /services/rest/user/{uid})
-            rename_key(organogram, 'timestamp', 'upload_date')
-            rename_key(organogram, 'name', 'publisher_name')
+        # NB private information:
+        #  uid - user id of uploader
+        #  not-yet-published organograms (publish_date=0)
 
-            convert_dates(organogram, [
-                          'signoff_date', 'publish_date', 'upload_date'])
+        organogram.update(organogram_file)
+        # timestamp here is an upload date, uid is an id of a user who uploaded it (user object can be retrieved from /services/rest/user/{uid})
+        rename_key(organogram, 'timestamp', 'upload_date')
+        rename_key(organogram, 'name', 'publisher_name')
 
-            # Published and sign off dates are returned in original call as 'publish_date' and 'signoff_date', they can be timestamps or have value of 0 if not published or not signed off yet.
+        convert_dates(organogram, [
+                      'signoff_date', 'publish_date', 'upload_date'])
 
-            # Deadline date appears to be 23:00 on the day before the date the data is a snapshot of, so move it forward one hour (=60*60s). Also rename it 'Data date'.
-            rename_key(organogram, 'deadline_date', 'data_date')
-            organogram['data_date'] = \
-                str(float(organogram['data_date']) + 60 * 60)
-            convert_dates(organogram, ['data_date'],
-                          date_format='%Y-%m-%d')
-            if organogram['data_date_converted'][-5:] not in (
-                    '03-31', '09-30'):
-                print stats.add('Non-standard data date %s'
-                                % organogram['data_date_converted'], int(fid))
+        # Published and sign off dates are returned in original call as 'publish_date' and 'signoff_date', they can be timestamps or have value of 0 if not published or not signed off yet.
 
-            # Auto-generated links are like:
-            # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-senior.csv
-            # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-junior.csv
-            # https://data.gov.uk/organogram/cabinet-office/2016-09-30
-            yyyy, mm, dd = organogram['data_date_converted'].split('-')
-            params = dict(dd=dd, mm=mm, yyyy=yyyy)
-            if organogram['filename'].lower().endswith('.xls'):
-                filename_base = organogram['filename'][:-4]
-            elif organogram['filename'].lower().endswith('.xlsx'):
-                filename_base = organogram['filename'][:-5]
-            else:
-                print stats.add(
-                    'Non-standard filename ending - not sure how to '
-                    'convert to url: %s' % organogram['filename'], int(fid))
-                filename_base = organogram['filename'].split('.')[0]
-            params['filename_base'] = urllib.quote(filename_base)
-            params['publisher'] = organogram['publisher_name']
-            organogram['junior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-junior.csv'.format(**params)
-            organogram['senior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-senior.csv'.format(**params)
-            organogram['vizualization_url'] = 'https://data.gov.uk/organogram/{publisher}/{yyyy}-{mm}-{dd}'.format(**params)
+        # Deadline date appears to be 23:00 on the day before the date the data is a snapshot of, so move it forward one hour (=60*60s). Also rename it 'Data date'.
+        rename_key(organogram, 'deadline_date', 'data_date')
+        organogram['data_date'] = \
+            str(float(organogram['data_date']) + 60 * 60)
+        convert_dates(organogram, ['data_date'],
+                      date_format='%Y-%m-%d')
+        if organogram['data_date'][-5:] not in (
+                '03-31', '09-30'):
+            print stats.add('Non-standard data date %s'
+                            % organogram['data_date'], int(fid))
 
-            remove_fields(organogram, 'alt', 'metadata', 'rdf_mapping', 'status', 'title', 'type')
+        # Auto-generated links are like:
+        # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-senior.csv
+        # https://data.gov.uk/sites/default/files/organogram/cabinet-office/30/09/2016/CO%20Template%20FINAL%20300916-junior.csv
+        # https://data.gov.uk/organogram/cabinet-office/2016-09-30
+        yyyy, mm, dd = organogram['data_date'].split('-')
+        params = dict(dd=dd, mm=mm, yyyy=yyyy)
+        if organogram['filename'].lower().endswith('.xls'):
+            filename_base = organogram['filename'][:-4]
+        elif organogram['filename'].lower().endswith('.xlsx'):
+            filename_base = organogram['filename'][:-5]
+        else:
+            print stats.add(
+                'Non-standard filename ending - not sure how to '
+                'convert to url: %s' % organogram['filename'], int(fid))
+            filename_base = organogram['filename'].split('.')[0]
+        params['filename_base'] = urllib.quote(filename_base)
+        params['publisher'] = organogram['publisher_name']
+        organogram['junior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-junior.csv'.format(**params)
+        organogram['senior_csv_url'] = 'https://data.gov.uk/sites/default/files/organogram/{publisher}/{dd}/{mm}/{yyyy}/{filename_base}-senior.csv'.format(**params)
+        organogram['vizualization_url'] = 'https://data.gov.uk/organogram/{publisher}/{yyyy}-{mm}-{dd}'.format(**params)
 
-            organogram_public = copy.deepcopy(organogram)
-            remove_fields(organogram_public, 'uid', 'filename',
-                          'filemime', 'filesize', 'uri')
-            is_published = organogram['publish_date'] != '0'
-            if not is_published:
-                organogram_public = None  # wont be written, but just in case
-                stats.add('Unpublished organogram', int(fid))
+        remove_fields(organogram, 'alt', 'metadata', 'rdf_mapping', 'status', 'title', 'type')
 
-            expand_filename(organogram, 'uri')  # private data
+        # organogram is now flat, so can be saved as csv
 
-            if not args.publisher:
-                output_f.write(json.dumps(organogram) + '\n')
-                if is_published:
-                    public_output_f.write(json.dumps(organogram_public) + '\n')
+        organogram_public = copy.deepcopy(organogram)
+        # private info
+        remove_fields(organogram_public, 'uid', 'filename',
+                      'filemime', 'filesize', 'uri')
+        # raw fields
+        remove_fields(organogram_public, 'signoff_date_iso',
+                      'publish_date_iso', 'upload_date_iso',)
+        is_published = organogram['publish_date'] != '0'
+        if not is_published:
+            organogram_public = None  # wont be written, but just in case
+            stats.add('Unpublished organogram', int(fid))
 
-            stats.add('Organogram dumped ok', int(fid))
+        expand_filename(organogram, 'uri')  # private data
 
-            if args.publisher:
-                pprint(organogram_public)
+        organograms_.append(organogram)
+        if is_published:
+            organograms_public.append(organogram_public)
+
+        stats.add('Organogram dumped ok', int(fid))
+
+        if args.publisher:
+            pprint(organogram_public)
 
     print '\nOrganograms:', stats
+
     if not args.publisher:
+        headers = ('fid', 'uri', 'uri_expanded',
+                   'publisher_name',
+                   'data_date', 'data_date_iso', 'uid',
+                   'vizualization_url',
+                   'junior_csv_url', 'senior_csv_url',
+                   'upload_date', 'upload_date_iso',
+                   'signoff_date', 'signoff_date_iso',
+                   'publish_date', 'publish_date_iso',
+                   'filemime', 'filesize', 'filename',
+                   )
+        headers_public = [
+            h for h in headers if h not in (
+                'uid', 'uri', 'uri_expanded', 'upload_date_iso', #'data_date_iso',
+                'signoff_date_iso', 'publish_date_iso', 'filemime', 'filesize',
+                'filename',
+                )
+        ]
+        with open(args.output_fpath, 'wb') as output_f, \
+                open(args.public_output_fpath, 'wb') as public_output_f:
+            csv_writer = unicodecsv.DictWriter(output_f,
+                                               fieldnames=headers,
+                                               encoding='utf-8')
+            csv_writer.writeheader()
+            public_csv_writer = unicodecsv.DictWriter(public_output_f,
+                                                      fieldnames=headers_public,
+                                                      encoding='utf-8')
+            public_csv_writer.writeheader()
+
+            sort_key = lambda o: (o['publisher_name'],
+                                  float(o['data_date_iso']))
+            for organogram in sorted(organograms_, key=sort_key):
+                csv_writer.writerow(organogram)
+            for organogram_public in sorted(organograms_public, key=sort_key):
+                    public_csv_writer.writerow(organogram_public)
+
         print '\nWritten to: %s %s' % (
             args.output_fpath, args.public_output_fpath)
     else:
@@ -1005,7 +1045,8 @@ def convert_dates(data, date_fields, date_format='%Y-%m-%d %H:%M:%S'):
                     float(value)).strftime(date_format)
             except ValueError:
                 converted_date = ''
-        data[key + '_converted'] = converted_date
+        data[key + '_iso'] = value
+        data[key] = converted_date
 
 
 def remove_fields_with_unchanging_value(data, field_dict, identifier=''):
@@ -1120,13 +1161,13 @@ if __name__ == '__main__':
     subparser = subparsers.add_parser('organograms')
     subparser.set_defaults(func=organograms)
     subparser.add_argument('--output_fpath',
-                           default='organograms.jsonl.gz',
+                           default='organograms.csv',
                            help='Location of the output '
-                                'organograms.jsonl.gz file')
+                                'organograms.csv file')
     subparser.add_argument('--public_output_fpath',
-                           default='organograms_public.jsonl.gz',
+                           default='organograms_public.csv',
                            help='Location of the public output '
-                                'organograms_public.jsonl.gz file')
+                                'organograms_public.csv file')
     subparser.add_argument('-p', '--publisher',
                            help='Only do it for a single publisher '
                                 '(eg cabinet-office)')
