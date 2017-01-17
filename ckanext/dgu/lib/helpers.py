@@ -1799,7 +1799,7 @@ def search_facet_tooltip(key,value):
             stars = int(value)
         except ValueError:
             return
-        if stars == -1:
+        if stars == -1 or stars > 5:
             return
         mini_stars = stars * '&#9733'
         mini_stars += '&#9734' * (5-stars)
