@@ -1023,6 +1023,9 @@ def expand_filename(data, key):
     # public://library/20150415 ODUG Minutes.odt
     # ->
     # https://data.gov.uk/sites/default/files/20150415 ODUG Minutes.odt
+    # public://20130829 ODUG Stolen Vehicle Data_0_10.pdf
+    # ->
+    # https://data.gov.uk/sites/default/files/20130829%20ODUG%20Stolen%20Vehicle%20Data_0_10.pdf
     value = data[key]
     if not value:
         return
@@ -1031,6 +1034,9 @@ def expand_filename(data, key):
                               'https://data.gov.uk/sites/default/files/organogram/')
     elif value.startswith('public://library/'):
         value = value.replace('public://library/',
+                              'https://data.gov.uk/sites/default/files/')
+    elif value.startswith('public://') and '/' not in value[10:]:
+        value = value.replace('public://',
                               'https://data.gov.uk/sites/default/files/')
     else:
         print stats.add('Cannot expand filename - type not recognized: %s'
