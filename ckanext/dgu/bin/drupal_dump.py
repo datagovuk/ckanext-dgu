@@ -338,6 +338,18 @@ def apps():
                                         node['title']))
             app['field_uses_dataset_ckan_ids'] = dataset_ids
 
+            convert_dates(app, ['created', 'changed', 'revision_timestamp'])
+            if app.get('field_screen_shots'):
+                for file in app['field_screen_shots']['und']:
+                    expand_filename(file, 'uri')
+                    convert_dates(file, ['timestamp'])
+                    remove_fields(file, 'uid')
+            if app.get('field_app_thumbnail'):
+                for file in app['field_app_thumbnail']['und']:
+                    expand_filename(file, 'uri')
+                    convert_dates(file, ['timestamp'])
+                    remove_fields(file, 'uid')
+
             # tags
             if args.tags:
                 try:
@@ -356,9 +368,37 @@ def apps():
                                         '%s %s' % (tid, node['title']))
                 app['tags'] = tag_names
 
+            # remove clutter
+            remove_fields(app, 'rdf_mapping', 'workbench_moderation',
+                          'vid', # version
+                          'log', # e.g. "Edited by Daniel King82."
+                          'promote', # not used
+                          'language', # not used
+                          'comment', # no idea what the number is for
+                          u'picture', # no idea what the number is for
+                          u'status', # no idea
+                          )
+            remove_fields_with_unchanging_value(app, {
+                u'sticky': u'0',
+                u'tnid': u'0',
+                u'translate': u'0',
+                u'type': u'app',
+                u'print_pdf_size': u'',
+                u'print_html_display': 0,
+                u'print_html_display_comment': 0,
+                u'print_html_display_urllist': 0,
+                u'print_pdf_display': 0,
+                u'print_pdf_display_comment': 0,
+                u'print_pdf_display_urllist': 0,
+                u'print_pdf_orientation': u'',
+                u'field_comment': [],
+                }, node['title'])
+
             app_public = copy.deepcopy(app)
+            # private fields
             remove_fields(app_public, 'field_submitter_email',
-                          'field_submitter_name')
+                          'field_submitter_name', 'uid', 'revision_uid')
+
 
             if not args.app:
                 output_f.write(json.dumps(app) + '\n')
@@ -1030,6 +1070,9 @@ def expand_filename(data, key):
     # public://20130829 ODUG Stolen Vehicle Data_0_10.pdf
     # ->
     # https://data.gov.uk/sites/default/files/20130829%20ODUG%20Stolen%20Vehicle%20Data_0_10.pdf
+    # public://files/apps/fmf screenshot.png
+    # ->
+    # https://data.gov.uk/sites/default/files/files/apps/fmf%20screenshot.png
     value = data[key]
     if not value:
         return
@@ -1039,10 +1082,14 @@ def expand_filename(data, key):
     elif value.startswith('public://library/'):
         value = value.replace('public://library/',
                               'https://data.gov.uk/sites/default/files/')
+    elif value.startswith('public://files/'):
+        value = value.replace('public://files/',
+                              'https://data.gov.uk/sites/default/files/files/')
     elif value.startswith('public://') and '/' not in value[10:]:
         value = value.replace('public://',
                               'https://data.gov.uk/sites/default/files/')
     else:
+        import pdb; pdb.set_trace()
         print stats.add('Cannot expand filename - type not recognized: %s'
                         % value, '')
         return
