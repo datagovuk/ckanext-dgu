@@ -347,6 +347,14 @@ def apps():
                         if app.get('field_tags') else []
                 except TypeError:
                     import pdb; pdb.set_trace()
+                tag_names = []
+                for tid in tag_ids:
+                    try:
+                        tag_names.append(tag_map[tid])
+                    except KeyError:
+                        print stats.add('Unknown tag id',
+                                        '% %' % (tid, node['title'])
+
                 app['tags'] = [tag_map[tid] for tid in tag_ids]
 
             app_public = copy.deepcopy(app)
