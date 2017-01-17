@@ -658,7 +658,9 @@ def library():
 
             convert_field_category(item)
 
-            expand_filename(item, 'uri')
+            if item.get('field_resource_file'):
+                for resource in item['field_resource_file']['und']:
+                    expand_filename(resource, 'uri')
 
             if item['status'] != '1':
                 print stats.add('Unknown status: %s' % item['status'],
