@@ -467,7 +467,8 @@ class SearchPlugin(p.SingletonPlugin):
         search_params['qf'] = 'title^4 name^3 notes^2 text organization_titles^0.3 extras_harvest_document_content^0.2'
         # boost NII datasets. used trial and error to get reasonable mix of useful NII ones
         # on and relevant non-NII ones for /data/search?q=road and /data/search?q=crime
-        search_params['bf'] = 'core_dataset^20'
+        # Boost registers much higher as we know they are much higher quality datasets.
+        search_params['bf'] = 'core_dataset^20 register^100'
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
@@ -519,6 +520,7 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
         SearchIndexing.add_its(pkg_dict)
+        SearchIndexing.add_register(pkg_dict)
         SearchIndexing.add_api_flag(pkg_dict)
         SearchIndexing.add_theme(pkg_dict)
         if is_plugin_enabled('dgu_schema'):
