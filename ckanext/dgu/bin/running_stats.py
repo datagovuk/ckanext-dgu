@@ -11,12 +11,13 @@ for package in packages:
         stats.add('deleted', package.name)
     else:
         stats.add('not deleted' package.name)
-print stats
+print(stats)
 > deleted: 30 pollution-uk, flood-regions, river-quality, ...
 > not deleted: 70 spending-bristol, ...
 
 '''
 
+from __future__ import print_function
 import copy
 import datetime
 
@@ -30,9 +31,9 @@ class StatsCount(dict):
         super(StatsCount, self).__init__(*args, **kwargs)
 
     def _init_category(self, category):
-        if not self.has_key(category):
+        if category not in self:
             self[category] = copy.deepcopy(self._init_value)
-        
+
     def report(self, indent=1, order_by_title=False, show_time_taken=True):
         lines = []
         indent_str = '\t' * indent
@@ -41,9 +42,9 @@ class StatsCount(dict):
             report_dict[category] = self.report_value(category)
 
         if order_by_title:
-            items = sorted(report_dict.iteritems())
+            items = sorted(report_dict.items())
         else:
-            items = sorted(report_dict.iteritems(),
+            items = sorted(report_dict.items(),
                            key=lambda x: -x[1][1])
 
         for category, value_tuple in items:
@@ -59,7 +60,7 @@ class StatsCount(dict):
 
     def show_time_taken(self):
         time_taken = datetime.datetime.now() - self._start_time
-        print 'Time taken (h:m:s): %s' % time_taken
+        print('Time taken (h:m:s): %s' % time_taken)
 
     def __repr__(self):
         return self.report()
@@ -116,4 +117,4 @@ if __name__ == '__main__':
     package_stats.add('Success', 'good3')
     package_stats.add('Success', 'good4')
     package_stats.add('Failure', 'bad1')
-    print package_stats
+    print(package_stats)
