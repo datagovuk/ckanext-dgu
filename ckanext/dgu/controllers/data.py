@@ -248,7 +248,8 @@ class DataController(BaseController):
         r = requests.get(url,
                          headers=headers,
                          params=dict(request.params),
-                         stream=True)
+                         stream=True,
+                         timeout=40)
 
         if r.status_code != 200:
             abort(r.status_code)
