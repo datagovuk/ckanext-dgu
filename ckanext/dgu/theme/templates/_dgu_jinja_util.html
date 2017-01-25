@@ -211,7 +211,7 @@
         {% set title         = packages[i].get('title') or packages[i].get('name') %}
         {% set primary_theme = h.get_primary_theme(packages[i]) %}
 
-          <div class="{{if_(mini,'col-lg-3 col-md-4 col-sm-6')}}"  {% if h.is_register(package) %}style="background-color: #e4f9d2;"{% endif %}>
+          <div class="{{if_(mini,'col-lg-3 col-md-4 col-sm-6')}}"  {% if h.is_register(package) and not mini %}style="background-color: #e4f9d2;"{% endif %}>
           <div class="dataset dataset-summary theme-{{primary_theme or 'none'}} {{if_(mini,'mini', '')}} {{if_(unpublished,'unpublished', '')}}">
            <a class="dataset-header" href="{{h.url_for(controller='package', action='read', id=package.get('name'))}}">
              <div class="theme-name">{{primary_theme or '(Uncategorised)'}}</div>
