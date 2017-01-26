@@ -191,6 +191,7 @@ class ThemePlugin(p.SingletonPlugin):
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')
         map.connect('/data/themes/{name}', controller=theme_controller, action='named_theme')
+        map.connect('/data/random-datasets', controller=data_controller, action='random_datasets')
 
         # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
