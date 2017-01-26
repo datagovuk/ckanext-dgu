@@ -1,0 +1,28 @@
+{% extends "page.html" %}
+
+
+{% block title %}Random datasets{% endblock %}
+
+{% block primary_content_inner %}
+
+  <h1>Random datasets</h1>
+
+  <form action="">
+    Sample size:
+    <input type="text" name="sample_size" value="{{sample_size}}" style="width:50px;">
+    <input type="submit" value="Run!">
+  </form>
+
+  <p></p>
+  <h2>{{sample_size}} random datasets:</h2>
+  {% if datasets %}
+    <ul>
+      {% for name in datasets %}
+        <li style="list-style: none;">
+          <a href="/dataset/{{name}}">{{name}}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+{% endblock %}
