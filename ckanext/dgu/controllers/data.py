@@ -556,8 +556,6 @@ class DataController(BaseController):
                 order_by(model.Package.name)
             num_datasets = dataset_q.count()
             dataset_indexes = random.sample(range(num_datasets), sample_size)
-            # datasets = [dataset_q.offset(i).first()[0]
-            #             for i in dataset_indexes]
             dataset_names = dataset_q.all()
             datasets = [dataset_names[i][0] for i in dataset_indexes]
         else:
