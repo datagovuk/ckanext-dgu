@@ -562,7 +562,8 @@ class DataController(BaseController):
             datasets = None
         return render('data/random_datasets.html',
                       extra_vars=dict(sample_size=sample_size,
-                                      datasets=datasets))
+                                      datasets=datasets,
+                                      next_seed=random.randint(1000, 9999)))
 
 
 def has_user_got_publisher_permissions():
