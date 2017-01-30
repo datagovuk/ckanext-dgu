@@ -319,7 +319,7 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
         replies = response.json()
         log.info('Obtained %s dataset replies', len(replies))
-                # Fix commas appearing in some fields!
+        # Fix commas appearing in some fields!
         # u'entity_id': u'4,490',
         # u'reply id': u'7,255',
         # u'uid': u'7,974'},
