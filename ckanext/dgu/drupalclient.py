@@ -304,3 +304,26 @@ class DrupalClient(object):
             for reply in replies:
                 reply[key] = reply[key].replace(',', '')
         return replies
+
+    def get_dataset_comments(self, entity_id):
+        # https://data.gov.uk/services/rest/views/replies?entity_type=ckan_dataset
+        url = self.rest_url + '/views/replies' \
+            '?entity_type=ckan_dataset&entity_id={id}'.format(id=entity_id)
+        try:
+            response = requests.get(url, auth=self.requests_auth)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal url %s returned error: %r' % (url, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal url %s returned protocol error: %r' % (url, e))
+        replies = response.json()
+        log.info('Obtained %s dataset replies', len(replies))
+                # Fix commas appearing in some fields!
+        # u'entity_id': u'4,490',
+        # u'reply id': u'7,255',
+        # u'uid': u'7,974'},
+        for key in ('entity_id', 'reply id', 'uid'):
+            for reply in replies:
+                reply[key] = reply[key].replace(',', '')
+        return replies

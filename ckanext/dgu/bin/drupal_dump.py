@@ -965,6 +965,9 @@ def ckan_dataset_names():
 def dataset_comments():
     drupal = get_drupal_client()
 
+    #     https://data.gov.uk/services/rest/views/replies?entity_type=ckan_dataset
+    # Where 'entity_id' is a primary key to a dataset in Drupal database.
+
     # Get list of drupal dataset ids
     with gzip.open(args.drupal_dataset_ids, 'rb') as f:
         csv_reader = unicodecsv.DictReader(f, encoding='utf8')
@@ -974,6 +977,8 @@ def dataset_comments():
             drupal_datasets[dataset['drupal_id']] = dataset['ckan_id']
             drupal_datasets_by_ckan_id[dataset['ckan_id']] = \
                 dataset['drupal_id']
+    # Alternatively: endpoint for mapping between CKAN id and Drupal dataset
+    # ids (entity_id): https://data.gov.uk/services/rest/datasets
 
     with gzip.open(args.ckan_dataset_names, 'rb') as f:
         csv_reader = unicodecsv.DictReader(f, encoding='utf8')
@@ -1003,7 +1008,7 @@ def dataset_comments():
     with gzip.open(args.output_fpath, 'wb') as output_f:
         for drupal_dataset_id in \
                 common.add_progress_bar(drupal_dataset_ids):
-            if i > 0 and i % 100 == 0:
+            if i > 0 and i % 250 == 0:
                 print stats
             i += 1
 
@@ -1012,47 +1017,62 @@ def dataset_comments():
 
             # Comments
             try:
-                comments = drupal.get_comments(drupal_dataset_id)
+                comments = drupal.get_dataset_comments(drupal_dataset_id)
             except DrupalRequestError, e:
                 print stats.add('Error: %s' % e, drupal_dataset_id)
                 continue
             # e.g.
-            # {u'changed': u'Saturday, 9 April, 2016 - 03:08',
-            #  u'comment': u"<p>\n\tI'm not...</p>\n",
-            #  u'created': u'Saturday, 9 April, 2016 - 03:08',
+            # {u'bundle': u'comment',
+            #  u'changed': u'Monday, 14 October, 2013 - 19:31',
+            #  u'comment': u'<p>This dataset is NOT for the whole of GB, it is just the NE, NW and a couple of cities. It is hugely detailed but the metadata is wrong to suggest it is for GB.</p>\n',
+            #  u'created': u'Thursday, 29 September, 2011 - 10:24',
+            #  u'deleted': u'0',
             #  u'depth': u'0',
-            #  u'entity_id': u'4,490',
-            #  u'position': u'6',
-            #  u'reply id': u'7,377',
-            #  u'subject': u'Hello :)',
-            #  u'uid': u'419,564'}
+            #  u'entity_id': u'13466',
+            #  u'entity_type': u'ckan_dataset',
+            #  u'instance_id': u'32',
+            #  u'note': None,
+            #  u'position': u'1',
+            #  u'reply id': u'1202',
+            #  u'status': u'1',
+            #  u'subject': u'Metadata wrong',
+            #  u'uid': u'0'}  # really old comments often have no user attached, such as this one and show as "Visitor"
             for comment in comments:
                 remove_fields_with_unchanging_value(comment, {
                     u'bundle': u'comment',
-                    u'entity_type': u'node',
-                    u'instance_id': u'55',
+                    u'deleted': u'0',
+                    u'entity_type': u'ckan_dataset',
+                    u'instance_id': u'32',
                     u'note': None,
                     u'status': u'1',
-                    u'entity_id': topic['nid'],
-                    }, topic['title'])
-            ckan_id = drupal_datasets[drupal_dataset_id]
+                    u'entity_id': drupal_dataset_id,
+                    }, drupal_dataset_id)
+            ckan_id = drupal_datasets.get(drupal_dataset_id)
             exists_in_ckan = ckan_id in ckan_datasets_by_id
+            dataset_name = ckan_datasets_by_id[ckan_id]['name'] \
+                if exists_in_ckan else None
+            readable_id = dataset_name or ckan_id or int(drupal_dataset_id)
             if not exists_in_ckan and not comments:
+                stats.add('Not in CKAN and no comments', readable_id)
+                continue
+            if not comments:
+                stats.add('No comments', readable_id)
                 continue
             dataset = dict(
                 dataset_ckan_id=ckan_id,
                 dataset_drupal_id=drupal_dataset_id,
-                dataset_name=ckan_datasets_by_id[ckan_id]['name']
-                    if exists_in_ckan else None,
+                dataset_name=dataset_name,
                 comments=comments)
 
             if not args.dataset:
                 output_f.write(json.dumps(dataset) + '\n')
-            stats.add('Dataset comments dumped ok', int(drupal_dataset_id))
+            appendum = ' but not found in ckan' if not exists_in_ckan else ''
+            stats.add('Dataset comments dumped ok' + appendum, readable_id)
 
             if args.dataset:
                 pprint(dataset)
 
+    print stats
 
 def rename_key(data, key, new_key):
     data[new_key] = data[key]
