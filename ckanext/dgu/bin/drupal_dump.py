@@ -1083,6 +1083,14 @@ def dataset_comments():
     else:
         drupal_dataset_ids = drupal_datasets.keys()
 
+    with gzip.open(args.users_from_drupal_user_table_dump, 'rb') as f:
+        csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+        drupal_users = dict(
+            (int(user_dict['uid']), user_dict['name'])
+            for user_dict in csv_reader
+            if user_dict['status'] != '0'  # i.e. not blocked
+            )
+
     i = 0
     with gzip.open(args.output_fpath, 'wb') as output_f:
         for drupal_dataset_id in \
@@ -1126,6 +1134,15 @@ def dataset_comments():
                     u'status': u'1',
                     u'entity_id': drupal_dataset_id,
                     }, drupal_dataset_id)
+                if comment['uid'] == '0':
+                    user_name = 'Visitor'
+                else:
+                    user_name = drupal_users.get(int(comment['uid']))
+                    if not user_name:
+                        stats.add('User not found', (
+                            comment['uid'],
+                            drupal_dataset_id))
+                comment['user_name'] = user_name
             ckan_id = drupal_datasets.get(drupal_dataset_id)
             exists_in_ckan = ckan_id in ckan_datasets_by_id
             dataset_name = ckan_datasets_by_id[ckan_id]['name'] \
@@ -1408,6 +1425,9 @@ if __name__ == '__main__':
     subparser.add_argument('--ckan_dataset_names',
                            default='ckan_dataset_names.csv.gz',
                            help='Location of ckan_dataset_names.csv.gz')
+    subparser.add_argument('--users-from-drupal-user-table-dump',
+                           default='drupal_users_table.csv.gz',
+                           help='Filepath of drupal_users_table.csv.gz')
     subparser.add_argument('--output_fpath',
                            default='dataset_comments.jsonl.gz',
                            help='Location of the output '
