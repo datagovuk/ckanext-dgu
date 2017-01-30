@@ -184,8 +184,8 @@ def organograms():
         remove_fields(organogram_public, 'uid', 'filename',
                       'filemime', 'filesize', 'uri')
         # raw fields
-        remove_fields(organogram_public, 'signoff_date_iso',
-                      'publish_date_iso', 'upload_date_iso',)
+        remove_fields(organogram_public, 'signoff_date_unix',
+                      'publish_date_unix', 'upload_date_unix',)
         is_published = organogram['publish_date'] != '0'
         if not is_published:
             organogram_public = None  # wont be written, but just in case
@@ -207,18 +207,18 @@ def organograms():
     if not args.publisher:
         headers = ('fid', 'uri', 'uri_expanded',
                    'publisher_name',
-                   'data_date', 'data_date_iso', 'uid',
+                   'data_date', 'data_date_unix', 'uid',
                    'vizualization_url',
                    'junior_csv_url', 'senior_csv_url',
-                   'upload_date', 'upload_date_iso',
-                   'signoff_date', 'signoff_date_iso',
-                   'publish_date', 'publish_date_iso',
+                   'upload_date', 'upload_date_unix',
+                   'signoff_date', 'signoff_date_unix',
+                   'publish_date', 'publish_date_unix',
                    'filemime', 'filesize', 'filename',
                    )
         headers_public = [
             h for h in headers if h not in (
-                'uid', 'uri', 'uri_expanded', 'upload_date_iso', #'data_date_iso',
-                'signoff_date_iso', 'publish_date_iso', 'filemime', 'filesize',
+                'uid', 'uri', 'uri_expanded', 'upload_date_unix', #'data_date_unix',
+                'signoff_date_unix', 'publish_date_unix', 'filemime', 'filesize',
                 'filename',
                 )
         ]
@@ -234,7 +234,7 @@ def organograms():
             public_csv_writer.writeheader()
 
             sort_key = lambda o: (o['publisher_name'],
-                                  float(o['data_date_iso']))
+                                  float(o['data_date_unix']))
             for organogram in sorted(organograms_, key=sort_key):
                 csv_writer.writerow(organogram)
             for organogram_public in sorted(organograms_public, key=sort_key):
@@ -729,6 +729,15 @@ def library():
 def dataset_requests():
     drupal = get_drupal_client()
 
+    # Get drupal publishers
+    if args.drupal_publisher_ids:
+        with open(args.drupal_publisher_ids, 'rb') as f:
+            csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+            drupal_publishers = {}
+            for publisher in csv_reader:
+                drupal_publishers[int(publisher['drupal_publisher_id'])] = \
+                    publisher
+
     requests = drupal.get_nodes(type_filter='dataset_request')
 
     # e.g.
@@ -748,18 +757,22 @@ def dataset_requests():
     #  u'uri': u'https://data.gov.uk/services/rest/node/4994',
     #  u'vid': u'11564'}
 
+
+    if args.request:
+        requests = [request for request in requests
+                    if args.request in (request['nid'],
+                                        request['title'])]
+        assert requests, 'Request %s not found' % args.request
+
     print 'Dataset requests to try: %s' % len(requests)
 
+    requests_public = []
     i = 0
     with gzip.open(args.output_fpath, 'wb') as output_f:
         for request in common.add_progress_bar(requests):
             if i > 0 and i % 100 == 0:
                 print stats
             i += 1
-
-            if args.request and args.request not in (request['nid'],
-                                                     request['title']):
-                continue
 
             # Get main details from the node
             try:
@@ -817,7 +830,12 @@ def dataset_requests():
             #  u'field_review_outcome': [],
             #  u'field_review_status': {u'und': [{u'value': u'0'}]},
             #  u'field_submitter_type': {u'und': [{u'value': u'1'}]},
+            #  u'revision_uid'
+            #  u'workbench_moderation
             #  "log"
+            #  assignee / "Relationship manager" (doesn't seem to be there)
+
+            convert_dates(request, ['created', 'changed'])
 
             # Categories
             # ids found by inspecting the facets urls at:
@@ -875,6 +893,15 @@ def dataset_requests():
                 84: 'Policy',
             }
 
+            # Suggested use - from the form
+            use_map = {
+                1: 'Business Use',
+                2: 'Personal Use',
+                3: 'Community Work',
+                4: 'Research',
+                5: 'Other',
+            }
+
             def explain_id_meaning(id_type, id_map,
                                    field_name, field_dict_key,
                                    should_be_one_value=True):
@@ -885,7 +912,14 @@ def dataset_requests():
                         if request.get(field_name) else []
                 except TypeError:
                     import pdb; pdb.set_trace()
-                ids_mapped = [id_map[int(id)] for id in ids]
+                ids_mapped = []
+                for id in ids:
+                    try:
+                        ids_mapped.append(id_map[int(id)])
+                    except KeyError, e:
+                        stats.add('Could not map ID', '%s %s' %
+                                  (int(id), request['nid']))
+                        ids_mapped.append('unknown')
                 if should_be_one_value:
                     if len(ids) == 0:
                         value = None
@@ -912,10 +946,21 @@ def dataset_requests():
                                'field_review_outcome', 'value')
             explain_id_meaning('barriers_reason', reason_map,
                                'field_barriers_reason', 'value')
+            explain_id_meaning('data_use', use_map,
+                               'field_data_use', 'value',
+                               should_be_one_value=False)
             convert_field_category(request, 'field_data_themes')
             #explain_id_meaning('data_theme', data_themes_map,
             #                   'field_data_themes', 'tid',
             #                   should_be_one_value=False)
+
+            if args.drupal_publisher_ids:
+                explain_id_meaning('field_publisher', drupal_publishers,
+                                   'field_publisher_ref', 'id')
+                # if request.get('field_publisher_ref'):
+                #     request['field_publisher'] = drupal_publishers[
+                #     request['field_publisher_ref']['und'][0]['id']
+                #                       'publisher_name')
 
             if request['status'] != '1':
                 print stats.add('Unknown status: %s' % request['status'],
@@ -924,6 +969,27 @@ def dataset_requests():
             # TODO add in comments
             # NB confidential requests are excluded (would need Drupal changes as I get "Access denied for user anonymous" eg for /services/rest/node/3137)
 
+            request_public = dict(
+                nid=request['nid'],  # u'4994',
+                url=request['path'],  # u'https://data.gov.uk/data-request/daily-average-temperature-uk-2014-2016',
+                title=request['title'],
+                submitted_by=request['name'],  # u'Tal',
+                created=request['created'],
+                updated=request['changed'],
+                data_themes=', '.join(request['data_themes']),  # ['Environment', 'Education'],
+                status=request['review_status'],  # 'New'
+                description=request['field_data_set_description']['und'][0]['value'] if request.get('field_data_set_description') else '',  # 'I am doing a masters dissertation...'
+                suggested_use=', '.join(request['data_use']),  # ['Personal Use', 'Research']
+                suggested_use_detail=request['field_data_use_detail']['und'][0]['value'] if request.get('field_data_use_detail') else '',  # 'This would help me complete my dissertation...'
+                benefits_overview=request['field_benefits_overview']['und'][0]['value'] if request.get('field_benefits_overview') else '',  # 'The benefits of the data would mean...'
+
+                # outcome
+                publisher=request['field_publisher']['ckan_publisher_name'] if request['field_publisher'] else '',  # u'the-insolvency-service'
+                dataset_link=request['field_data_set_link']['und'][0]['url'] if request['field_data_set_link'] else '',
+                field_review_notes=request['field_review_notes']['und'][0]['value'] if request.get('field_review_notes') else '',  # 'As the user did not provide a full explanation...'
+            )
+            requests_public.append(request_public)
+
             if not args.request:
                 output_f.write(json.dumps(request) + '\n')
             stats.add('Data Request dumped ok', int(request['nid']))
@@ -931,9 +997,22 @@ def dataset_requests():
             if args.request:
                 pprint(request)
 
+    if not args.request:
+        headers_public = 'nid url title submitted_by created updated data_themes status description suggested_use suggested_use_detail benefits_overview publisher dataset_link field_review_notes'.split()
+        with open(args.public_output_fpath, 'wb') as public_output_f:
+            public_csv_writer = unicodecsv.DictWriter(public_output_f,
+                                                      fieldnames=headers_public,
+                                                      encoding='utf-8')
+            public_csv_writer.writeheader()
+
+            sort_key = lambda r: (r['created'])
+            for request_public in sorted(requests_public, key=sort_key):
+                    public_csv_writer.writerow(request_public)
+
     print '\nData requests:', stats
     if not args.request:
-        print '\nWritten to: %s' % args.output_fpath
+        print '\nWritten to: %s %s' % (args.output_fpath,
+                                       args.public_output_fpath)
     else:
         print '\nNot written due to filter'
 
@@ -969,7 +1048,7 @@ def dataset_comments():
     # Where 'entity_id' is a primary key to a dataset in Drupal database.
 
     # Get list of drupal dataset ids
-    with gzip.open(args.drupal_dataset_ids, 'rb') as f:
+    with open(args.drupal_dataset_ids, 'rb') as f:
         csv_reader = unicodecsv.DictReader(f, encoding='utf8')
         drupal_datasets = {}
         drupal_datasets_by_ckan_id = {}
@@ -1129,7 +1208,7 @@ def convert_dates(data, date_fields, date_format='%Y-%m-%d %H:%M:%S'):
                     float(value)).strftime(date_format)
             except ValueError:
                 converted_date = ''
-        data[key + '_iso'] = value
+        data[key + '_unix'] = value
         data[key] = converted_date
 
 
@@ -1297,10 +1376,16 @@ if __name__ == '__main__':
 
     subparser = subparsers.add_parser('dataset_requests')
     subparser.set_defaults(func=dataset_requests)
+    subparser.add_argument('--drupal_publisher_ids',
+                           help='Location of drupal_publisher_ids.csv')
     subparser.add_argument('--output_fpath',
                            default='dataset_requests.jsonl.gz',
                            help='Location of the output '
                                 'dataset_requests.jsonl.gz file')
+    subparser.add_argument('--public_output_fpath',
+                           default='dataset_requests_public.csv',
+                           help='Location of the public output '
+                                'dataset_requests_public.csv file')
     subparser.add_argument('--request',
                            help='Only do it for a single dataset request'
                                 '(eg "Daily Average temperature UK 2014 to 2016 ")')
@@ -1318,8 +1403,8 @@ if __name__ == '__main__':
     subparser = subparsers.add_parser('dataset_comments')
     subparser.set_defaults(func=dataset_comments)
     subparser.add_argument('--drupal_dataset_ids',
-                           default='drupal_dataset_ids.csv.gz',
-                           help='Location of drupal_dataset_ids.csv.gz')
+                           default='drupal_dataset_ids.csv',
+                           help='Location of drupal_dataset_ids.csv')
     subparser.add_argument('--ckan_dataset_names',
                            default='ckan_dataset_names.csv.gz',
                            help='Location of ckan_dataset_names.csv.gz')

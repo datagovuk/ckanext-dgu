@@ -42,6 +42,11 @@ class SearchIndexing(object):
         log.debug('ITS: %s', pkg_dict['its_dataset'])
 
     @classmethod
+    def add_register(cls, pkg_dict):
+        pkg_dict['register'] = pkg_dict.get('register', False)
+        log.debug('Register: %s', pkg_dict['register'])
+
+    @classmethod
     def add_inventory(cls, pkg_dict):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''
@@ -64,6 +69,8 @@ class SearchIndexing(object):
             pkg_dict['collection'].append('National Information Infrastructure')
         if asbool(pkg_dict.get('its-dataset', False)):
             pkg_dict['collection'].append('Intelligent Transport Systems')
+        if asbool(pkg_dict.get('register', False)):
+            pkg_dict['collection'].append('Registers')
         if dgu_helpers.is_dataset_organogram(pkg_dict):
             pkg_dict['collection'].append('Organogram')
 

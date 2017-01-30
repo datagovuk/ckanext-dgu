@@ -1799,7 +1799,7 @@ def search_facet_tooltip(key,value):
             stars = int(value)
         except ValueError:
             return
-        if stars == -1:
+        if stars == -1 or stars > 5:
             return
         mini_stars = stars * '&#9733'
         mini_stars += '&#9734' * (5-stars)
@@ -2070,6 +2070,16 @@ def is_core_dataset(package):
 def is_its_dataset(package):
     from paste.deploy.converters import asbool
     v = get_from_flat_dict(package['extras'], 'its-dataset')
+    try:
+        return asbool(v)
+    except:
+        pass
+
+    return False
+
+def is_register(package):
+    from paste.deploy.converters import asbool
+    v = get_from_flat_dict(package['extras'], 'register')
     try:
         return asbool(v)
     except:

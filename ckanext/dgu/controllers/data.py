@@ -248,7 +248,8 @@ class DataController(BaseController):
         r = requests.get(url,
                          headers=headers,
                          params=dict(request.params),
-                         stream=True)
+                         stream=True,
+                         timeout=40)
 
         if r.status_code != 200:
             abort(r.status_code)
@@ -518,6 +519,51 @@ class DataController(BaseController):
         fapp = FileApp(filepath, headers=headers)
 
         return fapp(request.environ, self.start_response)
+
+    def random_datasets(self):
+        import random
+        from routes import url_for
+        seed = request.params.get('seed')
+        sample_size = request.params.get('sample_size')
+
+        needs_redirect = False
+        if seed is None:
+            seed = random.randint(1000, 9999)
+            needs_redirect = True
+        if sample_size is None:
+            sample_size = 10
+            needs_redirect = True
+        if needs_redirect:
+            url_params = dict(
+                seed=seed,
+                **request.environ['pylons.routes_dict'])
+            if sample_size:
+                url_params['sample_size'] = sample_size
+            redirect(url_for(**url_params))
+        try:
+            seed = int(seed)
+        except:
+            abort(401, 'Bad seed')
+        random.seed(seed)
+        if sample_size:
+            try:
+                sample_size = int(sample_size)
+            except:
+                abort(401, 'Bad sample_size')
+            dataset_q = \
+                model.Session.query(model.Package.name).\
+                filter_by(state='active').\
+                order_by(model.Package.name)
+            num_datasets = dataset_q.count()
+            dataset_indexes = random.sample(range(num_datasets), sample_size)
+            dataset_names = dataset_q.all()
+            datasets = [dataset_names[i][0] for i in dataset_indexes]
+        else:
+            datasets = None
+        return render('data/random_datasets.html',
+                      extra_vars=dict(sample_size=sample_size,
+                                      datasets=datasets,
+                                      next_seed=random.randint(1000, 9999)))
 
 
 def has_user_got_publisher_permissions():
