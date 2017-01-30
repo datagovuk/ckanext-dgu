@@ -1125,6 +1125,11 @@ def dataset_comments():
             #  u'subject': u'Metadata wrong',
             #  u'uid': u'0'}  # really old comments often have no user attached, such as this one and show as "Visitor"
             for comment in comments:
+                if comment['status'] == u'0':
+                    # means it is hidden (spam)
+                    # e.g. one for bathing-water-surveys-guideline-standards-1994-to-2011
+                    comment['comment'] = '[comment removed]'
+                    comment['subject'] = '[comment removed]'
                 remove_fields_with_unchanging_value(comment, {
                     u'bundle': u'comment',
                     u'deleted': u'0',
