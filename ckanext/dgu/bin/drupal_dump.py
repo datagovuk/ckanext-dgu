@@ -1173,7 +1173,13 @@ def dataset_comments():
             if args.dataset:
                 pprint(dataset)
 
-    print stats
+    print 'CKAN datasets: %s' % len(ckan_datasets_by_id)
+    print '\nComments\n', stats
+    if not args.dataset:
+        print '\nWritten to: %s' % args.output_fpath
+    else:
+        print '\nNot written due to filter'
+
 
 def rename_key(data, key, new_key):
     data[new_key] = data[key]
