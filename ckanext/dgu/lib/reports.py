@@ -94,6 +94,9 @@ nii_report_info = {
     'template': 'report/nii.html',
 }
 
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
+
 
 # Publisher resources
 
@@ -101,61 +104,112 @@ nii_report_info = {
 def publisher_resources(organization=None,
                         include_sub_organizations=False):
     '''
-    Returns a dictionary detailing resources for each dataset in the
-    organisation specified.
+    Details of resources, by publisher
     '''
-    org = model.Group.by_name(organization)
-    if not org:
-        raise p.toolkit.ObjectNotFound('Publisher not found')
+    if not organization:
+        # Index by publisher, with stats on datasets and resources
+        rows = []
 
-    # Get packages
-    pkgs = model.Session.query(model.Package)\
-                .filter_by(state='active')
-    pkgs = lib.filter_by_organizations(pkgs, organization,
-                                       include_sub_organizations).all()
+        all_organizations = model.Session.query(model.Group) \
+            .filter_by(type='organization') \
+            .filter_by(state='active') \
+            .order_by('name') \
+            .all()
+        for org in add_progress_bar(all_organizations):
+            # Get packages
+            pkgs = model.Session.query(model.Package)\
+                        .filter_by(state='active')
+            pkgs = lib.filter_by_organizations(
+                pkgs, org,
+                include_sub_organizations).all()
 
-    # Get their resources
-    def create_row(pkg_, resource_dict):
-        org_ = pkg_.get_organization()
-        return OrderedDict((
-                ('publisher_title', org_.title),
-                ('publisher_name', org_.name),
-                ('package_title', pkg_.title),
-                ('package_name', pkg_.name),
-                ('package_notes', lib.dataset_notes(pkg_)),
-                ('resource_position', resource_dict.get('position')),
-                ('resource_id', resource_dict.get('id')),
-                ('resource_description', resource_dict.get('description')),
-                ('resource_url', resource_dict.get('url')),
-                ('resource_format', resource_dict.get('format')),
-                ('resource_created', resource_dict.get('created')),
-               ))
-    num_resources = 0
-    rows = []
-    for pkg in pkgs:
-        resources = pkg.resources
-        if resources:
-            for res in resources:
-                res_dict = {'id': res.id, 'position': res.position,
-                            'description': res.description, 'url': res.url,
-                            'format': res.format,
-                            'created': (res.created.isoformat()
-                                        if res.created else None)}
-                rows.append(create_row(pkg, res_dict))
-            num_resources += len(resources)
-        else:
-            # packages with no resources are still listed
-            rows.append(create_row(pkg, {}))
+            # Resource stats
+            num_resources = [len(pkg.resources) for pkg in pkgs]
+            row = OrderedDict((
+                ('organization_title', org.title),
+                ('organization_name', org.name),
+                ('num_datasets', len(pkgs)),
+                ('num_resources', sum(num_resources)),
+                ('average_resources_per_dataset', mean(num_resources)),
+                ('max_resources_per_dataset', max(num_resources or [0])),
+                ))
+            rows.append(row)
+        result = {'table': rows}
+        if not include_sub_organizations:
+            # only if you don't include_sub_orgs, otherwise datasets are
+            # double counted
+            total_datasets = sum([row['num_datasets'] for row in rows])
+            num_resources = [row['num_resources'] for row in rows]
+            total_resources = sum(num_resources)
+            average_resources_per_dataset = \
+                float(total_resources) / max(total_datasets, 1)
+            max_resources = max([row['max_resources_per_dataset']
+                                 for row in rows])
 
-    return {'organization_name': org.name,
-            'organization_title': org.title,
-            'num_datasets': len(pkgs),
-            'num_resources': num_resources,
-            'table': rows,
-            }
+            result['num_datasets'] = total_datasets
+            result['num_resources'] = total_resources
+            result['average_resources_per_dataset'] = \
+                average_resources_per_dataset
+            result['max_resources_per_dataset'] = max_resources
+        return result
+    else:
+        # Returns a dictionary detailing resources for each dataset in the
+        # organisation specified.
+        org = model.Group.by_name(organization)
+        if not org:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
+
+        # Get packages
+        pkgs = model.Session.query(model.Package)\
+                    .filter_by(state='active')
+        pkgs = lib.filter_by_organizations(pkgs, organization,
+                                           include_sub_organizations).all()
+
+        # Get their resources
+        def create_row(pkg_, resource_dict):
+            org_ = pkg_.get_organization()
+            return OrderedDict((
+                    ('publisher_title', org_.title),
+                    ('publisher_name', org_.name),
+                    ('package_title', pkg_.title),
+                    ('package_name', pkg_.name),
+                    ('package_notes', lib.dataset_notes(pkg_)),
+                    ('resource_position', resource_dict.get('position')),
+                    ('resource_id', resource_dict.get('id')),
+                    ('resource_description', resource_dict.get('description')),
+                    ('resource_url', resource_dict.get('url')),
+                    ('resource_format', resource_dict.get('format')),
+                    ('resource_created', resource_dict.get('created')),
+                    ))
+        num_resources = []
+        rows = []
+        for pkg in pkgs:
+            resources = pkg.resources
+            if resources:
+                for res in resources:
+                    res_dict = {'id': res.id, 'position': res.position,
+                                'description': res.description, 'url': res.url,
+                                'format': res.format,
+                                'created': (res.created.isoformat()
+                                            if res.created else None)}
+                    rows.append(create_row(pkg, res_dict))
+                num_resources.append(len(resources))
+            else:
+                # packages with no resources are still listed
+                rows.append(create_row(pkg, {}))
+                num_resources.append(0)
+
+        return {'organization_name': org.name,
+                'organization_title': org.title,
+                'num_datasets': len(pkgs),
+                'num_resources': sum(num_resources),
+                'average_resources_per_dataset': mean(num_resources),
+                'max_resources_per_dataset': max(num_resources or [0]),
+                'table': rows,
+                }
 
 def publisher_resources_combinations():
-    for organization in lib.all_organizations():
+    for organization in lib.all_organizations(include_none=True):
         for include_sub_organizations in (False, True):
                 yield {'organization': organization,
                        'include_sub_organizations': include_sub_organizations}
@@ -163,7 +217,7 @@ def publisher_resources_combinations():
 publisher_resources_info = {
     'name': 'publisher-resources',
     'description': 'A list of all the datasets and resources for a publisher.',
-    'option_defaults': OrderedDict((('organization', 'cabinet-office'),
+    'option_defaults': OrderedDict((('organization', None),
                                     ('include_sub_organizations', False))),
     'option_combinations': publisher_resources_combinations,
     'generate': publisher_resources,

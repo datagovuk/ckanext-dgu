@@ -1,8 +1,48 @@
+{% if options['organization'] == None %}
 
+  {% if not include_sub_organizations %}
+  <ul>
+    <li>Datasets: {{data['num_datasets']}}</li>
+    <li>Resources: {{data['num_resources']}}</li>
+    <li>Average resources per dataset: {{'%0.1f' % data['average_resources_per_dataset']}}
+    </li>
+    <li>Maximum resources per dataset: {{data['max_resources_per_dataset']}}
+    </li>
+  </ul>
+  {% endif %}
+
+  <table class="table table-bordered table-condensed" id="report-table" style="width: 100%; table-layout: fixed;">
+   <thead>
+      <tr class="js-tooltip">
+        <th style="width: 120px">Publisher</th>
+        <th style="width: 60px">Datasets</th>
+        <th style="width: 60px">Resources</th>
+        <th style="width: 60px">Average resources per dataset</th>
+        <th style="width: 60px">Max resources per dataset</th>
+      </tr>
+   </thead>
+   <tbody style="word-wrap: break-word;">
+      {% for row_dict in data['table'] %}
+      <tr>
+        <td>{{ h.link_to(row_dict['organization_title'], h.relative_url_for(organization=row_dict['organization_name'])) }}
+        <a href="/publisher/{{row_dict['organization_name']}}">(Publisher)</a></td>
+        <td>{{row_dict.get('num_datasets')}}</td>
+        <td>{{row_dict.get('num_resources')}}</td>
+        <td>{{'%0.0f' % row_dict.get('average_resources_per_dataset')}}</td>
+        <td>{{row_dict.get('max_resources_per_dataset')}}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
 
   <ul>
     <li>Datasets: {{data['num_datasets']}}</li>
     <li>Resources: {{data['num_resources']}}</li>
+    <li>Average resources per dataset: {{'%0.1f' % data['average_resources_per_dataset']}}
+    </li>
+    <li>Maximum resources per dataset: {{data['max_resources_per_dataset']}}
   </ul>
 
   <table class="table table-bordered table-condensed" id="report-table" style="width: 100%; table-layout: fixed;">
@@ -34,3 +74,4 @@
     </tbody>
   </table>
 
+{% endif %}
