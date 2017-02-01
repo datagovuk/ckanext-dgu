@@ -1,6 +1,6 @@
 {% if options['organization'] == None %}
 
-  {% if not include_sub_organizations %}
+  {% if not options['include_sub_organizations'] %}
   <ul>
     <li>Datasets: {{data['num_datasets']}}</li>
     <li>Resources: {{data['num_resources']}}</li>
