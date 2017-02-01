@@ -4,7 +4,7 @@
   <ul>
     <li>Datasets: {{data['num_datasets']}}</li>
     <li>Resources: {{data['num_resources']}}</li>
-    <li>Average resources per dataset: {{'%0.1f' % data['average_resources_per_dataset']}}
+    <li>Average resources per dataset: {{ data['average_resources_per_dataset']|round(1)}}
     </li>
     <li>Maximum resources per dataset: {{data['max_resources_per_dataset']}}
     </li>
@@ -28,7 +28,7 @@
         <a href="/publisher/{{row_dict['organization_name']}}">(Publisher)</a></td>
         <td>{{row_dict.get('num_datasets')}}</td>
         <td>{{row_dict.get('num_resources')}}</td>
-        <td>{{'%0.0f' % row_dict.get('average_resources_per_dataset')}}</td>
+        <td>{{row_dict.get('average_resources_per_dataset')|round()|int}}</td>
         <td>{{row_dict.get('max_resources_per_dataset')}}</td>
       </tr>
       {% endfor %}
@@ -40,7 +40,7 @@
   <ul>
     <li>Datasets: {{data['num_datasets']}}</li>
     <li>Resources: {{data['num_resources']}}</li>
-    <li>Average resources per dataset: {{'%0.1f' % data['average_resources_per_dataset']}}
+    <li>Average resources per dataset: {{data.get('average_resources_per_dataset', 0)|round(1)}}
     </li>
     <li>Maximum resources per dataset: {{data['max_resources_per_dataset']}}
   </ul>
