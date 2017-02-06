@@ -1,5 +1,16 @@
 '''
 Tool to dump info about publishers and users from ckan database.
+
+Install:
+
+pip install pymongo==3.4.0
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu precise/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo service mongod start
+
+
 '''
 from __future__ import print_function
 import argparse
@@ -8,6 +19,8 @@ import datetime
 import gzip
 import re
 import traceback
+# see install instructions above
+from pymongo import MongoClient
 
 from running_stats import Stats
 import common
@@ -157,10 +170,19 @@ def read_jsonl(filepath):
             count += 1
 
 
-class Events(dict):
+class DataStore(dict):
+    db = None
+
+    @classmethod
+    def get_mongo_db(cls):
+        if cls.db = None:
+            client = MongoClient()
+            cls.db = client.publisher_profiles
+
     def add(self, date, name, action, params):
-        identity = self.event_identity(date, name, action)
-        self[identity] = (date, name, action, params)
+        event = dict(
+            date=date, name=name, action=action, **params)
+        DataStore.db.events.insert_one(event)
         pprint((date, name, action, params))
 
     @classmethod
