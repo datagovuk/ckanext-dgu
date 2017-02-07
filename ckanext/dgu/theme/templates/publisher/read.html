@@ -93,9 +93,6 @@
 
               <li><a href="/data/site-usage/publisher/{{ c.group.name }}">Usage</a></li>
               <li><a href="{{ h.url_for('report-org', report_name='publisher-activity', organization=c.group.name) }}">Activity</a></li>
-              {% if h.issues_enabled_for_organization({'name': c.group.name}) %}
-              <li><a href="{{ h.url_for('issues_for_organization', org_id=c.group.name) }}">Issues</a></li>
-              {% endif %}
             </ul>
           </div>
         </div>
