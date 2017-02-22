@@ -19,10 +19,12 @@ import gzip
 import re
 import traceback
 import sys
-from collections import defaultdict
+from collections import OrderedDict
+import unicodecsv
 
 # see install instructions above
 from pymongo import MongoClient
+from pymongo.errors import OperationFailure
 from sqlalchemy import distinct
 from sqlalchemy import func
 
@@ -42,6 +44,26 @@ EVENT_TYPES = [
     'dataset-updated',
     ]
 
+QUARTER_PROJECTION = {
+    '$concat': [
+        {'$substr': [{'$year': '$date'}, 0, 4]},  # substr casts int to str
+        '-',
+        {'$cond': [{'$lte': [{'$month': '$date'}, 3]},
+                   'Q1',
+                   {'$cond': [{'$lte': [{'$month': '$date'}, 6]},
+                              'Q2',
+                              {'$cond': [{'$lte': [{'$month': '$date'}, 9]},
+                                         'Q3',
+                                         'Q4']}]}]
+        },
+        ]
+   }
+USER_OR_HARVESTED_PROJECTION = {
+    '$cond': ['$harvested',
+              'harvested',
+              '$user_name'
+              ]
+}
 
 def mine_ckan_db():
     ds = DataStore.instance()
@@ -178,6 +200,8 @@ def mine_ckan_db():
                     or Organizations.instance().get_name_by_title(org) \
                     or org or ''
                 harvested = is_harvested(pr.creator_user_id)
+                if not date:
+                    import pdb; pdb.set_trace()
                 ds.add_event(
                     date, user_name, 'dataset-updated',
                     dict(dataset_name=pr.name,
@@ -362,37 +386,100 @@ def print_summary():
     print('Count: {} of {}'.format(ds.db.events.find(filter_).count(),
                                    ds.db.events.count()))
 
-    print('dataset-created:')
-    for e in ds.db.events.aggregate([
+    def run_query(grouping, project=None, print_it=True):
+        aggregate_pipeline = [
             {'$match': filter_},
-            {'$group': {'_id': {'year': {'$year': '$date'}},
-                        'count': {'$sum': 1}}},
+            ]
+        if project:
+            aggregate_pipeline.append(
+            {'$project': project or {}}
+            )
+        aggregate_pipeline.extend([
+            {'$group': {'_id': grouping,
+                        'count': {'$sum': 1},
+                        }
+                        },
             {'$sort': {'_id': -1}},
-            ]):
-        print(e)
-    print('harvested:')
-    for e in ds.db.events.aggregate([
-            {'$match': filter_},
-            {'$match': {'harvested': True}},
-            {'$group': {'_id': {'year': {'$year': '$date'}},
-                        'count2': {'$sum': 1}}},
-            {'$sort': {'_id': -1}},
-            ]):
-        print(e)
+            ])
+        try:
+            results = ds.db.events.aggregate(aggregate_pipeline)
+        except OperationFailure, e:
+            print('Fail {}'.format(e))
+            import pdb; pdb.set_trace()
+            for ev in ds.db.events.find(filter_):
+                if not ev.get('date'):
+                    print('No date: {}'.format(ev))
+                    import pdb; pdb.set_trace()
+        if print_it:
+            for result in results:
+                print(result)
+
+    print('\noverall:')
+    run_query({})
+
+    print('\nover time:')
+    project = None
+    if args.time_divisions == 'years':
+        grouping = OrderedDict({'year': {'$year': '$date'}})
+    elif args.time_divisions == 'months':
+        grouping = OrderedDict({'month': {'$month': '$date'},
+                                'year': {'$year': '$date'}})
+    elif args.time_divisions == 'quarters':
+        project = {
+            'harvested': 1,
+            'organization_name': 1,
+            'date': 1,
+            'quarter': QUARTER_PROJECTION,
+        }
+        grouping = OrderedDict((('year', {'$year': '$date'}),
+                                ('quarter', '$quarter')))
+    run_query(grouping, project)
+
+    print('\nharvest-breakdown:')
+    grouping['harvested'] = {'harvested': '$harvested'}
+    run_query(grouping, project)
+
+    # print('\norganization:')
+    # grouping['org'] = {'org': '$organization_name'}
+    # run_query(grouping, project, print_it=False)
+
 
 def print_by_org():
     ds = DataStore.instance()
     print('Events')
     filter_ = get_filter()
-    for e in ds.db.events.aggregate([
-            {'$match': filter_},
-            {'$group': {'_id': {'organization_name': '$organization_name',
-                                'user_name': '$user_name',
-                                'harvested': '$harvested'},
-                        'count': {'$sum': 1}}},
-            {'$sort': {'_id': 1}},
-            ]):
+    aggregate_pipeline = [
+        {'$match': filter_},
+        {'$project': {
+            'harvested': 1,
+            'organization_name': 1,
+            'user_or_harvested': USER_OR_HARVESTED_PROJECTION,
+            'quarter': QUARTER_PROJECTION,
+            }},
+        {'$group': {'_id': OrderedDict((
+            ('organization_name', '$organization_name'),
+            ('user_or_harvested', '$user_or_harvested'),
+            ('quarter', '$quarter'),
+            )),
+                    'count': {'$sum': 1}}},
+        {'$sort': {'_id': 1}},
+        ]
+    out_rows = []
+    for e in ds.db.events.aggregate(aggregate_pipeline):
         print(e)
+        out_row = e[u'_id']
+        out_row['count'] = e[u'count']
+        out_rows.append(out_row)
+    headers = ['organization_name', 'user_or_harvested', 'quarter', 'count']
+    out_filename = args.output_csv
+    with open(out_filename, 'wb') as f:
+        csv_writer = unicodecsv.DictWriter(f,
+                                           fieldnames=headers,
+                                           encoding='utf-8')
+        csv_writer.writeheader()
+        for row in out_rows:
+            csv_writer.writerow(row)
+    print('Written', out_filename)
 
 
 def print_events():
@@ -665,9 +752,15 @@ if __name__ == '__main__':
     subparser.set_defaults(func=reset_db)
 
     subparser = subparsers.add_parser('print-summary')
+    subparser.add_argument('--time-divisions',
+                           choices=['years', 'months', 'quarters'],
+                           default='months')
     subparser.set_defaults(func=print_summary)
 
     subparser = subparsers.add_parser('print-by-org')
+    subparser.add_argument('--output-csv',
+                           default='publisher_profiles.csv',
+                           help='Output csv filename')
     subparser.set_defaults(func=print_by_org)
 
     subparser = subparsers.add_parser('print-events')
