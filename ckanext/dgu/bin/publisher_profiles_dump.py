@@ -42,7 +42,6 @@ EVENT_TYPES = [
     'dataset-updated',
     ]
 
-THIS_YEAR = datetime.datetime(2017, 1, 1, 0, 0, 0)
 
 def mine_ckan_db():
     ds = DataStore.instance()
@@ -109,9 +108,9 @@ def mine_ckan_db():
             if args.dataset:
                 create_prs = [pr for pr in create_prs
                               if pr.name == args.dataset]
-            if args.thisyear:
+            if args.since:
                 create_prs = [pr for pr in create_prs
-                              if pr.revision_timestamp > THIS_YEAR]
+                              if pr.revision_timestamp > args.since]
             for id_, name, date, owner_org, creator_user_id, author in common.add_progress_bar(create_prs):
                 if owner_org:
                     org_name = \
@@ -127,7 +126,7 @@ def mine_ckan_db():
                          organization_name=org_name,
                          harvested=harvested,
                          ),
-                    print_it=True
+                    print_it=False
                     )
 
         if args.event == 'dataset-updated':
@@ -161,8 +160,8 @@ def mine_ckan_db():
                 prs = prs.filter(model.PackageRevision.owner_org==org_id)
             if args.dataset:
                 prs = prs.filter(model.PackageRevision.name==args.dataset)
-            if args.thisyear:
-                prs = prs.filter_by(revision_timestamp > THIS_YEAR)
+            if args.since:
+                prs = prs.filter(model.PackageRevision.revision_timestamp > args.since)
             prs = prs\
                 .limit(args.limit)\
                 .all()
@@ -196,13 +195,15 @@ def mine_ckan_db():
                 .join(model.Package)
             if args.dataset:
                 ers = ers.filter(model.Package.name==args.dataset)
-            if args.thisyear:
-                ers = ers.filter_by(revision_timestamp > THIS_YEAR)
+            if args.since:
+                ers = ers.filter(
+                    model.PackageExtraRevision.revision_timestamp > args.since)
             ers = ers\
-                .limit(args.limit)\
-                .all()
-            print('...done {}'.format(len(ers)))
-            for er in common.add_progress_bar(ers):
+                .limit(args.limit)
+            count = ers.count()
+            print('...done {}'.format(count))
+            for er in common.add_progress_bar(ers.yield_per(1000),
+                                              maxval=count):
                 if er.revision_id in skip_revision_ids:
                     continue
                 skip_revision_ids.add(er.revision_id)
@@ -231,15 +232,17 @@ def mine_ckan_db():
                 .order_by(model.ResourceRevision.revision_timestamp.desc(), model.ResourceRevision.revision_id)\
                 .join(model.ResourceGroup)\
                 .join(model.Package)
-            if args.thisyear:
-                rrs = rrs.filter_by(revision_timestamp > THIS_YEAR)
+            if args.since:
+                rrs = rrs.filter(
+                    model.ResourceRevision.revision_timestamp > args.since)
             if args.dataset:
                 rrs = rrs.filter(model.Package.name==args.dataset)
             rrs = rrs\
-                .limit(args.limit)\
-                .all()
-            print('...done {}'.format(len(rrs)))
-            for rr in common.add_progress_bar(rrs):
+                .limit(args.limit)
+            count = rrs.count()
+            print('...done {}'.format(count))
+            for rr in common.add_progress_bar(rrs.yield_per(1000),
+                                              maxval=count):
                 if rr.revision_id in skip_revision_ids:
                     continue
                 skip_revision_ids.add(rr.revision_id)
@@ -627,7 +630,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(help='Command')
     parser.add_argument('--limit', type=int, help='Limit queries')
-    parser.add_argument('--thisyear', help='Limit queries to this year')
+    parser.add_argument('--since',
+                        type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d'),
+                        metavar='YYYY-MM-DD',
+                        help='Limit queries to events since the given date')
     parser.add_argument('--event', choices=EVENT_TYPES,
                         help='Only one event type')
     parser.add_argument('--org', '--organization-name',
