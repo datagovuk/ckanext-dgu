@@ -31,7 +31,6 @@ from sqlalchemy import func
 from running_stats import Stats
 import common
 
-
 args = None
 stats = Stats()
 
@@ -55,9 +54,9 @@ QUARTER_PROJECTION = {
                               {'$cond': [{'$lte': [{'$month': '$date'}, 9]},
                                          'Q3',
                                          'Q4']}]}]
-        },
+         },
         ]
-   }
+    }
 USER_OR_HARVESTED_PROJECTION = {
     '$cond': ['$harvested',
               'harvested',
@@ -375,6 +374,74 @@ def mine_drupal_users():
                 login_date = datetime.datetime.fromtimestamp(
                     float(user['login']))
                 ds.add_event(login_date, user['name'], 'login', None)
+
+def update_ckan_users():
+    '''
+    e.g.
+    {
+      "sysadmin": true,
+      "state": "active",
+      "password_hash": null,
+      "email": "david@blah.com",
+      "display_name": "davidread",
+      "datasets": [ ... ],
+      "about": "User account imported from Drupal system.",
+      "email_hash": "d6fa5b63ffe634c3263bf73d76fb39de",
+      "fullname": "davidread",
+      "id": "c895ed6d-xyz",
+      "name": "user_d845",
+      "num_followers": 0,
+      "number_administered_packages": 5,
+      "number_of_edits": 5094,
+      "openid": null
+    }
+    '''
+    ckan_users = common.parse_jsonl(args.ckan_users)
+    ckan_users_collection = DataStore.instance().db.ckan_users
+    for ckan_user in ckan_users:
+        # upsert
+        filter_ = {"id": ckan_user['id']}
+        ckan_users_collection.replace_one(filter_, ckan_user, upsert=True)
+
+def update_drupal_user_table():
+    '''
+    e.g.
+    {u'access': u'1485792509',
+     u'created': u'1262863209',
+     u'data': u'a:4:{s:7:\\contact\\";i:1;s:14:\\"picture_delete\\";s:0:\\"\\";s:14:\\"picture_upload\\";s:0:\\"\\";s:15:\\"ckan_publishers\\";a:2:{i:29;s:6:\\"editor\\";i:361;s:6:\\"editor\\";}}"',
+     u'init': u'd.t.read@blah.com',
+     u'language': u'',
+     u'login': u'1485770410',
+     u'mail': u'david.read@blah.com',
+     u'name': u'davidread',
+     u'pass': u'$S$Dy80Vp0blah',
+     u'picture': u'0',
+     u'signature': u'',
+     u'signature_format': u'plain_text',
+     u'status': u'1',
+     u'theme': u'',
+     u'timezone': u'Europe/London',
+     u'uid': u'845'}
+    '''
+    drupal_users_collection = DataStore.instance().db.drupal_users
+    with gzip.open(args.drupal_users_table, 'rb') as f:
+        csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+        for user in csv_reader:
+            # upsert
+            if user['uid'] == '845':
+                pprint(user)
+            filter_ = {"uid": user['uid']}
+            drupal_users_collection.replace_one(filter_, user, upsert=True)
+
+def update_organizations():
+    collection = DataStore.instance().db.organizations
+    with gzip.open(args.drupal_users_table, 'rb') as f:
+        csv_reader = unicodecsv.DictReader(f, encoding='utf8')
+        for org in csv_reader:
+            # upsert
+            filter_ = {"id": org['id']}
+            collection.replace_one(filter_, org, upsert=True)
+
 def reset_db():
     DataStore.instance().wipe_events()
     print('Events wiped')
@@ -740,13 +807,31 @@ if __name__ == '__main__':
     subparser.add_argument('logfile', help='ckan log file for analysis')
     subparser.set_defaults(func=mine_ckan_log)
 
-    subparser = subparsers.add_parser('drupal-users',
+    subparser = subparsers.add_parser('mine-drupal-users',
                                       help='Mines drupal users')
     subparser.add_argument('--drupal-users-jsonl',
                            default='drupal_users.jsonl.gz',
                            help='Location of the input '
                                 'apps_public.jsonl.gz file')
     subparser.set_defaults(func=mine_drupal_users)
+
+    subparser = subparsers.add_parser('update-ckan-users',
+                                      help='Updates the users info in mongo')
+    subparser.add_argument('ckan_users',
+                           help='Filepath of ckan users.jsonl.gz')
+    subparser.set_defaults(func=update_ckan_users)
+
+    subparser = subparsers.add_parser('update-drupal-users-table',
+                                      help='Updates the users info in mongo')
+    subparser.add_argument('drupal_users_table',
+                           help='Filepath of drupal_users_table.csv.gz')
+    subparser.set_defaults(func=update_drupal_user_table)
+
+    subparser = subparsers.add_parser('update-organizations',
+                                      help='Updates the organization info in mongo (including editors/admins)')
+    subparser.add_argument('organizations',
+                           help='Filepath of data.gov.uk-ckan-meta-data-latest.organizations.jsonl.gz')
+    subparser.set_defaults(func=update_organizations)
 
     subparser = subparsers.add_parser('reset-db')
     subparser.set_defaults(func=reset_db)

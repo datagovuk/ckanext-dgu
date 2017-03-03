@@ -228,3 +228,21 @@ def add_progress_bar(iterable, maxval=None, caption=None):
         return bar(iterable)
     except ImportError:
         return iterable
+
+def parse_jsonl(filepath):
+    '''Opens a JSONL file and yields each line as python dict/list'''
+    with gzip.open(filepath, 'rb') as f:
+        while True:
+            line = f.readline()
+            if line == '':
+                break
+            line = line.rstrip('\n')
+            if not line:
+                continue
+            try:
+                yield json.loads(line,
+                                 encoding='utf8')
+            except Exception:
+                traceback.print_exc()
+                import pdb
+                pdb.set_trace()
