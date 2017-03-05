@@ -21,6 +21,8 @@ from ckanext.dgu.drupalclient import (
 from running_stats import Stats
 import common
 
+parse_jsonl = common.parse_jsonl
+
 args = None
 stats = Stats()
 
@@ -1289,24 +1291,6 @@ def convert_field_category(data, key='field_category'):
 def remove_fields(data, *keys_to_remove):
     for key in keys_to_remove:
         del data[key]
-
-
-def parse_jsonl(filepath):
-    with gzip.open(filepath, 'rb') as f:
-        while True:
-            line = f.readline()
-            if line == '':
-                break
-            line = line.rstrip('\n')
-            if not line:
-                continue
-            try:
-                yield json.loads(line,
-                                 encoding='utf8')
-            except Exception:
-                traceback.print_exc()
-                import pdb
-                pdb.set_trace()
 
 
 def get_drupal_client():
