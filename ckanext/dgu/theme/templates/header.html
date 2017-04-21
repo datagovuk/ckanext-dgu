@@ -97,7 +97,6 @@
       <ul class="subnav subnav-data {{ 'active' if not is_home }}">
         <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/search') or url.startswith('/dataset/') }}" href="{{ h.url_for(controller='package', action='search') }}">Datasets</a></li>
         <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
-        <li><a class="subnav-item subnav-data-item" href="/data-request">Data Requests</a></li>
         <li><a class="subnav-item subnav-data-item {{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
         <li><a class="subnav-item subnav-data-item" href="https://data.gov.uk/data/api">Data API</a></li>
         <li><a class="subnav-item subnav-data-item" href="/organogram/cabinet-office">Organograms</a></li>
