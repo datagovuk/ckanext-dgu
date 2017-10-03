@@ -91,6 +91,7 @@ setup(
         publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
         schema = ckanext.dgu.commands.schema:Schema
         user_sync = ckanext.dgu.commands.user_sync:UserSync
+        updated_harvested_schema = ckanext.dgu.commands.update_harvested_schema:UpdateHarvestedSchema
     """,
     test_suite = 'nose.collector',
 )
