@@ -1,9 +1,10 @@
 # In ckanext-dgu/ckanext/dgu/commands.py
 
 import os
-import csv
 import logging
+import json
 from ckan.lib.cli import CkanCommand
+import ckanext.dgu.model.schema_codelist as schema_model
 
 log = logging.getLogger('ckanext')
 
@@ -30,23 +31,26 @@ class UpdateHarvestedSchema(CkanCommand):
         log.info("Database access initialised")
 
         schema_urls = {}
-        for schema in model.Session.query(model.Schema).all():
-            schema_urls[schema.url] = schema
+        for schema in model.Session.query(schema_model.Schema).all():
+            schema_urls[schema.url] = schema.id
+
         log.info("Schema loaded, found {}".format(len(schema_urls)))
 
         count = 0
         q = model.Session.query(model.Resource)\
             .filter(model.Resource.url.in_(schema_urls.keys()))\
-            .filter(model.Resource.state == 'active').all()
+            .filter(model.Resource.state == 'active')
         for resource in q.all():
-            dataset = resource.related_packages[0]
+            dataset = resource.related_packages()[0]
+            print "Processing {}".format(dataset.name)
 
             extras = dict([(key, value) for key, value in dataset.extras.items()])
             if not extras.get('schema'):
                 dataset.extras['schema'] = json.dumps([schema_urls[resource.url]])
+                print dataset.extras['schema']
                 dataset.save()
                 count +=1
 
         if count:
             model.Session.commit()
-        log.info("Updated % datasets" % count)
+        log.info("Updated %d datasets" % count)
