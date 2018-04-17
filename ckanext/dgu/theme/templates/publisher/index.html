@@ -58,7 +58,7 @@
             <button class="btn btn-xs btn-default js-collapse"><i class="icon icon-minus"></i></button>
           {% endif %}
           <div class="publisher-row {% if closed %}closed{% endif %}">
-            <a href="/publisher/{{ pub['name'] }}">
+            <a href="/search?q=&filters[publisher]={{ pub['title'] }}">
               {{ pub['title'] }}
               {% if publisher_abbreviations.get(pub['id']) %}
                 ({{ publisher_abbreviations.get(pub['id']) }})
