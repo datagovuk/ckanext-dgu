@@ -228,7 +228,7 @@
 
     {% call m.search_form(
         placeholder='Search publisher',
-        set_fields={'publisher':c.group.name},
+        set_fields={'publisher':c.group.title},
       ) %}
       <label class="checkbox" id="publisher-extra-options">
         <input type="checkbox" name="publisher-results-include-subpub" class="inline" />
