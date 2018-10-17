@@ -1,13 +1,14 @@
 import logging
 import re
-import urllib2
 import socket
-import httplib
 from lxml import etree
 import traceback
 import urlparse
 import urllib
 import json
+
+import requests
+from urllib3.contrib import pyopenssl
 
 from owslib import wms as owslib_wms
 
@@ -16,7 +17,7 @@ import ckan.plugins as p
 
 log = logging.getLogger(__name__)
 
-MAX_BYTES_READ_DURING_WMS_CHECK = 10000000  # 10 MB
+pyopenssl.inject_into_urllib3()
 
 
 def hash_a_dict(dict_):
@@ -151,29 +152,14 @@ def _try_wms_url(url, version='1.3'):
         capabilities_url = wms_capabilities_url(url, version)
         log.debug('WMS check url: %s', capabilities_url)
         try:
-            res = urllib2.urlopen(capabilities_url, None, 10)
-            xml = res.read(MAX_BYTES_READ_DURING_WMS_CHECK + 1)
-        except urllib2.HTTPError, e:
-            # e.g. http://aws2.caris.com/sfs/services/ows/download/feature/UKHO_TS_DS
-            log.info('WMS check for %s failed due to HTTP error status "%s". Response body: %s', capabilities_url, e, e.read())
-            return False
-        except urllib2.URLError, e:
-            log.info('WMS check for %s failed due to HTTP connection error "%s".', capabilities_url, e)
-            return False
-        except socket.timeout, e:
-            log.info('WMS check for %s failed due to HTTP connection timeout error "%s".', capabilities_url, e)
-            return None
-        except socket.error, e:
-            log.info('WMS check for %s failed due to HTTP socket connection error "%s".', capabilities_url, e)
-            return False
-        except httplib.HTTPException, e:
+            res = requests.get(capabilities_url)
+            res.raise_for_status()
+            xml = res.content
+        except requests.exceptions.RequestException, e:
             log.info('WMS check for %s failed due to HTTP error "%s".', capabilities_url, e)
             return False
         if not xml.strip():
             log.info('WMS check for %s failed due to empty response')
-            return False
-        if len(xml) > MAX_BYTES_READ_DURING_WMS_CHECK:
-            log.info('WMS check for %s failed due to the response being too large (>%s bytes)', capabilities_url, MAX_BYTES_READ_DURING_WMS_CHECK)
             return False
         # owslib only supports reading WMS 1.1.1 (as of 10/2014)
         if version == '1.1.1':
@@ -238,26 +224,11 @@ def _wms_base_urls(url):
         # can't use OWSLIB to parse the result though.
         try:
             log.debug('WMS base url check: %s', capabilities_url)
-            res = urllib2.urlopen(capabilities_url, None, 10)
-            xml_str = res.read(MAX_BYTES_READ_DURING_WMS_CHECK + 1)
-        except urllib2.HTTPError, e:
-            # e.g. http://aws2.caris.com/sfs/services/ows/download/feature/UKHO_TS_DS
-            log.info('WMS check for %s failed due to HTTP error status "%s". Response body: %s', capabilities_url, e, e.read())
-            return False, set()
-        except urllib2.URLError, e:
-            log.info('WMS check for %s failed due to HTTP connection error "%s".', capabilities_url, e)
-            return False, set()
-        except socket.timeout, e:
-            log.info('WMS check for %s failed due to HTTP connection timeout error "%s".', capabilities_url, e)
-            return False, set()
-        except socket.error, e:
-            log.info('WMS check for %s failed due to HTTP connection socket error "%s".', capabilities_url, e)
-            return False, set()
-        except httplib.HTTPException, e:
+            res = requests.get(capabilities_url)
+            res.raise_for_status()
+            xml_str = res.content
+        except requests.exceptions.RequestException, e:
             log.info('WMS check for %s failed due to HTTP error "%s".', capabilities_url, e)
-            return False
-        if len(xml_str) > MAX_BYTES_READ_DURING_WMS_CHECK:
-            log.info('WMS check for %s failed due to the response being too large (>%s bytes)', capabilities_url, MAX_BYTES_READ_DURING_WMS_CHECK)
             return False
         parser = etree.XMLParser(remove_blank_text=True)
         try:
