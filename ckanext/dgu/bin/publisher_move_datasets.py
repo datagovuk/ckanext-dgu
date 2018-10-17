@@ -43,7 +43,7 @@ class MoveDatasets(object):
         assert source_org
         assert dest_org
         search_results = toolkit.get_action('package_search')(
-            data_dict=dict(fq='publisher:%s' % source_org['name'], rows=100))
+            data_dict=dict(fq='publisher:%s' % source_org['name'], rows=1000))
         print 'Datasets: %s' % search_results['count']
         stats = Stats()
         if len(search_results['results']) != search_results['count']:
