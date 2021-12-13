@@ -46,7 +46,7 @@
 GeoAlchemy>=0.6
 Shapely>=1.2.13
 owslib
-lxml==3.4.4
+lxml==4.6.5
 argparse
 # Selenium driver for Python
 selenium==2.28.0
