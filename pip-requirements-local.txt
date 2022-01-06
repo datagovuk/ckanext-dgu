@@ -25,4 +25,4 @@ nltk
 GitPython==0.3.2.RC1
 
 # Celery for inventory processing
-celery==2.4.2
+celery==5.2.2
