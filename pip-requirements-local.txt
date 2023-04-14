@@ -22,7 +22,7 @@ beautifulsoup4
 nltk
 
 # Git Python for UK Gov Linked Data
-GitPython==0.3.2.RC1
+GitPython==3.1.30
 
 # Celery for inventory processing
 celery==2.4.2
